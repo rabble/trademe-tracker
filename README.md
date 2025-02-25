@@ -2,21 +2,7 @@
 
 A web application that automatically tracks favorited properties from TradeMe, primarily residential and land listings.
 
-## Features
-
-- Track property data over time
-- Store historical information including images and descriptions
-- Visualize properties on maps and in various formats
-- AI-generated insights about properties
-
-## Tech Stack
-
-- Frontend: React with Vite, Tailwind CSS
-- Backend: Cloudflare Workers
-- Database: Supabase PostgreSQL
-- Authentication: Supabase Auth
-
-## Getting Started
+## Project Setup
 
 ### Prerequisites
 
@@ -47,11 +33,28 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 npm run dev
 ```
 
-## Development
+## Project Structure
+
+- `src/components/` - React components
+- `src/hooks/` - Custom React hooks
+- `src/pages/` - Page components
+- `src/utils/` - Utility functions
+- `src/services/` - API services
+- `src/types/` - TypeScript type definitions
+
+## Available Scripts
 
 - `npm run dev` - Start the development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview the production build locally
+
+## Tech Stack
+
+- Frontend: React with Vite
+- Styling: Tailwind CSS
+- Routing: React Router
+- Backend: Supabase
+- Language: TypeScript
 
 ## License
 
