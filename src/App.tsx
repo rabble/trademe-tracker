@@ -13,9 +13,12 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Public routes */}
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/reset-password" element={<PasswordResetForm />} />
+        
+        {/* Protected routes */}
         <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
           <Route index element={<DashboardPage />} />
           <Route path="/properties" element={<PropertiesPage />} />
