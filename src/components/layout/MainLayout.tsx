@@ -1,8 +1,8 @@
 import { useAuth } from '../../hooks/useAuth'
 import { useLogout } from '../../hooks/useLogout'
-import { Link } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 
-export function MainLayout({ children }: { children: React.ReactNode }) {
+export function MainLayout() {
   const { user } = useAuth()
   const { logout, loading: logoutLoading } = useLogout()
 
@@ -55,7 +55,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         {/* Main content */}
         <main className="flex-1 ml-64">
           <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-            {children}
+            <Outlet />
           </div>
         </main>
       </div>
