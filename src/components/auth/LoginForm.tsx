@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useLogin } from '../../hooks/useLogin'
 
 export function LoginForm() {
@@ -18,6 +19,12 @@ export function LoginForm() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to your account
           </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Or{' '}
+            <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+              create a new account
+            </Link>
+          </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
@@ -40,6 +47,14 @@ export function LoginForm() {
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
               />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end">
+            <div className="text-sm">
+              <Link to="/reset-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+                Forgot your password?
+              </Link>
             </div>
           </div>
 
