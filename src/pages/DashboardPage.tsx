@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { PropertyCard } from '../components/property/PropertyCard'
 
 export function DashboardPage() {
@@ -90,9 +91,9 @@ export function DashboardPage() {
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-900">Recent Properties</h2>
-          <button className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+          <Link to="/properties" className="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
             View All Properties
-          </button>
+          </Link>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
