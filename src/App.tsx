@@ -1,7 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { LoginForm } from './components/auth/LoginForm'
-import { RegisterForm } from './components/auth/RegisterForm'
-import { PasswordResetForm } from './components/auth/PasswordResetForm'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { MainLayout } from './components/layout/MainLayout'
 import { DashboardPage } from './pages/DashboardPage'
@@ -13,12 +10,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<RegisterForm />} />
-        <Route path="/reset-password" element={<PasswordResetForm />} />
-        
-        {/* Protected routes */}
+        {/* All routes are now "protected" but authentication is bypassed */}
         <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
           <Route index element={<DashboardPage />} />
           <Route path="/properties" element={<PropertiesPage />} />

@@ -5,7 +5,9 @@ import { useState } from 'react'
 
 export function MainLayout() {
   const { user } = useAuth()
-  const { logout, loading: logoutLoading } = useLogout()
+  // Simplified logout that doesn't actually call Supabase
+  const logout = () => console.log('Logout clicked')
+  const logoutLoading = false
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
   
