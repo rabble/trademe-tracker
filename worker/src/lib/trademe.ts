@@ -136,10 +136,20 @@ export class TradeMe {
         }
         
         // Fill in the login form within the iframe
-        await loginFrame.type('#Email', this.username);
-        await loginFrame.type('#Password', this.password);
+        await loginFrame.evaluate((username) => {
+          const emailField = document.querySelector('#Email');
+          if (emailField) (emailField as HTMLInputElement).value = username;
+        }, this.username);
+        
+        await loginFrame.evaluate((password) => {
+          const passwordField = document.querySelector('#Password');
+          if (passwordField) (passwordField as HTMLInputElement).value = password;
+        }, this.password);
         
         console.log('Submitting login form...');
+        
+        // Small delay to ensure values are set
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Submit the form
         await Promise.all([
