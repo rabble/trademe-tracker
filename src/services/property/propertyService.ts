@@ -51,11 +51,13 @@ export const PropertyService = {
         }
 
         if (filters.minPrice !== undefined) {
-          filteredProperties = filteredProperties.filter(p => p.price >= filters.minPrice);
+          const minPrice = filters.minPrice;
+          filteredProperties = filteredProperties.filter(p => p.price >= minPrice);
         }
 
         if (filters.maxPrice !== undefined) {
-          filteredProperties = filteredProperties.filter(p => p.price <= filters.maxPrice);
+          const maxPrice = filters.maxPrice;
+          filteredProperties = filteredProperties.filter(p => p.price <= maxPrice);
         }
 
         if (filters.bedrooms) {
