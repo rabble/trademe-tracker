@@ -242,44 +242,61 @@ export class TradeMe {
     }
     
     try {
-      // Navigate to the watchlist page
-      await this.page.goto(`${this.baseUrl}/MyTradeMe/Watchlist`);
+      // Navigate to the watchlist page - using the new URL format
+      await this.page.goto(`${this.baseUrl}/a/my-trademe/watchlist`);
       
-      // Wait for the watchlist to load
-      await this.page.waitForSelector('.tm-watchlist-item');
+      // Take a screenshot in debug mode to help with debugging
+      if (!this.headless) {
+        await this.page.screenshot({ path: 'watchlist-page.png' });
+        console.log('Saved watchlist screenshot to watchlist-page.png');
+      }
+      
+      // Check if we're on a 404 page
+      const is404 = await this.page.evaluate(() => {
+        return document.title.includes('404') || document.body.textContent?.includes('Page not found');
+      });
+      
+      if (is404) {
+        console.log('Received 404 page when accessing watchlist. User may not be properly logged in.');
+        throw new Error('Watchlist page not found (404). Login may have failed.');
+      }
+      
+      // Wait for the watchlist to load - using the new selector
+      await this.page.waitForSelector('.tm-property-watchlist-card, .tm-watchlist-item');
       
       // Extract basic property information
       const properties = await this.page.evaluate((baseUrl: string) => {
-        const items = Array.from(document.querySelectorAll('.tm-watchlist-item'));
+        // Try both old and new selectors
+        const items = Array.from(document.querySelectorAll('.tm-property-watchlist-card, .tm-watchlist-item'));
         
         return items.map(item => {
           // Get the property ID from the URL
-          const linkElement = item.querySelector('a.tm-property-search-card__link');
+          const linkElement = item.querySelector('a[href*="/property/"], a.tm-property-search-card__link');
           const href = linkElement?.getAttribute('href') || '';
-          const idMatch = href.match(/\/property\/(\d+)/);
+          const idMatch = href.match(/\/property\/(?:residential\/)?(\d+)/);
           const id = idMatch ? idMatch[1] : '';
           
-          // Get the title
-          const titleElement = item.querySelector('.tm-property-search-card__title');
+          // Get the title - try both new and old selectors
+          const titleElement = item.querySelector('.tm-property-watchlist-card__title, .tm-property-search-card__title');
           const title = titleElement?.textContent?.trim() || '';
           
-          // Get the address
-          const addressElement = item.querySelector('.tm-property-search-card__address');
+          // Get the address - try both new and old selectors
+          const addressElement = item.querySelector('.tm-property-watchlist-card__address, .tm-property-search-card__address');
           const address = addressElement?.textContent?.trim() || '';
           
-          // Get the price
-          const priceElement = item.querySelector('.tm-property-search-card__price');
+          // Get the price - try both new and old selectors
+          const priceElement = item.querySelector('.tm-property-watchlist-card__price, .tm-property-search-card__price');
           const priceText = priceElement?.textContent?.trim() || '';
           // Extract numbers from price text (e.g., "$850,000" -> 850000)
           const priceMatch = priceText.match(/\$?([\d,]+)/);
           const price = priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : 0;
           
-          // Get the image URL
-          const imageElement = item.querySelector('.tm-property-search-card__image');
+          // Get the image URL - try both new and old selectors
+          const imageElement = item.querySelector('.tm-property-watchlist-card__image img, .tm-property-search-card__image');
           const imageUrl = imageElement?.getAttribute('src') || '';
           
-          // Get the status
-          const statusElement = item.querySelector('.tm-property-search-card__status');
+          // Get the status - try both new and old selectors
+          const statusElement = item.querySelector('.tm-property-watchlist-card__status, .tm-property-search-card__status');
           const statusText = statusElement?.textContent?.trim().toLowerCase() || '';
           let status: 'active' | 'under_offer' | 'sold' | 'archived' = 'active';
           
@@ -304,9 +321,30 @@ export class TradeMe {
       }, this.baseUrl);
       
       console.log(`Found ${properties.length} favorited properties`);
+      
+      // If no properties found but page loaded, log the page content for debugging
+      if (properties.length === 0 && !this.headless) {
+        console.log('No properties found in watchlist. Logging page content for debugging:');
+        const pageContent = await this.page.content();
+        console.log(pageContent.substring(0, 1000) + '...');
+        await this.page.screenshot({ path: 'empty-watchlist.png' });
+        console.log('Saved empty watchlist screenshot to empty-watchlist.png');
+      }
+      
       return properties;
     } catch (error) {
       console.error('Error getting favorited properties:', error);
+      
+      // Take a screenshot to help with debugging
+      if (!this.headless) {
+        await this.page.screenshot({ path: 'watchlist-error.png' });
+        console.log('Saved error screenshot to watchlist-error.png');
+        
+        // Get the page content to debug
+        const content = await this.page.content();
+        console.log('Page content:', content.substring(0, 500) + '...');
+      }
+      
       throw error;
     }
   }
