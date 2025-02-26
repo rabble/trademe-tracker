@@ -244,7 +244,7 @@ export function PropertiesPage() {
             </svg>
             <h3 className="mt-2 text-sm font-medium text-gray-900">No properties found</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {filters.status || filters.bedrooms || searchQuery 
+              {filters.status || filters.bedrooms || filters.searchQuery 
                 ? 'Try adjusting your filters or search query.' 
                 : 'Add properties to start tracking them.'}
             </p>
