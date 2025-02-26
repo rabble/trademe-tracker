@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useProperty } from '../hooks/property/useProperty'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import type { TooltipFormatter } from 'recharts'
 import { formatCurrency, formatDate } from '../utils/formatters'
 
 export function PropertyDetailsPage() {
@@ -133,9 +134,12 @@ export function PropertyDetailsPage() {
               {priceHistory.length > 0 ? (
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={priceHistory}>
-                    <XAxis dataKey="date" tickFormatter={(value) => new Date(value).toLocaleDateString()} />
-                    <YAxis tickFormatter={(value) => formatCurrency(value)} />
-                    <Tooltip labelFormatter={(value) => formatDate(new Date(value))} formatter={(value) => formatCurrency(value as number)} />
+                    <XAxis dataKey="date" tickFormatter={(value: string) => new Date(value).toLocaleDateString()} />
+                    <YAxis tickFormatter={(value: number) => formatCurrency(value)} />
+                    <Tooltip 
+                      labelFormatter={(value: string) => formatDate(new Date(value))} 
+                      formatter={(value: number) => formatCurrency(value) as TooltipFormatter} 
+                    />
                     <Line type="monotone" dataKey="price" stroke="#4F46E5" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
