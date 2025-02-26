@@ -9,7 +9,13 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "worker:dev": "cd worker && wrangler dev",
-    "worker:deploy": "cd worker && wrangler deploy"
+    "worker:deploy": "cd worker && wrangler deploy",
+    "scrape": "cd worker && npm run scrape"
+  },
+  "overrides": {
+    "amqplib": {
+      "node": ">=0.8"
+    }
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

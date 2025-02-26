@@ -9,7 +9,7 @@
     "deploy:production": "wrangler deploy --env production",
     "test": "jest",
     "format": "prettier --write '**/*.{js,ts,json}'",
-    "scrape": "ts-node src/local-scraper.ts"
+    "scrape": "npx ts-node src/local-scraper.ts"
   },
   "author": "",
   "license": "MIT",
