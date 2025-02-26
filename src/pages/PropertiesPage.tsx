@@ -1,16 +1,24 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PropertyCardGrid } from '../components/property/PropertyCardGrid'
+import { PropertyTable } from '../components/property/PropertyTable'
+import { TableControls } from '../components/property/TableControls'
 import { useProperties } from '../hooks/property/useProperties'
 import { PropertyFilters } from '../services/property/propertyService'
+import { Property } from '../types'
 
 export function PropertiesPage() {
-  // State for filters and pagination
+  // State for filters, pagination, and view mode
   const [filters, setFilters] = useState<PropertyFilters>({})
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  const [sortColumn, setSortColumn] = useState<string>('created_at')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([])
   
-  // Fetch properties with filters and pagination
+  // Fetch properties with filters, pagination, and sorting
   const { 
     data: propertiesData, 
     isLoading, 
@@ -18,7 +26,7 @@ export function PropertiesPage() {
     refetch
   } = useProperties(
     { ...filters, searchQuery: searchQuery || undefined },
-    { page, limit: 9 }
+    { page, limit: pageSize }
   )
   
   // Format currency for display
@@ -62,7 +70,26 @@ export function PropertiesPage() {
   }
   
   // Calculate total pages
-  const totalPages = propertiesData ? Math.ceil(propertiesData.count / 9) : 0
+  const totalPages = propertiesData ? Math.ceil(propertiesData.count / pageSize) : 0
+  
+  // Handle sort change
+  const handleSort = (column: string, direction: 'asc' | 'desc') => {
+    setSortColumn(column)
+    setSortDirection(direction)
+    // In a real app, you would update the API call with sort parameters
+    console.log(`Sorting by ${column} ${direction}`)
+  }
+  
+  // Handle row selection
+  const handleRowSelect = (property: Property) => {
+    setSelectedPropertyIds(prev => {
+      if (prev.includes(property.id)) {
+        return prev.filter(id => id !== property.id)
+      } else {
+        return [...prev, property.id]
+      }
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -129,6 +156,23 @@ export function PropertiesPage() {
         </div>
       </div>
       
+      {/* Table controls */}
+      {propertiesData && propertiesData.data.length > 0 && (
+        <TableControls
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          pageSize={pageSize}
+          onPageSizeChange={(size) => {
+            setPageSize(size)
+            setPage(1) // Reset to first page when changing page size
+          }}
+          sortColumn={sortColumn}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          totalCount={propertiesData.count}
+        />
+      )}
+      
       {/* Properties list */}
       <div className="bg-white shadow rounded-lg p-6">
         {isLoading ? (
@@ -141,56 +185,30 @@ export function PropertiesPage() {
           </div>
         ) : propertiesData && propertiesData.data.length > 0 ? (
           <>
-            <PropertyCardGrid 
-              properties={propertiesData.data.map(property => ({
-                ...mapPropertyToCardProps(property),
-                isNew: new Date(property.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-                onArchive: (id) => console.log(`Archive property ${id} from properties list`)
-              }))}
-              onArchive={(id) => console.log(`Archive property ${id}`)}
-            />
-            
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-8">
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => setPage(p => Math.max(p - 1, 1))}
-                    disabled={page === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    <span className="sr-only">Previous</span>
-                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setPage(i + 1)}
-                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                        page === i + 1 
-                          ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' 
-                          : 'text-gray-500 hover:bg-gray-50'
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                  
-                  <button
-                    onClick={() => setPage(p => Math.min(p + 1, totalPages))}
-                    disabled={page === totalPages}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    <span className="sr-only">Next</span>
-                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </nav>
-              </div>
+            {viewMode === 'grid' ? (
+              <PropertyCardGrid 
+                properties={propertiesData.data.map(property => ({
+                  ...mapPropertyToCardProps(property),
+                  isNew: new Date(property.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                  onArchive: (id) => console.log(`Archive property ${id} from properties list`)
+                }))}
+                onArchive={(id) => console.log(`Archive property ${id}`)}
+              />
+            ) : (
+              <PropertyTable
+                properties={propertiesData.data}
+                isLoading={isLoading}
+                totalCount={propertiesData.count}
+                pageSize={pageSize}
+                currentPage={page}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+                onSort={handleSort}
+                sortColumn={sortColumn}
+                sortDirection={sortDirection}
+                onRowSelect={handleRowSelect}
+                selectedPropertyIds={selectedPropertyIds}
+              />
             )}
           </>
         ) : (
