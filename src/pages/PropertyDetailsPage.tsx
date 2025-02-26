@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useProperty } from '../hooks/property/useProperty'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { formatCurrency, formatDate } from '../utils/formatters'
+import { MapView } from '../components/map/MapView'
 
 export function PropertyDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -187,6 +188,11 @@ export function PropertyDetailsPage() {
       <div className="mt-10 bg-white shadow-md rounded-lg p-6 border border-gray-100">
         <h2 className="text-xl font-bold mb-4">AI Insights</h2>
         <p className="text-gray-600">AI-generated insights about this property will appear here.</p>
+      </div>
+      
+      {/* Property Map */}
+      <div className="mt-10">
+        <MapView properties={[property]} />
       </div>
     </div>
   )

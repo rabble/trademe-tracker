@@ -24,6 +24,8 @@ export interface Property {
   floor_area?: number;
   property_type?: 'house' | 'apartment' | 'townhouse' | 'section' | 'other';
   primary_image_url?: string;
+  latitude?: number;
+  longitude?: number;
   last_price_change?: {
     old_price: number;
     new_price: number;
