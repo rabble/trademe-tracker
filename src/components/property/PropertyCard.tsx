@@ -166,12 +166,6 @@ export function PropertyCard({
       ) : isHovered && (
         <div className="bg-gray-50 p-3 border-t border-gray-100">
           <div className="flex space-x-2">
-            <Link 
-              to={`/properties/${id}`}
-              className="flex-1 py-1.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700 transition-colors text-center"
-            >
-              View Details
-            </Link>
             <button 
               className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300"
               onClick={() => setShowNotes(true)}
