@@ -1,5 +1,6 @@
 import * as playwright from 'playwright-aws-lambda';
 import { Browser, Page } from 'playwright-core';
+import puppeteer from 'puppeteer-core';
 import { Property, PropertyImage, PropertyStatus } from '../types';
 
 interface TradeMeOptions {
@@ -18,8 +19,8 @@ export class TradeMe {
   private maxRetries: number;
   private timeout: number;
   private headless: boolean;
-  private browser: Browser | null = null;
-  private page: Page | null = null;
+  private browser: puppeteer.Browser | null = null;
+  private page: puppeteer.Page | null = null;
   
   constructor(options: TradeMeOptions) {
     this.baseUrl = options.baseUrl;
@@ -35,12 +36,8 @@ export class TradeMe {
    */
   async initialize(): Promise<void> {
     // Launch the browser
-    this.browser = await playwright.puppeteer.launch({
-      args: playwright.args,
-      defaultViewport: playwright.defaultViewport,
-      executablePath: await playwright.executablePath,
+    this.browser = await playwright.default({
       headless: this.headless,
-      ignoreHTTPSErrors: true,
     });
     
     // Create a new page
@@ -48,12 +45,12 @@ export class TradeMe {
       this.page = await this.browser.newPage();
       
       // Set timeout
-      this.page.setDefaultTimeout(this.timeout);
+      await this.page.setDefaultTimeout(this.timeout);
       
       // Set user agent to avoid detection
-      await this.page.evaluateOnNewDocument((userAgent) => {
-        window.navigator.userAgent = userAgent;
-      }, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+      await this.page.setExtraHTTPHeaders({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      });
     }
   }
   
@@ -132,7 +129,7 @@ export class TradeMe {
       await this.page.waitForSelector('.tm-watchlist-item');
       
       // Extract basic property information
-      const properties = await this.page.evaluate((baseUrl) => {
+      const properties = await this.page.evaluate((baseUrl: string) => {
         const items = Array.from(document.querySelectorAll('.tm-watchlist-item'));
         
         return items.map(item => {
@@ -164,7 +161,7 @@ export class TradeMe {
           // Get the status
           const statusElement = item.querySelector('.tm-property-search-card__status');
           const statusText = statusElement?.textContent?.trim().toLowerCase() || '';
-          let status: string = 'active';
+          let status: 'active' | 'under_offer' | 'sold' | 'archived' = 'active';
           
           if (statusText.includes('under offer')) {
             status = 'under_offer';
@@ -213,7 +210,7 @@ export class TradeMe {
         await this.page.waitForSelector('.tm-property-listing');
         
         // Extract detailed property information
-        const propertyDetails = await this.page.evaluate<Property>((baseUrl: string) => {
+        const propertyDetails = await this.page.evaluate<Omit<Property, 'id'>>((baseUrl: string, propertyId: string) => {
           // Get the title
           const titleElement = document.querySelector('.tm-property-listing__title');
           const title = titleElement?.textContent?.trim() || '';
@@ -243,7 +240,7 @@ export class TradeMe {
           // Get the status
           const statusElement = document.querySelector('.tm-property-listing-status');
           const statusText = statusElement?.textContent?.trim().toLowerCase() || '';
-          let status: string = 'active';
+          let status: 'active' | 'under_offer' | 'sold' | 'archived' = 'active';
           
           if (statusText.includes('under offer')) {
             status = 'under_offer';
@@ -284,8 +281,8 @@ export class TradeMe {
             const fullSizeUrl = thumbnailUrl.replace('/thumb/', '/full/');
             
             return {
-              id: `${id}-${index}`,
-              property_id: id,
+              id: `${propertyId}-${index}`,
+              property_id: propertyId,
               url: fullSizeUrl,
               is_primary: index === 0,
               created_at: new Date().toISOString()
@@ -298,7 +295,6 @@ export class TradeMe {
           const daysOnMarket = Math.floor((now.getTime() - listedDate.getTime()) / (1000 * 60 * 60 * 24));
           
           return {
-            id,
             title,
             address,
             price,
@@ -310,7 +306,7 @@ export class TradeMe {
             floor_area: floorArea,
             primary_image_url: images.length > 0 ? images[0].url : undefined,
             images,
-            url: `${baseUrl}/property/residential/${id}`,
+            url: `${baseUrl}/property/residential/${propertyId}`,
             created_at: listingDate,
             days_on_market: daysOnMarket,
             description,
@@ -318,7 +314,7 @@ export class TradeMe {
             agency,
             last_updated: new Date().toISOString()
           };
-        }, this.baseUrl);
+        }, this.baseUrl, propertyId);
         
         // Add the property ID to the result
         const result: Property = {
