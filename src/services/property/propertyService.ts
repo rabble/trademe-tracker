@@ -50,11 +50,11 @@ export const PropertyService = {
           filteredProperties = filteredProperties.filter(p => p.status !== 'archived');
         }
 
-        if (filters.minPrice) {
+        if (filters.minPrice !== undefined) {
           filteredProperties = filteredProperties.filter(p => p.price >= filters.minPrice);
         }
 
-        if (filters.maxPrice) {
+        if (filters.maxPrice !== undefined) {
           filteredProperties = filteredProperties.filter(p => p.price <= filters.maxPrice);
         }
 
