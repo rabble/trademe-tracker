@@ -136,12 +136,12 @@ export class TradeMe {
         }
         
         // Fill in the login form within the iframe
-        await loginFrame.evaluate((username) => {
+        await loginFrame.evaluate((username: string) => {
           const emailField = document.querySelector('#Email');
           if (emailField) (emailField as HTMLInputElement).value = username;
         }, this.username);
         
-        await loginFrame.evaluate((password) => {
+        await loginFrame.evaluate((password: string) => {
           const passwordField = document.querySelector('#Password');
           if (passwordField) (passwordField as HTMLInputElement).value = password;
         }, this.password);
