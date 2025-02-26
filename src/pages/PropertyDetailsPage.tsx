@@ -38,62 +38,71 @@ export function PropertyDetailsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 bg-blue-100" style={{backgroundColor: 'lightblue'}}>
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
       <button
         onClick={() => navigate(-1)}
-        className="mb-4 text-indigo-600 hover:text-indigo-800"
+        className="mb-6 flex items-center text-indigo-600 hover:text-indigo-800 font-medium"
       >
-        &larr; Back to properties
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+        </svg>
+        Back to properties
       </button>
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-6 lg:gap-8">
         <div className="md:w-1/2">
           {/* Image gallery */}
-          <div className="mb-4">
+          <div className="mb-4 overflow-hidden rounded-lg shadow-md">
             <img
               src={property.primary_image_url || 'https://via.placeholder.com/600x400?text=No+Image'}
               alt={property.title}
-              className="w-full h-96 object-cover rounded"
+              className="w-full h-96 object-cover"
             />
           </div>
-          <div className="flex space-x-2 overflow-x-auto">
+          <div className="flex space-x-2 overflow-x-auto pb-2">
             {/* Thumbnails (using same image as placeholder) */}
             {[1, 2, 3, 4].map(i => (
               <img
                 key={i}
                 src={property.primary_image_url || 'https://via.placeholder.com/150?text=No+Image'}
                 alt={`${property.title} ${i}`}
-                className="w-24 h-16 object-cover rounded cursor-pointer"
+                className="w-24 h-16 object-cover rounded-md shadow cursor-pointer hover:opacity-80 transition-opacity"
               />
             ))}
           </div>
         </div>
         <div className="md:w-1/2">
-          <h1 className="text-3xl font-bold text-gray-900">{property.title}</h1>
-          <p className="text-gray-600 mb-2">{property.address}</p>
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="text-xl font-bold text-indigo-600">{formatCurrency(property.price)}</div>
-            <div className="px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">{property.title}</h1>
+          <p className="text-gray-600 mb-3">{property.address}</p>
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="text-2xl font-bold text-indigo-600">{formatCurrency(property.price)}</div>
+            <div className="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800 uppercase">
               {property.status.replace('_', ' ')}
             </div>
           </div>
           {/* Tab navigation */}
-          <div className="border-b mb-4">
-            <nav className="flex space-x-8">
+          <div className="border-b border-gray-200 mb-6">
+            <nav className="flex space-x-8 -mb-px">
               <button
                 onClick={() => setActiveTab('details')}
-                className={activeTab === 'details' ? "border-b-2 border-indigo-600 text-indigo-600 pb-2" : "text-gray-600 pb-2"}
+                className={activeTab === 'details' 
+                  ? "border-b-2 border-indigo-600 text-indigo-600 pb-3 px-1 font-medium" 
+                  : "text-gray-500 hover:text-gray-700 pb-3 px-1 font-medium"}
               >
                 Details
               </button>
               <button
                 onClick={() => setActiveTab('history')}
-                className={activeTab === 'history' ? "border-b-2 border-indigo-600 text-indigo-600 pb-2" : "text-gray-600 pb-2"}
+                className={activeTab === 'history' 
+                  ? "border-b-2 border-indigo-600 text-indigo-600 pb-3 px-1 font-medium" 
+                  : "text-gray-500 hover:text-gray-700 pb-3 px-1 font-medium"}
               >
                 History
               </button>
               <button
                 onClick={() => setActiveTab('similar')}
-                className={activeTab === 'similar' ? "border-b-2 border-indigo-600 text-indigo-600 pb-2" : "text-gray-600 pb-2"}
+                className={activeTab === 'similar' 
+                  ? "border-b-2 border-indigo-600 text-indigo-600 pb-3 px-1 font-medium" 
+                  : "text-gray-500 hover:text-gray-700 pb-3 px-1 font-medium"}
               >
                 Similar Properties
               </button>
@@ -163,11 +172,11 @@ export function PropertyDetailsPage() {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add your notes about this property..."
-              className="w-full p-2 border border-gray-300 rounded"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
               rows={4}
             />
             <button
-              className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
               onClick={() => console.log('Save notes:', notes)}
             >
               Save Notes
@@ -175,15 +184,9 @@ export function PropertyDetailsPage() {
           </div>
         </div>
       </div>
-      <div className="mt-8 bg-white shadow rounded-lg p-6">
+      <div className="mt-10 bg-white shadow-md rounded-lg p-6 border border-gray-100">
         <h2 className="text-xl font-bold mb-4">AI Insights</h2>
         <p className="text-gray-600">AI-generated insights about this property will appear here.</p>
-      </div>
-      <div className="tailwind-test mt-4">
-        This element tests if Tailwind CSS is working properly
-      </div>
-      <div className="css-test">
-        This element tests if regular CSS is working properly
       </div>
     </div>
   )
