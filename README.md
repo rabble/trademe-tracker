@@ -8,6 +8,7 @@ A web application that automatically tracks favorited properties from TradeMe, p
 
 - Node.js 16+
 - npm or yarn
+- Cloudflare account (for Worker deployment)
 
 ### Installation
 
@@ -35,26 +36,66 @@ npm run dev
 
 ## Project Structure
 
-- `src/components/` - React components
-- `src/hooks/` - Custom React hooks
-- `src/pages/` - Page components
-- `src/utils/` - Utility functions
-- `src/services/` - API services
-- `src/types/` - TypeScript type definitions
+- `src/` - Frontend React application
+  - `components/` - React components
+  - `hooks/` - Custom React hooks
+  - `pages/` - Page components
+  - `utils/` - Utility functions
+  - `services/` - API services
+  - `types/` - TypeScript type definitions
+- `worker/` - Cloudflare Worker for API and scraping
+  - `src/` - Worker source code
+  - `src/middleware/` - Middleware functions
+  - `src/routes/` - API route handlers
+  - `src/services/` - Business logic and services
 
 ## Available Scripts
 
-- `npm run dev` - Start the development server
-- `npm run build` - Build for production
+### Frontend
+- `npm run dev` - Start the frontend development server
+- `npm run build` - Build frontend for production
 - `npm run preview` - Preview the production build locally
+
+### Cloudflare Worker
+- `npm run worker:dev` - Start the worker development server
+- `npm run worker:deploy` - Deploy the worker to Cloudflare
 
 ## Tech Stack
 
 - Frontend: React with Vite
 - Styling: Tailwind CSS
 - Routing: React Router
-- Backend: Supabase
+- Backend: Cloudflare Workers & Supabase
 - Language: TypeScript
+- Data Visualization: Recharts
+
+## Cloudflare Worker
+
+The Cloudflare Worker handles API requests and scheduled scraping of property data. It runs a daily job at 3:00 AM NZT to fetch and update property information.
+
+### Worker Setup
+
+1. Navigate to the worker directory:
+```bash
+cd worker
+```
+
+2. Install worker dependencies:
+```bash
+npm install
+```
+
+3. Configure your environment by updating the `wrangler.toml` file.
+
+4. Run the worker locally:
+```bash
+npm run dev
+```
+
+5. Deploy to Cloudflare:
+```bash
+npm run deploy
+```
 
 ## License
 

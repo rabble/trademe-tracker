@@ -1,0 +1,25 @@
+name = "trademe-property-tracker"
+main = "src/index.ts"
+compatibility_date = "2023-12-01"
+
+[vars]
+# Define your environment variables here
+API_BASE_URL = "https://api.trademe.co.nz/v1"
+
+# Development environment
+[env.dev]
+vars = { ENVIRONMENT = "development" }
+
+# Production environment
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+# Trigger for scheduled scraping job
+[triggers]
+crons = ["0 15 * * *"] # 3:00 AM NZT (15:00 UTC)
+
+# KV Namespace for storing property data
+[[kv_namespaces]]
+binding = "PROPERTIES_KV"
+id = "your-kv-namespace-id-here"
+preview_id = "your-preview-kv-namespace-id-here"
