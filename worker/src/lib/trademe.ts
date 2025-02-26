@@ -74,7 +74,7 @@ export class TradeMe {
     
     try {
       // Navigate to the login page
-      await this.page.goto(`${this.baseUrl}/MyTradeMe/Login`);
+      await this.page.goto(`https://auth.trademe.co.nz/sign-in`);
       
       // Check if we're already logged in
       const alreadyLoggedIn = await this.page.evaluate(() => {
