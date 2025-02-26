@@ -55,15 +55,15 @@ export class TradeMe {
       });
       
       // Enable console logging from the browser
-      this.page.on('console', msg => console.log('Browser console:', msg.text()));
+      this.page.on('console', (msg: any) => console.log('Browser console:', msg.text()));
       
       // Log navigation events in debug mode
       if (!this.headless) {
-        this.page.on('request', request => {
+        this.page.on('request', (request: any) => {
           console.log(`Request: ${request.method()} ${request.url()}`);
         });
         
-        this.page.on('response', response => {
+        this.page.on('response', (response: any) => {
           console.log(`Response: ${response.status()} ${response.url()}`);
         });
       }
