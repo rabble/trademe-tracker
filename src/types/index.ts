@@ -49,3 +49,23 @@ export interface PropertyChange {
   new_value: string;
   change_date: string;
 }
+
+export interface PropertyFilters {
+  searchQuery?: string;
+  priceRange?: [number | undefined, number | undefined];
+  propertyType?: Array<'house' | 'apartment' | 'townhouse' | 'section' | 'other'>;
+  bedrooms?: [number | undefined, number | undefined];
+  bathrooms?: [number | undefined, number | undefined];
+  landArea?: [number | undefined, number | undefined];
+  floorArea?: [number | undefined, number | undefined];
+  status?: Array<'active' | 'under_offer' | 'sold' | 'archived'>;
+  daysOnMarket?: [number | undefined, number | undefined];
+  listingType?: Array<'auction' | 'price_by_negotiation' | 'asking_price' | 'tender' | 'enquiries_over'>;
+}
+
+export interface SavedFilter {
+  id: string;
+  name: string;
+  filters: PropertyFilters;
+  createdAt: string;
+}
