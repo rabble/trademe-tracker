@@ -3,6 +3,8 @@ import { PropertyCardGrid } from '../components/property/PropertyCardGrid'
 import { useSummary } from '../hooks/analytics/useSummary'
 import { useProperties } from '../hooks/property/useProperties'
 import { useInsights } from '../hooks/analytics/useInsights'
+import { formatCurrency } from '../utils/formatters'
+import { AnalyticsDashboard } from '../components/analytics/AnalyticsDashboard'
 
 export function DashboardPage() {
   // Fetch summary data
@@ -29,15 +31,6 @@ export function DashboardPage() {
     error: insightsError 
   } = useInsights(undefined, 3)
   
-  // Format currency for display
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-NZ', {
-      style: 'currency',
-      currency: 'NZD',
-      maximumFractionDigits: 0
-    }).format(amount)
-  }
-  
   // Helper function to map property data to PropertyCard props
   const mapPropertyToCardProps = (property: any) => {
     return {
@@ -58,53 +51,12 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Summary Stats */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Dashboard</h2>
-        
-        {summaryLoading ? (
-          <div className="flex justify-center py-6">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-          </div>
-        ) : summaryError ? (
-          <div className="text-red-500 py-4">Error loading summary data</div>
-        ) : summary ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-indigo-50 p-4 rounded-lg">
-              <h3 className="text-indigo-800 text-sm font-medium">Properties</h3>
-              <div className="mt-2 flex justify-between">
-                <div className="text-2xl font-bold text-indigo-900">{summary.totalProperties}</div>
-                <div className="text-sm text-indigo-700">
-                  <div>{summary.activeProperties} active</div>
-                  <div>{summary.underOfferProperties} under offer</div>
-                  <div>{summary.soldProperties} sold</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h3 className="text-green-800 text-sm font-medium">Average Price</h3>
-              <div className="mt-2">
-                <div className="text-2xl font-bold text-green-900">
-                  {formatCurrency(summary.averagePrice)}
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="text-blue-800 text-sm font-medium">Avg. Days on Market</h3>
-              <div className="mt-2">
-                <div className="text-2xl font-bold text-blue-900">
-                  {Math.round(summary.averageDaysOnMarket)}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="text-gray-500 py-4">No summary data available</div>
-        )}
-      </div>
+    <div className="space-y-8">
+      {/* Analytics Dashboard */}
+      <AnalyticsDashboard 
+        isLoading={summaryLoading} 
+        error={summaryError ? new Error('Failed to load analytics data') : null} 
+      />
       
       {/* Recent Properties */}
       <div className="bg-white shadow rounded-lg p-6">
