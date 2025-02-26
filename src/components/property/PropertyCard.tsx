@@ -181,7 +181,8 @@ export function PropertyCard({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </Link>
   )
 }
 
