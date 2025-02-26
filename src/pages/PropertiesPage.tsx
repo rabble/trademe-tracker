@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { PropertyCard } from '../components/property/PropertyCard'
+import { PropertyCardGrid } from '../components/property/PropertyCardGrid'
 import { useProperties } from '../hooks/property/useProperties'
 import { PropertyFilters } from '../services/property/propertyService'
 
@@ -141,11 +141,14 @@ export function PropertiesPage() {
           </div>
         ) : propertiesData && propertiesData.data.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-              {propertiesData.data.map(property => (
-                <PropertyCard key={property.id} {...mapPropertyToCardProps(property)} />
-              ))}
-            </div>
+            <PropertyCardGrid 
+              properties={propertiesData.data.map(property => ({
+                ...mapPropertyToCardProps(property),
+                isNew: new Date(property.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+                onArchive: (id) => console.log(`Archive property ${id} from properties list`)
+              }))}
+              onArchive={(id) => console.log(`Archive property ${id}`)}
+            />
             
             {/* Pagination */}
             {totalPages > 1 && (

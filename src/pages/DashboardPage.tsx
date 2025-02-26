@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { PropertyCard } from '../components/property/PropertyCard'
+import { PropertyCardGrid } from '../components/property/PropertyCardGrid'
 import { useSummary } from '../hooks/analytics/useSummary'
 import { useProperties } from '../hooks/property/useProperties'
 import { useInsights } from '../hooks/analytics/useInsights'
@@ -122,11 +122,13 @@ export function DashboardPage() {
         ) : propertiesError ? (
           <div className="text-red-500 py-4">Error loading properties</div>
         ) : propertiesData && propertiesData.data.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {propertiesData.data.map(property => (
-              <PropertyCard key={property.id} {...mapPropertyToCardProps(property)} />
-            ))}
-          </div>
+          <PropertyCardGrid 
+            properties={propertiesData.data.map(property => ({
+              ...mapPropertyToCardProps(property),
+              isNew: new Date(property.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+              onArchive: (id) => console.log(`Archive property ${id} from dashboard`)
+            }))} 
+          />
         ) : (
           <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
             <svg 
