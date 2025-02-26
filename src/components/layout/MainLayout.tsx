@@ -16,7 +16,7 @@ export function MainLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow z-10 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
@@ -63,7 +63,7 @@ export function MainLayout() {
 
       <div className="flex flex-col md:flex-row">
         {/* Sidebar */}
-        <div className="w-full md:w-64 bg-white shadow-sm md:h-[calc(100vh-4rem)] md:fixed">
+        <div className="w-full md:w-64 bg-white shadow-sm md:min-h-[calc(100vh-4rem)] md:fixed">
           <nav className="flex md:flex-col overflow-x-auto md:overflow-x-hidden py-3 md:py-5 px-4">
             <Link
               to="/"
@@ -100,9 +100,7 @@ export function MainLayout() {
 
         {/* Main content */}
         <main className="flex-1 md:ml-64 p-4">
-          <div className="max-w-7xl mx-auto">
-            <Outlet />
-          </div>
+          <Outlet />
         </main>
       </div>
     </div>

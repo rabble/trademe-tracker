@@ -84,9 +84,9 @@ export function PropertyCard({
   }
 
   return (
-    <Link to={`/properties/${id}`} className="block">
+    <Link to={`/properties/${id}`} className="block h-full">
       <div 
-        className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg
+        className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg h-full flex flex-col
           ${isNew ? 'ring-2 ring-blue-500' : ''}
           ${status === 'under_offer' ? 'border-l-4 border-yellow-400' : ''}
           ${status === 'sold' ? 'border-l-4 border-red-400' : ''}
