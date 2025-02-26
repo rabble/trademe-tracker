@@ -1,5 +1,53 @@
 export type PropertyStatus = 'active' | 'under_offer' | 'sold' | 'archived';
 
+// TradeMe API interfaces
+export interface TradeMeWatchlistResponse {
+  TotalCount: number;
+  Page: number;
+  PageSize: number;
+  List: TradeMeWatchlistItem[];
+  FoundCategories?: TradeMeFoundCategory[];
+}
+
+export interface TradeMeWatchlistItem {
+  ListingId: number;
+  Title?: string;
+  Category?: string;
+  StartPrice: number;
+  BuyNowPrice: number;
+  StartDate: string;
+  EndDate: string;
+  MaxBidAmount: number;
+  AsAt: string;
+  CategoryPath?: string;
+  PictureHref?: string;
+  PhotoId: number;
+  Region?: string;
+  Suburb?: string;
+  PriceDisplay?: string;
+  IsClassified: boolean;
+  GeographicLocation?: {
+    Latitude: number;
+    Longitude: number;
+    Accuracy: number;
+  };
+  Attributes?: TradeMeAttribute[];
+}
+
+export interface TradeMeAttribute {
+  Name?: string;
+  DisplayName?: string;
+  Value?: string;
+}
+
+export interface TradeMeFoundCategory {
+  Count: number;
+  Category?: string;
+  Name?: string;
+  CategoryId: number;
+  IsLeaf: boolean;
+}
+
 export interface Property {
   id: string;
   title: string;

@@ -48,19 +48,17 @@ export async function scheduledScraper(env: Env): Promise<void> {
 
 // Function for fetching properties from TradeMe
 async function fetchPropertiesFromTradeMe(env: Env): Promise<Property[]> {
-  console.log('Fetching properties from TradeMe');
+  console.log('Fetching properties from TradeMe API');
   
   const trademe = new TradeMe({
-    baseUrl: env.TRADEME_BASE_URL,
-    username: env.TRADEME_USERNAME,
-    password: env.TRADEME_PASSWORD
+    apiUrl: env.TRADEME_API_URL || 'https://api.trademe.co.nz',
+    consumerKey: env.TRADEME_CONSUMER_KEY,
+    consumerSecret: env.TRADEME_CONSUMER_SECRET,
+    oauthToken: env.TRADEME_OAUTH_TOKEN,
+    oauthTokenSecret: env.TRADEME_OAUTH_TOKEN_SECRET
   });
   
   try {
-    // Initialize the browser and login
-    await trademe.initialize();
-    await trademe.login();
-    
     // Get favorited properties
     const favoriteProperties = await trademe.getFavoriteProperties();
     
@@ -70,20 +68,21 @@ async function fetchPropertiesFromTradeMe(env: Env): Promise<Property[]> {
     for (const property of favoriteProperties) {
       try {
         // Add a small delay between requests to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         const detailedProperty = await trademe.getPropertyDetails(property.id);
         detailedProperties.push(detailedProperty);
       } catch (error) {
         console.error(`Error fetching details for property ${property.id}:`, error);
-        // Continue with the next property
+        // If we can't get details, use the basic property info
+        detailedProperties.push(property);
       }
     }
     
     return detailedProperties;
-  } finally {
-    // Always close the browser
-    await trademe.close();
+  } catch (error) {
+    console.error('Error fetching properties from TradeMe:', error);
+    throw error;
   }
 }
 

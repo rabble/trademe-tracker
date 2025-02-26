@@ -48,10 +48,12 @@ export default {
 export interface Env {
   PROPERTIES_KV: KVNamespace;
   API_BASE_URL: string;
-  TRADEME_BASE_URL: string;
+  TRADEME_API_URL: string;
   ENVIRONMENT: string;
-  TRADEME_USERNAME: string;
-  TRADEME_PASSWORD: string;
+  TRADEME_CONSUMER_KEY: string;
+  TRADEME_CONSUMER_SECRET: string;
+  TRADEME_OAUTH_TOKEN: string;
+  TRADEME_OAUTH_TOKEN_SECRET: string;
   SCRAPE_INTERVAL_HOURS: string;
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
