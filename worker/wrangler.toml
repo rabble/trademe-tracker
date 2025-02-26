@@ -1,18 +1,27 @@
 name = "trademe-property-tracker"
 main = "src/index.ts"
 compatibility_date = "2023-12-01"
+compatibility_flags = ["nodejs_compat"]
+node_compat = true
 
 [vars]
 # Define your environment variables here
 API_BASE_URL = "https://api.trademe.co.nz/v1"
+TRADEME_BASE_URL = "https://www.trademe.co.nz"
 
 # Development environment
 [env.dev]
-vars = { ENVIRONMENT = "development" }
+vars = { 
+  ENVIRONMENT = "development",
+  SCRAPE_INTERVAL_HOURS = "24"
+}
 
 # Production environment
 [env.production]
-vars = { ENVIRONMENT = "production" }
+vars = { 
+  ENVIRONMENT = "production",
+  SCRAPE_INTERVAL_HOURS = "24"
+}
 
 # Trigger for scheduled scraping job
 [triggers]
@@ -23,3 +32,7 @@ crons = ["0 15 * * *"] # 3:00 AM NZT (15:00 UTC)
 binding = "PROPERTIES_KV"
 id = "your-kv-namespace-id-here"
 preview_id = "your-preview-kv-namespace-id-here"
+
+# Secrets (add these using wrangler secret put)
+# TRADEME_USERNAME
+# TRADEME_PASSWORD
