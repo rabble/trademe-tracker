@@ -1,67 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from 'react-leaflet'
-import MarkerClusterGroup from 'react-leaflet-cluster'
-import { Icon, LatLngExpression } from 'leaflet'
+import React, { useState, useEffect, useRef } from 'react'
 import { Property } from '../../types'
 import { PropertyMapCard } from './PropertyMapCard'
-import 'leaflet/dist/leaflet.css'
-import 'leaflet.markercluster/dist/MarkerCluster.css'
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 
-// Fix for default marker icons in Leaflet with webpack/vite
-import icon from 'leaflet/dist/images/marker-icon.png'
-import iconShadow from 'leaflet/dist/images/marker-shadow.png'
-
-// Define custom icons for different property types
-const defaultIcon = new Icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-})
-
-const soldIcon = new Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-})
-
-const underOfferIcon = new Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-})
-
-// Helper component to recenter map
-function RecenterControl({ position }: { position: LatLngExpression }) {
-  const map = useMap()
-  
-  const handleClick = () => {
-    map.setView(position, 12)
-  }
-  
-  return (
-    <div className="leaflet-top leaflet-right" style={{ marginTop: '80px' }}>
-      <div className="leaflet-control leaflet-bar">
-        <a 
-          href="#" 
-          onClick={(e) => { e.preventDefault(); handleClick() }}
-          title="Recenter map"
-          className="flex items-center justify-center w-8 h-8 bg-white"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-            <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
-          </svg>
-        </a>
-      </div>
-    </div>
-  )
-}
+// Placeholder for map functionality
 
 interface MapViewProps {
   properties: Property[]
@@ -71,36 +12,14 @@ interface MapViewProps {
 }
 
 export function MapView({ properties, isLoading, error }: MapViewProps) {
-  const [mapCenter, setMapCenter] = useState<LatLngExpression>([-41.2865, 174.7762]) // Default to Wellington, NZ
-  const [mapLayer, setMapLayer] = useState<'street' | 'satellite'>('street')
+  const [mapType, setMapType] = useState<'street' | 'satellite'>('street')
+  const mapRef = useRef<HTMLDivElement>(null)
   
-  // Calculate center based on properties
+  // In a real implementation, we would initialize the map here
   useEffect(() => {
-    if (properties.length > 0) {
-      // In a real app, we would calculate the center based on property coordinates
-      // For now, we'll use a default center
-      const hasCoordinates = properties.some(p => p.latitude && p.longitude)
-      if (hasCoordinates) {
-        // Find average lat/lng
-        const validProperties = properties.filter(p => p.latitude && p.longitude)
-        const avgLat = validProperties.reduce((sum, p) => sum + (p.latitude || 0), 0) / validProperties.length
-        const avgLng = validProperties.reduce((sum, p) => sum + (p.longitude || 0), 0) / validProperties.length
-        setMapCenter([avgLat, avgLng])
-      }
-    }
-  }, [properties])
-
-  // Helper to get icon based on property status
-  const getPropertyIcon = (status: string) => {
-    switch (status) {
-      case 'sold':
-        return soldIcon
-      case 'under_offer':
-        return underOfferIcon
-      default:
-        return defaultIcon
-    }
-  }
+    // This would be where we'd initialize the map with the Leaflet library
+    // For now, we'll just show a placeholder
+  }, [])
 
   if (error) {
     return (
@@ -128,9 +47,9 @@ export function MapView({ properties, isLoading, error }: MapViewProps) {
         <h2 className="text-lg font-medium text-gray-900">Property Map</h2>
         <div className="flex space-x-2">
           <button
-            onClick={() => setMapLayer('street')}
+            onClick={() => setMapType('street')}
             className={`px-3 py-1 text-sm rounded-md ${
-              mapLayer === 'street' 
+              mapType === 'street' 
                 ? 'bg-indigo-100 text-indigo-700' 
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
@@ -138,9 +57,9 @@ export function MapView({ properties, isLoading, error }: MapViewProps) {
             Street
           </button>
           <button
-            onClick={() => setMapLayer('satellite')}
+            onClick={() => setMapType('satellite')}
             className={`px-3 py-1 text-sm rounded-md ${
-              mapLayer === 'satellite' 
+              mapType === 'satellite' 
                 ? 'bg-indigo-100 text-indigo-700' 
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
@@ -150,63 +69,38 @@ export function MapView({ properties, isLoading, error }: MapViewProps) {
         </div>
       </div>
       
-      <div className="h-[600px] relative">
-        {isLoading && (
+      <div className="h-[600px] relative bg-gray-100" ref={mapRef}>
+        {isLoading ? (
           <div className="absolute inset-0 bg-gray-100 bg-opacity-75 flex items-center justify-center z-10">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
-        )}
-        
-        <MapContainer 
-          center={mapCenter} 
-          zoom={12} 
-          style={{ height: '100%', width: '100%' }}
-          zoomControl={false}
-        >
-          {/* Map Layers */}
-          {mapLayer === 'street' && (
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-          )}
-          {mapLayer === 'satellite' && (
-            <TileLayer
-              attribution='&copy; <a href="https://www.esri.com">Esri</a>'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            />
-          )}
-          
-          {/* Controls */}
-          <ZoomControl position="topright" />
-          <RecenterControl position={mapCenter} />
-          
-          {/* Property Markers */}
-          <MarkerClusterGroup>
-            {properties.map(property => {
-              // In a real app, we would use actual coordinates from the property
-              // For demo purposes, we'll generate random coordinates around the center
-              const lat = (property.latitude || 
-                (Array.isArray(mapCenter) ? mapCenter[0] : -41.2865)) + 
-                (Math.random() - 0.5) * 0.05
-              const lng = (property.longitude || 
-                (Array.isArray(mapCenter) ? mapCenter[1] : 174.7762)) + 
-                (Math.random() - 0.5) * 0.05
-              
-              return (
-                <Marker 
-                  key={property.id} 
-                  position={[lat, lng]}
-                  icon={getPropertyIcon(property.status)}
-                >
-                  <Popup>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="text-center p-8 max-w-md">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Map Visualization</h3>
+              <p className="text-gray-600 mb-4">
+                {properties.length > 0 
+                  ? `Showing ${properties.length} properties on the map.` 
+                  : 'No properties to display on the map.'}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                {properties.slice(0, 2).map(property => (
+                  <div key={property.id} className="bg-white p-3 rounded-md shadow-sm">
                     <PropertyMapCard property={property} />
-                  </Popup>
-                </Marker>
-              )
-            })}
-          </MarkerClusterGroup>
-        </MapContainer>
+                  </div>
+                ))}
+              </div>
+              {properties.length > 2 && (
+                <p className="text-sm text-gray-500 mt-4">
+                  And {properties.length - 2} more properties...
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
