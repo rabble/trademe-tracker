@@ -38,7 +38,7 @@ export function PropertyDetailsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 bg-blue-100">
+    <div className="max-w-7xl mx-auto p-4 bg-blue-100" style={{backgroundColor: 'lightblue'}}>
       <button
         onClick={() => navigate(-1)}
         className="mb-4 text-indigo-600 hover:text-indigo-800"
@@ -181,6 +181,9 @@ export function PropertyDetailsPage() {
       </div>
       <div className="tailwind-test mt-4">
         This element tests if Tailwind CSS is working properly
+      </div>
+      <div className="css-test">
+        This element tests if regular CSS is working properly
       </div>
     </div>
   )
