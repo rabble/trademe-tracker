@@ -1,4 +1,4 @@
-import { chromium } from 'playwright-aws-lambda';
+import * as playwright from 'playwright-aws-lambda';
 import { Browser, Page } from 'playwright-core';
 import { Property, PropertyImage, PropertyStatus } from '../types';
 
@@ -35,22 +35,26 @@ export class TradeMe {
    */
   async initialize(): Promise<void> {
     // Launch the browser
-    this.browser = await chromium.puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+    this.browser = await playwright.puppeteer.launch({
+      args: playwright.args,
+      defaultViewport: playwright.defaultViewport,
+      executablePath: await playwright.executablePath,
       headless: this.headless,
       ignoreHTTPSErrors: true,
     });
     
     // Create a new page
-    this.page = await this.browser.newPage();
-    
-    // Set timeout
-    this.page.setDefaultTimeout(this.timeout);
-    
-    // Set user agent to avoid detection
-    await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    if (this.browser) {
+      this.page = await this.browser.newPage();
+      
+      // Set timeout
+      this.page.setDefaultTimeout(this.timeout);
+      
+      // Set user agent to avoid detection
+      await this.page.evaluateOnNewDocument((userAgent) => {
+        window.navigator.userAgent = userAgent;
+      }, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    }
   }
   
   /**
@@ -209,7 +213,7 @@ export class TradeMe {
         await this.page.waitForSelector('.tm-property-listing');
         
         // Extract detailed property information
-        const propertyDetails = await this.page.evaluate((baseUrl, id) => {
+        const propertyDetails = await this.page.evaluate<Property>((baseUrl: string) => {
           // Get the title
           const titleElement = document.querySelector('.tm-property-listing__title');
           const title = titleElement?.textContent?.trim() || '';
@@ -314,10 +318,16 @@ export class TradeMe {
             agency,
             last_updated: new Date().toISOString()
           };
-        }, this.baseUrl, propertyId);
+        }, this.baseUrl);
+        
+        // Add the property ID to the result
+        const result: Property = {
+          ...propertyDetails,
+          id: propertyId
+        };
         
         console.log(`Got details for property ${propertyId}`);
-        return propertyDetails;
+        return result;
       } catch (error) {
         console.error(`Error getting property details (attempt ${retries + 1}/${this.maxRetries}):`, error);
         retries++;

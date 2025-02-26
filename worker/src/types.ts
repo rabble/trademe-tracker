@@ -10,7 +10,7 @@ export interface Property {
   property_type?: string;
   land_area?: string;
   floor_area?: string;
-  status: string;
+  status: PropertyStatus;
   primary_image_url?: string;
   images?: PropertyImage[];
   url?: string;
