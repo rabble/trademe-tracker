@@ -84,16 +84,17 @@ export function PropertyCard({
   }
 
   return (
-    <div 
-      className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg
-        ${isNew ? 'ring-2 ring-blue-500' : ''}
-        ${status === 'under_offer' ? 'border-l-4 border-yellow-400' : ''}
-        ${status === 'sold' ? 'border-l-4 border-red-400' : ''}
-        ${priceChange?.type === 'decrease' ? 'border-t-4 border-green-400' : ''}
-      `}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <Link to={`/properties/${id}`} className="block">
+      <div 
+        className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg
+          ${isNew ? 'ring-2 ring-blue-500' : ''}
+          ${status === 'under_offer' ? 'border-l-4 border-yellow-400' : ''}
+          ${status === 'sold' ? 'border-l-4 border-red-400' : ''}
+          ${priceChange?.type === 'decrease' ? 'border-t-4 border-green-400' : ''}
+        `}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
       {isNew && (
         <div className="bg-blue-500 text-white text-xs font-bold px-2 py-1 absolute top-0 left-0 z-10">
           NEW
