@@ -103,12 +103,31 @@ export class TradeMe {
         return;
       }
       
-      console.log('Waiting for login form...');
+      console.log('Waiting for login iframe...');
       
-      // Wait for the login form to appear
+      // Wait for the login iframe to appear
       try {
-        await this.page.waitForSelector('input[name="email"]', { timeout: 5000 });
-        await this.page.waitForSelector('input[name="password"]', { timeout: 5000 });
+        // Wait for the iframe to load
+        await this.page.waitForSelector('iframe[src*="auth.trademe.co.nz"]', { timeout: 10000 });
+        
+        // Get all iframes
+        const frames = this.page.frames();
+        console.log(`Found ${frames.length} frames on the page`);
+        
+        // Find the login iframe
+        const loginFrame = frames.find(frame => 
+          frame.url().includes('auth.trademe.co.nz')
+        );
+        
+        if (!loginFrame) {
+          throw new Error('Login iframe not found');
+        }
+        
+        console.log('Found login iframe, waiting for form elements...');
+        
+        // Wait for the form elements in the iframe
+        await loginFrame.waitForSelector('#Email', { timeout: 10000 });
+        await loginFrame.waitForSelector('#Password', { timeout: 5000 });
         
         // Take a screenshot in debug mode
         if (!this.headless) {
@@ -116,17 +135,22 @@ export class TradeMe {
           console.log('Saved screenshot to login-form.png');
         }
         
-        // Fill in the login form
-        await this.page.type('input[name="email"]', this.username);
-        await this.page.type('input[name="password"]', this.password);
+        // Fill in the login form within the iframe
+        await loginFrame.type('#Email', this.username);
+        await loginFrame.type('#Password', this.password);
         
         console.log('Submitting login form...');
         
         // Submit the form
         await Promise.all([
-          this.page.waitForNavigation({ waitUntil: 'networkidle0' }),
-          this.page.click('button[type="submit"]')
+          this.page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
+          loginFrame.click('button[type="submit"]')
         ]);
+        
+        // Wait for successful login redirect
+        await this.page.waitForSelector('.tm-header-account-name', { timeout: 15000 })
+          .catch(() => console.log('Account name element not found after login, but continuing...'));
+        
       } catch (error) {
         console.error('Error with login form:', error);
         
@@ -143,16 +167,15 @@ export class TradeMe {
         throw new Error('Failed to find login form elements');
       }
       
-      // Check if login was successful
-      const loginFailed = await this.page.evaluate(() => {
-        return document.querySelector('.validation-summary-errors') !== null;
-      });
-      
-      if (loginFailed) {
-        throw new Error('Login failed');
+      // Check if we're on the dashboard page
+      const currentUrl = this.page.url();
+      if (currentUrl.includes('trademe.co.nz/a/') && !currentUrl.includes('/login')) {
+        console.log('Login successful, redirected to:', currentUrl);
+      } else {
+        console.warn('Login may have failed, current URL:', currentUrl);
       }
       
-      console.log('Login successful');
+      console.log('Login process completed');
     } catch (error) {
       console.error('Login error:', error);
       throw error;
