@@ -8,6 +8,7 @@ node_compat = true
 # Define your environment variables here
 API_BASE_URL = "https://api.trademe.co.nz/v1"
 TRADEME_BASE_URL = "https://www.trademe.co.nz"
+SUPABASE_STORAGE_BUCKET = "property-images"
 
 # Development environment
 [env.dev]
@@ -30,3 +31,5 @@ preview_id = "your-preview-kv-namespace-id-here"
 # Secrets (add these using wrangler secret put)
 # TRADEME_USERNAME
 # TRADEME_PASSWORD
+# SUPABASE_URL
+# SUPABASE_ANON_KEY

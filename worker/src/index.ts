@@ -53,4 +53,7 @@ export interface Env {
   TRADEME_USERNAME: string;
   TRADEME_PASSWORD: string;
   SCRAPE_INTERVAL_HOURS: string;
+  SUPABASE_URL: string;
+  SUPABASE_ANON_KEY: string;
+  SUPABASE_STORAGE_BUCKET: string;
 }

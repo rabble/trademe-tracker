@@ -1,6 +1,7 @@
 import { Env } from '../index';
 import { TradeMe } from '../lib/trademe';
 import { Property, PropertyChange, PropertyStatus } from '../types';
+import { StorageService } from './storage';
 
 // This function will be triggered by the scheduled cron
 export async function scheduledScraper(env: Env): Promise<void> {
@@ -21,11 +22,14 @@ export async function scheduledScraper(env: Env): Promise<void> {
       }
     }
     
+    // Initialize the storage service
+    const storageService = new StorageService(env);
+    
     // 1. Fetch properties from TradeMe
     const properties = await fetchPropertiesFromTradeMe(env);
     
     // 2. Process and store the properties
-    const changes = await storeProperties(properties, env);
+    const changes = await storeProperties(properties, env, storageService);
     
     // 3. Update analytics data
     await updateAnalytics(env, changes);
@@ -82,7 +86,11 @@ async function fetchPropertiesFromTradeMe(env: Env): Promise<Property[]> {
 }
 
 // Function for storing properties and detecting changes
-async function storeProperties(properties: Property[], env: Env): Promise<PropertyChange[]> {
+async function storeProperties(
+  properties: Property[], 
+  env: Env, 
+  storageService: StorageService
+): Promise<PropertyChange[]> {
   console.log(`Processing ${properties.length} properties`);
   
   const changes: PropertyChange[] = [];
@@ -130,10 +138,44 @@ async function storeProperties(properties: Property[], env: Env): Promise<Proper
         }
       }
       
+      // Process and store images if available
+      if (property.images && property.images.length > 0) {
+        try {
+          console.log(`Processing ${property.images.length} images for property ${property.id}`);
+          
+          // Process images with the storage service
+          const processedImages = await storageService.processPropertyImages(property.id, property.images);
+          
+          // Update property with processed images
+          property.images = processedImages;
+          
+          // Check for image changes
+          if (existingProperty && existingProperty.images) {
+            const oldImageCount = existingProperty.images.length;
+            const newImageCount = property.images.length;
+            
+            if (oldImageCount !== newImageCount) {
+              changes.push({
+                id: crypto.randomUUID(),
+                property_id: property.id,
+                property_title: property.title,
+                change_type: 'description',
+                old_value: `${oldImageCount} images`,
+                new_value: `${newImageCount} images`,
+                change_date: new Date().toISOString()
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing images for property ${property.id}:`, error);
+          // Continue with property storage even if image processing fails
+        }
+      }
+      
       // Store the updated property
       await env.PROPERTIES_KV.put(`property:${property.id}`, JSON.stringify(property));
       
-      // Store property images
+      // Store property images reference
       if (property.images && property.images.length > 0) {
         await env.PROPERTIES_KV.put(`property:${property.id}:images`, JSON.stringify(property.images));
       }
