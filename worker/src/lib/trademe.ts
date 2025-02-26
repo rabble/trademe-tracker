@@ -303,7 +303,7 @@ export class TradeMe {
         ];
         
         // Try each selector and use the first one that returns results
-        let items = [];
+        let items: Element[] = [];
         for (const selector of selectors) {
           const found = Array.from(document.querySelectorAll(selector));
           if (found.length > 0) {
@@ -469,7 +469,7 @@ export class TradeMe {
         
         // Get the HTML structure to help debug
         const pageStructure = await this.page.evaluate(() => {
-          function getStructure(element, depth = 0) {
+          function getStructure(element: Element, depth = 0) {
             if (!element) return '';
             
             const indent = ' '.repeat(depth * 2);
