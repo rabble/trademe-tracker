@@ -15,7 +15,7 @@ export interface PropertyCardProps {
   priceChange?: {
     type: 'increase' | 'decrease'
     amount: string
-    date?: string
+    change_date?: string
   }
   isNew?: boolean
   statusChangeDate?: string

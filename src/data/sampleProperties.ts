@@ -18,7 +18,7 @@ export const sampleProperties: Property[] = [
     last_price_change: {
       old_price: 1300000,
       new_price: 1250000,
-      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+      change_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
     }
   },
   {
@@ -59,7 +59,7 @@ export const sampleProperties: Property[] = [
     last_price_change: {
       old_price: 1200000,
       new_price: 1150000,
-      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      change_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
     }
   },
   {
@@ -112,7 +112,7 @@ export const sampleProperties: Property[] = [
     last_price_change: {
       old_price: 2400000,
       new_price: 2250000,
-      date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+      change_date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
     }
   },
   {
