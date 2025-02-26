@@ -34,6 +34,8 @@ export class TradeMe {
    * Initialize the browser
    */
   async initialize(): Promise<void> {
+    console.log(`Launching browser in ${this.headless ? 'headless' : 'visible'} mode`);
+    
     // Launch the browser
     this.browser = await playwright.launchChromium({
       headless: this.headless,
@@ -47,9 +49,24 @@ export class TradeMe {
       await this.page.setDefaultTimeout(this.timeout);
       
       // Set user agent to avoid detection
+      const userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
       await this.page.setExtraHTTPHeaders({
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': userAgent
       });
+      
+      // Enable console logging from the browser
+      this.page.on('console', msg => console.log('Browser console:', msg.text()));
+      
+      // Log navigation events in debug mode
+      if (!this.headless) {
+        this.page.on('request', request => {
+          console.log(`Request: ${request.method()} ${request.url()}`);
+        });
+        
+        this.page.on('response', response => {
+          console.log(`Response: ${response.status()} ${response.url()}`);
+        });
+      }
     }
   }
   
@@ -74,7 +91,7 @@ export class TradeMe {
     
     try {
       // Navigate to the login page
-      await this.page.goto(`https://www.trademe.co.nz/a/(modal:login)`);
+      await this.page.goto(`https://www.trademe.co.nz/a/login`);
       
       // Check if we're already logged in
       const alreadyLoggedIn = await this.page.evaluate(() => {
@@ -86,19 +103,45 @@ export class TradeMe {
         return;
       }
       
+      console.log('Waiting for login form...');
+      
       // Wait for the login form to appear
-      await this.page.waitForSelector('input[name="email"]');
-      await this.page.waitForSelector('input[name="password"]');
-      
-      // Fill in the login form
-      await this.page.type('input[name="email"]', this.username);
-      await this.page.type('input[name="password"]', this.password);
-      
-      // Submit the form
-      await Promise.all([
-        this.page.waitForNavigation({ waitUntil: 'networkidle0' }),
-        this.page.click('button[type="submit"]')
-      ]);
+      try {
+        await this.page.waitForSelector('input[name="email"]', { timeout: 5000 });
+        await this.page.waitForSelector('input[name="password"]', { timeout: 5000 });
+        
+        // Take a screenshot in debug mode
+        if (!this.headless) {
+          await this.page.screenshot({ path: 'login-form.png' });
+          console.log('Saved screenshot to login-form.png');
+        }
+        
+        // Fill in the login form
+        await this.page.type('input[name="email"]', this.username);
+        await this.page.type('input[name="password"]', this.password);
+        
+        console.log('Submitting login form...');
+        
+        // Submit the form
+        await Promise.all([
+          this.page.waitForNavigation({ waitUntil: 'networkidle0' }),
+          this.page.click('button[type="submit"]')
+        ]);
+      } catch (error) {
+        console.error('Error with login form:', error);
+        
+        // Take a screenshot to see what's on the page
+        if (!this.headless) {
+          await this.page.screenshot({ path: 'login-error.png' });
+          console.log('Saved error screenshot to login-error.png');
+        }
+        
+        // Get the page content to debug
+        const content = await this.page.content();
+        console.log('Page content:', content.substring(0, 500) + '...');
+        
+        throw new Error('Failed to find login form elements');
+      }
       
       // Check if login was successful
       const loginFailed = await this.page.evaluate(() => {
