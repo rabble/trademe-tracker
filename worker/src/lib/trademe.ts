@@ -1,5 +1,4 @@
 import * as playwright from 'playwright-aws-lambda';
-import { Browser, Page } from 'playwright-core';
 import * as puppeteer from 'puppeteer-core';
 import { Property, PropertyImage, PropertyStatus } from '../types';
 
@@ -19,8 +18,8 @@ export class TradeMe {
   private maxRetries: number;
   private timeout: number;
   private headless: boolean;
-  private browser: puppeteer.Browser | null = null;
-  private page: puppeteer.Page | null = null;
+  private browser: any = null;
+  private page: any = null;
   
   constructor(options: TradeMeOptions) {
     this.baseUrl = options.baseUrl;
@@ -38,7 +37,7 @@ export class TradeMe {
     // Launch the browser
     this.browser = await playwright.launchChromium({
       headless: this.headless,
-    });
+    }) as any;
     
     // Create a new page
     if (this.browser) {
@@ -210,7 +209,7 @@ export class TradeMe {
         await this.page.waitForSelector('.tm-property-listing');
         
         // Extract detailed property information
-        const propertyDetails = await this.page.evaluate<Omit<Property, 'id'>>((baseUrl: string, propertyId: string) => {
+        const propertyDetails = await this.page.evaluate((baseUrl: string, propertyId: string) => {
           // Get the title
           const titleElement = document.querySelector('.tm-property-listing__title');
           const title = titleElement?.textContent?.trim() || '';
@@ -318,8 +317,25 @@ export class TradeMe {
         
         // Add the property ID to the result
         const result: Property = {
-          ...propertyDetails,
-          id: propertyId
+          id: propertyId,
+          title: propertyDetails.title,
+          address: propertyDetails.address,
+          price: propertyDetails.price,
+          status: propertyDetails.status as PropertyStatus,
+          bedrooms: propertyDetails.bedrooms,
+          bathrooms: propertyDetails.bathrooms,
+          property_type: propertyDetails.property_type,
+          land_area: propertyDetails.land_area,
+          floor_area: propertyDetails.floor_area,
+          primary_image_url: propertyDetails.primary_image_url,
+          images: propertyDetails.images,
+          url: propertyDetails.url,
+          created_at: propertyDetails.created_at,
+          days_on_market: propertyDetails.days_on_market,
+          description: propertyDetails.description,
+          agent: propertyDetails.agent,
+          agency: propertyDetails.agency,
+          last_updated: propertyDetails.last_updated
         };
         
         console.log(`Got details for property ${propertyId}`);
