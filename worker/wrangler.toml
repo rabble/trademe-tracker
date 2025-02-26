@@ -11,17 +11,11 @@ TRADEME_BASE_URL = "https://www.trademe.co.nz"
 
 # Development environment
 [env.dev]
-vars = { 
-  ENVIRONMENT = "development",
-  SCRAPE_INTERVAL_HOURS = "24"
-}
+vars = { ENVIRONMENT = "development", SCRAPE_INTERVAL_HOURS = "24" }
 
 # Production environment
 [env.production]
-vars = { 
-  ENVIRONMENT = "production",
-  SCRAPE_INTERVAL_HOURS = "24"
-}
+vars = { ENVIRONMENT = "production", SCRAPE_INTERVAL_HOURS = "24" }
 
 # Trigger for scheduled scraping job
 [triggers]
