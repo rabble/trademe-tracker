@@ -52,7 +52,7 @@ export const AnalyticsService = {
       // Get counts by status
       const { data: statusCounts, error: statusError } = await supabase
         .from('properties')
-        .select('status, count')
+        .select('status, count(*)')
         .neq('status', 'archived')
         .group('status');
 
@@ -93,9 +93,9 @@ export const AnalyticsService = {
         : 0;
 
       // Count properties by status
-      const activeCount = statusCounts.find(item => item.status === 'active')?.count || 0;
-      const underOfferCount = statusCounts.find(item => item.status === 'under_offer')?.count || 0;
-      const soldCount = statusCounts.find(item => item.status === 'sold')?.count || 0;
+      const activeCount = statusCounts.find((item: {status: string; count: number}) => item.status === 'active')?.count || 0;
+      const underOfferCount = statusCounts.find((item: {status: string; count: number}) => item.status === 'under_offer')?.count || 0;
+      const soldCount = statusCounts.find((item: {status: string; count: number}) => item.status === 'sold')?.count || 0;
       const totalCount = activeCount + underOfferCount + soldCount;
 
       return {

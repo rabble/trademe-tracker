@@ -51,7 +51,7 @@ export function DashboardPage() {
       status: property.status,
       daysOnMarket: property.days_on_market,
       priceChange: property.last_price_change ? {
-        type: property.last_price_change.new_price < property.last_price_change.old_price ? 'decrease' : 'increase',
+        type: property.last_price_change.new_price < property.last_price_change.old_price ? 'decrease' as const : 'increase' as const,
         amount: formatCurrency(Math.abs(property.last_price_change.new_price - property.last_price_change.old_price))
       } : undefined
     }
