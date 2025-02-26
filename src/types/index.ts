@@ -23,10 +23,11 @@ export interface Property {
   land_area?: number;
   floor_area?: number;
   property_type?: 'house' | 'apartment' | 'townhouse' | 'section' | 'other';
+  primary_image_url?: string;
   last_price_change?: {
     old_price: number;
     new_price: number;
-    change_date: string;
+    date: string;
   };
 }
 
