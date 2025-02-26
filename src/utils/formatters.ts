@@ -10,6 +10,17 @@ export function formatPrice(price: number): string {
 }
 
 /**
+ * Format a number as currency (NZD)
+ */
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-NZ', {
+    style: 'currency',
+    currency: 'NZD',
+    maximumFractionDigits: 0
+  }).format(amount);
+}
+
+/**
  * Format a date to a readable string
  */
 export function formatDate(date: Date): string {
