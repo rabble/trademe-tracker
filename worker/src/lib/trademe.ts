@@ -157,7 +157,7 @@ export class TradeMe {
           
           // Wait for navigation to complete
           await this.page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 })
-            .catch(e => console.log('Navigation timeout, but continuing...'));
+            .catch((e: Error) => console.log('Navigation timeout, but continuing...'));
         } catch (error) {
           console.log('Error clicking submit button, trying JavaScript submit:', error);
           
@@ -169,7 +169,7 @@ export class TradeMe {
           
           // Wait for navigation to complete
           await this.page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 })
-            .catch(e => console.log('Navigation timeout, but continuing...'));
+            .catch((e: Error) => console.log('Navigation timeout, but continuing...'));
         }
         
         // Check if login was successful by looking for account elements
