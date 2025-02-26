@@ -2,6 +2,7 @@ import { Env } from '../index';
 import { TradeMe } from '../lib/trademe';
 import { Property, PropertyChange, PropertyStatus } from '../types';
 import { StorageService } from './storage';
+import { ChangeTracker } from './changeTracker';
 
 // This function will be triggered by the scheduled cron
 export async function scheduledScraper(env: Env): Promise<void> {
@@ -22,14 +23,15 @@ export async function scheduledScraper(env: Env): Promise<void> {
       }
     }
     
-    // Initialize the storage service
+    // Initialize services
     const storageService = new StorageService(env);
+    const changeTracker = new ChangeTracker(env);
     
     // 1. Fetch properties from TradeMe
     const properties = await fetchPropertiesFromTradeMe(env);
     
     // 2. Process and store the properties
-    const changes = await storeProperties(properties, env, storageService);
+    const changes = await processProperties(properties, env, storageService, changeTracker);
     
     // 3. Update analytics data
     await updateAnalytics(env, changes);
@@ -85,60 +87,20 @@ async function fetchPropertiesFromTradeMe(env: Env): Promise<Property[]> {
   }
 }
 
-// Function for storing properties and detecting changes
-async function storeProperties(
+// Function for processing properties and tracking changes
+async function processProperties(
   properties: Property[], 
   env: Env, 
-  storageService: StorageService
+  storageService: StorageService,
+  changeTracker: ChangeTracker
 ): Promise<PropertyChange[]> {
   console.log(`Processing ${properties.length} properties`);
   
-  const changes: PropertyChange[] = [];
+  const allChanges: PropertyChange[] = [];
   
   for (const property of properties) {
     try {
-      // Get the existing property data from KV
-      const existingPropertyJson = await env.PROPERTIES_KV.get(`property:${property.id}`);
-      const existingProperty = existingPropertyJson ? JSON.parse(existingPropertyJson) as Property : null;
-      
-      // Detect changes
-      if (existingProperty) {
-        // Check for price changes
-        if (existingProperty.price !== property.price) {
-          changes.push({
-            id: crypto.randomUUID(),
-            property_id: property.id,
-            property_title: property.title,
-            change_type: 'price',
-            old_value: existingProperty.price.toString(),
-            new_value: property.price.toString(),
-            change_date: new Date().toISOString()
-          });
-        }
-        
-        // Check for status changes
-        if (existingProperty.status !== property.status) {
-          changes.push({
-            id: crypto.randomUUID(),
-            property_id: property.id,
-            property_title: property.title,
-            change_type: 'status',
-            old_value: existingProperty.status,
-            new_value: property.status,
-            change_date: new Date().toISOString()
-          });
-        }
-        
-        // Update days on market
-        if (property.status === 'active') {
-          const listedDate = new Date(property.created_at);
-          const now = new Date();
-          const daysOnMarket = Math.floor((now.getTime() - listedDate.getTime()) / (1000 * 60 * 60 * 24));
-          property.days_on_market = daysOnMarket;
-        }
-      }
-      
-      // Process and store images if available
+      // Process images if available
       if (property.images && property.images.length > 0) {
         try {
           console.log(`Processing ${property.images.length} images for property ${property.id}`);
@@ -148,36 +110,30 @@ async function storeProperties(
           
           // Update property with processed images
           property.images = processedImages;
-          
-          // Check for image changes
-          if (existingProperty && existingProperty.images) {
-            const oldImageCount = existingProperty.images.length;
-            const newImageCount = property.images.length;
-            
-            if (oldImageCount !== newImageCount) {
-              changes.push({
-                id: crypto.randomUUID(),
-                property_id: property.id,
-                property_title: property.title,
-                change_type: 'description',
-                old_value: `${oldImageCount} images`,
-                new_value: `${newImageCount} images`,
-                change_date: new Date().toISOString()
-              });
-            }
-          }
         } catch (error) {
           console.error(`Error processing images for property ${property.id}:`, error);
-          // Continue with property storage even if image processing fails
+          // Continue with property processing even if image processing fails
         }
       }
       
-      // Store the updated property
-      await env.PROPERTIES_KV.put(`property:${property.id}`, JSON.stringify(property));
+      // Detect and track changes
+      const changeResult = await changeTracker.processProperty(property);
       
-      // Store property images reference
-      if (property.images && property.images.length > 0) {
-        await env.PROPERTIES_KV.put(`property:${property.id}:images`, JSON.stringify(property.images));
+      // Store the property snapshot (current state)
+      await changeTracker.storePropertySnapshot(changeResult.property);
+      
+      // Add detected changes to the list
+      if (changeResult.changes.length > 0) {
+        allChanges.push(...changeResult.changes);
+      }
+      
+      // Log information about the property
+      if (changeResult.isNew) {
+        console.log(`New property added: ${property.id} - ${property.title}`);
+      } else if (changeResult.changes.length > 0) {
+        console.log(`Changes detected for property ${property.id}: ${changeResult.changes.length} changes`);
+      } else {
+        console.log(`No changes detected for property ${property.id}`);
       }
     } catch (error) {
       console.error(`Error processing property ${property.id}:`, error);
@@ -185,19 +141,13 @@ async function storeProperties(
     }
   }
   
-  // Store the changes
-  if (changes.length > 0) {
-    // Get existing changes
-    const existingChangesJson = await env.PROPERTIES_KV.get('property_changes');
-    const existingChanges = existingChangesJson ? JSON.parse(existingChangesJson) as PropertyChange[] : [];
-    
-    // Combine and store
-    const allChanges = [...changes, ...existingChanges].slice(0, 100); // Keep only the most recent 100 changes
-    await env.PROPERTIES_KV.put('property_changes', JSON.stringify(allChanges));
+  // Store all the changes
+  if (allChanges.length > 0) {
+    await changeTracker.storeChanges(allChanges);
   }
   
-  console.log(`Stored ${properties.length} properties with ${changes.length} changes`);
-  return changes;
+  console.log(`Processed ${properties.length} properties with ${allChanges.length} changes`);
+  return allChanges;
 }
 
 // Function for updating analytics data

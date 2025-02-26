@@ -16,6 +16,10 @@ export interface Property {
   url?: string;
   created_at: string;
   days_on_market: number;
+  description?: string;
+  agent?: string;
+  agency?: string;
+  last_updated?: string;
 }
 
 export interface PropertyImage {
@@ -34,6 +38,7 @@ export interface PropertyChange {
   old_value: string;
   new_value: string;
   change_date: string;
+  description?: string;
 }
 
 export interface PortfolioSummary {

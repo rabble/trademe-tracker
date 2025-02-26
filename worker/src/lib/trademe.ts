@@ -222,6 +222,17 @@ export class TradeMe {
           const priceMatch = priceText.match(/\$?([\d,]+)/);
           const price = priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : 0;
           
+          // Get the description
+          const descriptionElement = document.querySelector('.tm-property-listing-description');
+          const description = descriptionElement?.textContent?.trim() || '';
+          
+          // Get the agent and agency information
+          const agentElement = document.querySelector('.tm-property-listing-agent__name');
+          const agent = agentElement?.textContent?.trim() || '';
+          
+          const agencyElement = document.querySelector('.tm-property-listing-agent__agency');
+          const agency = agencyElement?.textContent?.trim() || '';
+          
           // Get the status
           const statusElement = document.querySelector('.tm-property-listing-status');
           const statusText = statusElement?.textContent?.trim().toLowerCase() || '';
@@ -294,7 +305,11 @@ export class TradeMe {
             images,
             url: `${baseUrl}/property/residential/${id}`,
             created_at: listingDate,
-            days_on_market: daysOnMarket
+            days_on_market: daysOnMarket,
+            description,
+            agent,
+            agency,
+            last_updated: new Date().toISOString()
           };
         }, this.baseUrl, propertyId);
         

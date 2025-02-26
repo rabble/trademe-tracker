@@ -1,6 +1,8 @@
 import { Router, IRequest } from 'itty-router';
 import { Env } from '../index';
 import { addCorsHeaders } from '../middleware/cors';
+import { PropertyChange } from '../types';
+import { ChangeTracker } from '../services/changeTracker';
 
 // Create a router for analytics endpoints
 const router = Router({ base: '/api/analytics' });
@@ -35,23 +37,51 @@ router.get('/summary', async (request: IRequest, env: Env) => {
 router.get('/recent-changes', async (request: IRequest, env: Env) => {
   try {
     const limit = parseInt(new URL(request.url).searchParams.get('limit') || '10');
+    const propertyId = new URL(request.url).searchParams.get('propertyId');
     
-    // In a real implementation, you would fetch recent changes from your data
-    // For now, return mock data
-    const changes = [
-      {
-        id: '1',
-        property_id: '123',
-        property_title: 'Beautiful 3 Bedroom Home',
-        change_type: 'price',
-        old_value: '900000',
-        new_value: '850000',
-        change_date: new Date().toISOString(),
-      },
-      // Add more mock changes as needed
-    ];
+    // Get changes from KV
+    const changesJson = await env.PROPERTIES_KV.get('property_changes');
+    let changes: PropertyChange[] = [];
+    
+    if (changesJson) {
+      changes = JSON.parse(changesJson);
+      
+      // Filter by property ID if provided
+      if (propertyId) {
+        changes = changes.filter(change => change.property_id === propertyId);
+      }
+      
+      // Sort by date (newest first)
+      changes.sort((a, b) => 
+        new Date(b.change_date).getTime() - new Date(a.change_date).getTime()
+      );
+    }
     
     const response = new Response(JSON.stringify(changes.slice(0, limit)), {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    return addCorsHeaders(response);
+  } catch (error) {
+    throw error;
+  }
+});
+
+// GET /api/analytics/property-history/:id
+router.get('/property-history/:id', async (request: IRequest, env: Env) => {
+  try {
+    const { id } = request.params;
+    const limit = parseInt(new URL(request.url).searchParams.get('limit') || '10');
+    
+    // Create a change tracker to access the history methods
+    const changeTracker = new ChangeTracker(env);
+    
+    // Get property history
+    const history = await changeTracker.getPropertyHistory(id, limit);
+    
+    const response = new Response(JSON.stringify(history), {
       headers: {
         'Content-Type': 'application/json',
       },
