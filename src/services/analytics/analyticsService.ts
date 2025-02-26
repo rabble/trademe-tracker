@@ -49,12 +49,11 @@ export const AnalyticsService = {
    */
   async fetchSummary(): Promise<PortfolioSummary> {
     try {
-      // Get counts by status
+      // Get counts by status using Supabase's built-in count aggregation
       const { data: statusCounts, error: statusError } = await supabase
         .from('properties')
-        .select('status, count(*)')
-        .neq('status', 'archived')
-        .group('status');
+        .select('status, count')
+        .neq('status', 'archived');
 
       if (statusError) {
         throw statusError;
