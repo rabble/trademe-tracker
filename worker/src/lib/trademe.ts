@@ -151,15 +151,56 @@ export class TradeMe {
         // Small delay to ensure values are set
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Submit the form
-        await Promise.all([
-          this.page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
-          loginFrame.click('button[type="submit"]')
+        try {
+          // First try to directly click the submit button
+          await loginFrame.click('button[type="submit"]');
+          
+          // Wait for navigation to complete
+          await this.page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 })
+            .catch(e => console.log('Navigation timeout, but continuing...'));
+        } catch (error) {
+          console.log('Error clicking submit button, trying JavaScript submit:', error);
+          
+          // If clicking fails, try to submit the form using JavaScript
+          await loginFrame.evaluate(() => {
+            const form = document.querySelector('form');
+            if (form) form.submit();
+          });
+          
+          // Wait for navigation to complete
+          await this.page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 })
+            .catch(e => console.log('Navigation timeout, but continuing...'));
+        }
+        
+        // Check if login was successful by looking for account elements
+        const loginSuccess = await Promise.race([
+          // Look for account name element (success case)
+          this.page.waitForSelector('.tm-header-account-name', { timeout: 15000 })
+            .then(() => true)
+            .catch(() => false),
+          
+          // Look for error message (failure case)
+          loginFrame.waitForSelector('.validation-summary-errors', { timeout: 15000 })
+            .then(() => false)
+            .catch(() => true)
         ]);
         
-        // Wait for successful login redirect
-        await this.page.waitForSelector('.tm-header-account-name', { timeout: 15000 })
-          .catch(() => console.log('Account name element not found after login, but continuing...'));
+        if (loginSuccess) {
+          console.log('Login successful - found account name element');
+        } else {
+          // Check if we're still on the login page
+          const loginErrorMessage = await loginFrame.evaluate(() => {
+            const errorElement = document.querySelector('.validation-summary-errors');
+            return errorElement ? errorElement.textContent : null;
+          }).catch(() => null);
+          
+          if (loginErrorMessage) {
+            console.log('Login failed with error:', loginErrorMessage);
+            throw new Error(`Login failed: ${loginErrorMessage}`);
+          } else {
+            console.log('Login status unclear - account name element not found, but continuing...');
+          }
+        }
         
       } catch (error) {
         console.error('Error with login form:', error);
