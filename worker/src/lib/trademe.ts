@@ -99,7 +99,7 @@ export class TradeMe {
       });
       
       if (alreadyLoggedIn) {
-        console.log('Already logged in');
+        console.log('Already logged in with saved credentials');
         return;
       }
       
@@ -242,8 +242,8 @@ export class TradeMe {
     }
     
     try {
-      // Navigate to the watchlist page - using the new URL format
-      await this.page.goto(`${this.baseUrl}/a/my-trademe/watchlist`);
+      // Navigate to the watchlist page - using the correct URL format
+      await this.page.goto(`${this.baseUrl}/a/my-trade-me/watchlist`);
       
       // Take a screenshot in debug mode to help with debugging
       if (!this.headless) {
@@ -525,8 +525,8 @@ export class TradeMe {
     }
     
     try {
-      // Navigate to the account page
-      await this.page.goto(`${this.baseUrl}/MyTradeMe/Account`);
+      // Navigate to the account page using the correct URL format
+      await this.page.goto(`${this.baseUrl}/a/my-trade-me/account`);
       
       // Check if we're still logged in
       return await this.page.evaluate(() => {
