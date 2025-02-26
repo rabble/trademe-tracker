@@ -74,7 +74,7 @@ export class TradeMe {
     
     try {
       // Navigate to the login page
-      await this.page.goto(`https://auth.trademe.co.nz/sign-in`);
+      await this.page.goto(`https://www.trademe.co.nz/a/(modal:login)`);
       
       // Check if we're already logged in
       const alreadyLoggedIn = await this.page.evaluate(() => {
@@ -86,13 +86,17 @@ export class TradeMe {
         return;
       }
       
+      // Wait for the login form to appear
+      await this.page.waitForSelector('input[name="email"]');
+      await this.page.waitForSelector('input[name="password"]');
+      
       // Fill in the login form
-      await this.page.fill('#Email', this.username);
-      await this.page.fill('#Password', this.password);
+      await this.page.type('input[name="email"]', this.username);
+      await this.page.type('input[name="password"]', this.password);
       
       // Submit the form
       await Promise.all([
-        this.page.waitForNavigation(),
+        this.page.waitForNavigation({ waitUntil: 'networkidle0' }),
         this.page.click('button[type="submit"]')
       ]);
       
