@@ -8,6 +8,7 @@ interface TradeMeOptions {
   password: string;
   maxRetries?: number;
   timeout?: number;
+  headless?: boolean;
 }
 
 export class TradeMe {
@@ -16,6 +17,7 @@ export class TradeMe {
   private password: string;
   private maxRetries: number;
   private timeout: number;
+  private headless: boolean;
   private browser: Browser | null = null;
   private page: Page | null = null;
   
@@ -25,6 +27,7 @@ export class TradeMe {
     this.password = options.password;
     this.maxRetries = options.maxRetries || 3;
     this.timeout = options.timeout || 30000; // 30 seconds
+    this.headless = options.headless !== false; // Default to true if not specified
   }
   
   /**
@@ -36,7 +39,7 @@ export class TradeMe {
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
-      headless: true,
+      headless: this.headless,
       ignoreHTTPSErrors: true,
     });
     

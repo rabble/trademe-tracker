@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "worker:dev": "cd worker && wrangler dev",
     "worker:deploy": "cd worker && wrangler deploy",
-    "scrape": "cd worker && npm run scrape"
+    "worker:test": "cd worker && npm test",
+    "scrape": "cd worker && npm run scrape",
+    "scrape:debug": "cd worker && npm run scrape:debug"
   },
   "overrides": {
     "amqplib": {
