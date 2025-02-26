@@ -115,7 +115,7 @@ export class TradeMe {
         console.log(`Found ${frames.length} frames on the page`);
         
         // Find the login iframe
-        const loginFrame = frames.find(frame => 
+        const loginFrame = frames.find((frame: any) => 
           frame.url().includes('auth.trademe.co.nz')
         );
         
