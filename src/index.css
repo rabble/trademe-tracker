@@ -7,7 +7,6 @@ body {
     Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  @apply bg-gray-50;
 }
 
 /* Global SVG size control */
