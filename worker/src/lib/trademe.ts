@@ -261,43 +261,171 @@ export class TradeMe {
         throw new Error('Watchlist page not found (404). Login may have failed.');
       }
       
-      // Wait for the watchlist to load - using the new selector
-      await this.page.waitForSelector('.tm-property-watchlist-card, .tm-watchlist-item');
+      // Wait for the watchlist to load - using more general selectors that should match any watchlist item
+      console.log('Waiting for watchlist content to load...');
+      
+      // First wait for the page to fully load
+      await this.page.waitForSelector('main', { timeout: 15000 });
+      
+      // Take a screenshot in debug mode to see what's actually on the page
+      if (!this.headless) {
+        await this.page.screenshot({ path: 'watchlist-before-extraction.png' });
+        console.log('Saved pre-extraction screenshot to watchlist-before-extraction.png');
+      }
+      
+      // Log the page title and URL to help with debugging
+      const pageTitle = await this.page.title();
+      const pageUrl = this.page.url();
+      console.log(`Page title: "${pageTitle}", URL: ${pageUrl}`);
+      
+      // Check if we're on the watchlist page
+      const isWatchlistPage = pageTitle.includes('Watchlist') || pageUrl.includes('watchlist');
+      if (!isWatchlistPage) {
+        console.warn('Not on watchlist page. Current page:', pageTitle);
+        throw new Error('Not on watchlist page. Possible login issue.');
+      }
       
       // Extract basic property information
       const properties = await this.page.evaluate((baseUrl: string) => {
-        // Try both old and new selectors
-        const items = Array.from(document.querySelectorAll('.tm-property-watchlist-card, .tm-watchlist-item'));
+        console.log('Evaluating page content to find watchlist items');
+        
+        // Try a variety of selectors that might match property listings
+        // This includes generic card selectors that might be used for any listing type
+        const selectors = [
+          '.tm-property-watchlist-card', 
+          '.tm-watchlist-item',
+          '.o-card', // Generic card class
+          '[data-test="watchlist-item"]', // Data attribute selector
+          '.tm-watchlist-card',
+          '.tm-property-search-card',
+          'article', // Any article element
+          '.o-card--watchlist' // Possible BEM naming for watchlist cards
+        ];
+        
+        // Try each selector and use the first one that returns results
+        let items = [];
+        for (const selector of selectors) {
+          const found = Array.from(document.querySelectorAll(selector));
+          if (found.length > 0) {
+            console.log(`Found ${found.length} items with selector: ${selector}`);
+            items = found;
+            break;
+          }
+        }
+        
+        // If no items found with specific selectors, try to find any link that might be a property
+        if (items.length === 0) {
+          console.log('No items found with specific selectors, trying to find property links');
+          const propertyLinks = Array.from(document.querySelectorAll('a[href*="/property/"]'));
+          if (propertyLinks.length > 0) {
+            console.log(`Found ${propertyLinks.length} property links`);
+            // Get the parent elements of these links as our items
+            items = propertyLinks.map(link => link.closest('div, article, section') || link);
+          }
+        }
         
         return items.map(item => {
           // Get the property ID from the URL
-          const linkElement = item.querySelector('a[href*="/property/"], a.tm-property-search-card__link');
+          const linkElement = item.querySelector('a[href*="/property/"], a[href*="residential"], a.tm-property-search-card__link');
           const href = linkElement?.getAttribute('href') || '';
           const idMatch = href.match(/\/property\/(?:residential\/)?(\d+)/);
           const id = idMatch ? idMatch[1] : '';
           
-          // Get the title - try both new and old selectors
-          const titleElement = item.querySelector('.tm-property-watchlist-card__title, .tm-property-search-card__title');
-          const title = titleElement?.textContent?.trim() || '';
+          // If we couldn't find an ID, log details about this item to help debugging
+          if (!id && linkElement) {
+            console.log('Found item without property ID. Link href:', href);
+          }
           
-          // Get the address - try both new and old selectors
-          const addressElement = item.querySelector('.tm-property-watchlist-card__address, .tm-property-search-card__address');
-          const address = addressElement?.textContent?.trim() || '';
+          // Get the title - try various selectors
+          const titleSelectors = [
+            '.tm-property-watchlist-card__title', 
+            '.tm-property-search-card__title',
+            'h3', // Any h3 heading
+            '.o-card__title',
+            '[data-test="listing-title"]'
+          ];
+          let title = '';
+          for (const selector of titleSelectors) {
+            const element = item.querySelector(selector);
+            if (element && element.textContent) {
+              title = element.textContent.trim();
+              break;
+            }
+          }
+          // If no title found with selectors, use the link text as fallback
+          if (!title && linkElement) {
+            title = linkElement.textContent?.trim() || '';
+          }
           
-          // Get the price - try both new and old selectors
-          const priceElement = item.querySelector('.tm-property-watchlist-card__price, .tm-property-search-card__price');
-          const priceText = priceElement?.textContent?.trim() || '';
+          // Get the address - try various selectors
+          const addressSelectors = [
+            '.tm-property-watchlist-card__address', 
+            '.tm-property-search-card__address',
+            '.o-card__address',
+            '[data-test="listing-address"]'
+          ];
+          let address = '';
+          for (const selector of addressSelectors) {
+            const element = item.querySelector(selector);
+            if (element && element.textContent) {
+              address = element.textContent.trim();
+              break;
+            }
+          }
+          
+          // Get the price - try various selectors
+          const priceSelectors = [
+            '.tm-property-watchlist-card__price', 
+            '.tm-property-search-card__price',
+            '.o-card__price',
+            '[data-test="listing-price"]',
+            '.tm-property-price'
+          ];
+          let priceText = '';
+          for (const selector of priceSelectors) {
+            const element = item.querySelector(selector);
+            if (element && element.textContent) {
+              priceText = element.textContent.trim();
+              break;
+            }
+          }
           // Extract numbers from price text (e.g., "$850,000" -> 850000)
           const priceMatch = priceText.match(/\$?([\d,]+)/);
           const price = priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : 0;
           
-          // Get the image URL - try both new and old selectors
-          const imageElement = item.querySelector('.tm-property-watchlist-card__image img, .tm-property-search-card__image');
-          const imageUrl = imageElement?.getAttribute('src') || '';
+          // Get the image URL - try various selectors
+          const imageSelectors = [
+            '.tm-property-watchlist-card__image img', 
+            '.tm-property-search-card__image',
+            '.o-card__image img',
+            'img', // Any image
+            '[data-test="listing-image"]'
+          ];
+          let imageUrl = '';
+          for (const selector of imageSelectors) {
+            const element = item.querySelector(selector);
+            if (element) {
+              imageUrl = element.getAttribute('src') || element.getAttribute('data-src') || '';
+              if (imageUrl) break;
+            }
+          }
           
-          // Get the status - try both new and old selectors
-          const statusElement = item.querySelector('.tm-property-watchlist-card__status, .tm-property-search-card__status');
-          const statusText = statusElement?.textContent?.trim().toLowerCase() || '';
+          // Get the status - try various selectors
+          const statusSelectors = [
+            '.tm-property-watchlist-card__status', 
+            '.tm-property-search-card__status',
+            '.o-card__status',
+            '[data-test="listing-status"]',
+            '.tm-property-status'
+          ];
+          let statusText = '';
+          for (const selector of statusSelectors) {
+            const element = item.querySelector(selector);
+            if (element && element.textContent) {
+              statusText = element.textContent.trim().toLowerCase();
+              break;
+            }
+          }
           let status: 'active' | 'under_offer' | 'sold' | 'archived' = 'active';
           
           if (statusText.includes('under offer')) {
@@ -323,12 +451,60 @@ export class TradeMe {
       console.log(`Found ${properties.length} favorited properties`);
       
       // If no properties found but page loaded, log the page content for debugging
-      if (properties.length === 0 && !this.headless) {
+      if (properties.length === 0) {
         console.log('No properties found in watchlist. Logging page content for debugging:');
-        const pageContent = await this.page.content();
-        console.log(pageContent.substring(0, 1000) + '...');
+        
+        // Get all links on the page to see if there are any property links
+        const allLinks = await this.page.evaluate(() => {
+          return Array.from(document.querySelectorAll('a[href*="/property/"]'))
+            .map(a => ({
+              href: a.getAttribute('href'),
+              text: a.textContent?.trim(),
+              parentElement: a.parentElement?.tagName,
+              parentClass: a.parentElement?.className
+            }));
+        });
+        
+        console.log('Property links found on page:', allLinks);
+        
+        // Get the HTML structure to help debug
+        const pageStructure = await this.page.evaluate(() => {
+          function getStructure(element, depth = 0) {
+            if (!element) return '';
+            
+            const indent = ' '.repeat(depth * 2);
+            const tag = element.tagName.toLowerCase();
+            const id = element.id ? `#${element.id}` : '';
+            const classes = element.className && typeof element.className === 'string' 
+              ? `.${element.className.split(' ').join('.')}` 
+              : '';
+            
+            let result = `${indent}<${tag}${id}${classes}>\n`;
+            
+            if (depth < 5) { // Limit depth to avoid too much output
+              for (const child of element.children) {
+                result += getStructure(child, depth + 1);
+              }
+            }
+            
+            return result;
+          }
+          
+          return getStructure(document.body);
+        });
+        
+        console.log('Page structure:', pageStructure);
+        
+        // Take a screenshot regardless of headless mode in this error case
         await this.page.screenshot({ path: 'empty-watchlist.png' });
         console.log('Saved empty watchlist screenshot to empty-watchlist.png');
+        
+        // Try to get any text content that might help identify the issue
+        const pageText = await this.page.evaluate(() => {
+          return document.body.innerText.substring(0, 1000);
+        });
+        
+        console.log('Page text content:', pageText);
       }
       
       return properties;
