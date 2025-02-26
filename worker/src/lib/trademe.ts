@@ -1,6 +1,6 @@
 import * as playwright from 'playwright-aws-lambda';
 import { Browser, Page } from 'playwright-core';
-import puppeteer from 'puppeteer-core';
+import * as puppeteer from 'puppeteer-core';
 import { Property, PropertyImage, PropertyStatus } from '../types';
 
 interface TradeMeOptions {
@@ -36,7 +36,7 @@ export class TradeMe {
    */
   async initialize(): Promise<void> {
     // Launch the browser
-    this.browser = await playwright.default({
+    this.browser = await playwright.launchChromium({
       headless: this.headless,
     });
     
