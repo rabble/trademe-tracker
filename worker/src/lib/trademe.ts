@@ -482,7 +482,8 @@ export class TradeMe {
             let result = `${indent}<${tag}${id}${classes}>\n`;
             
             if (depth < 5) { // Limit depth to avoid too much output
-              for (const child of element.children) {
+              // Convert HTMLCollection to Array before iteration
+              for (const child of Array.from(element.children)) {
                 result += getStructure(child, depth + 1);
               }
             }
