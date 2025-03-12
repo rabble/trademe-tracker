@@ -1,5 +1,41 @@
 import { Property } from '../../types';
 
+/**
+ * Helper function to parse numeric values from strings
+ * @param value String value that may contain a number
+ * @returns Parsed number or undefined
+ */
+function parseNumericValue(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  
+  // Extract numeric part using regex
+  const numericMatch = value.match(/(\d+(\.\d+)?)/);
+  if (numericMatch && numericMatch[1]) {
+    return parseFloat(numericMatch[1]);
+  }
+  return undefined;
+}
+
+/**
+ * Maps TradeMe property type strings to our application's property types
+ * @param type Property type string from TradeMe
+ * @returns Mapped property type or undefined
+ */
+function mapToPropertyType(
+  type: string | undefined
+): 'house' | 'apartment' | 'townhouse' | 'section' | 'other' | undefined {
+  if (!type) return undefined;
+  
+  const lowerType = type.toLowerCase();
+  
+  if (lowerType.includes('house')) return 'house';
+  if (lowerType.includes('apartment')) return 'apartment';
+  if (lowerType.includes('townhouse') || lowerType.includes('town house')) return 'townhouse';
+  if (lowerType.includes('section') || lowerType.includes('land')) return 'section';
+  
+  return 'other';
+}
+
 // TradeMe API base URL for sandbox
 const TRADEME_SANDBOX_API_URL = 'https://api.tmsandbox.co.nz';
 // TradeMe API base URL for production
@@ -331,14 +367,14 @@ export const TradeMeService = {
       console.log(`Found ${data.List.length} items in watchlist`);
       
       // Filter for property listings only
-      const propertyListings = data.List.filter(item => 
+      const propertyListings = data.List.filter((item: any) => 
         item.CategoryPath && item.CategoryPath.includes('/property/')
       );
       
       console.log(`Found ${propertyListings.length} property listings in watchlist`);
       
       // Convert to our Property format
-      const properties = propertyListings.map(item => {
+      const properties = propertyListings.map((item: any) => {
         // Extract property ID from the listing ID
         const id = item.ListingId.toString();
         
@@ -354,9 +390,9 @@ export const TradeMeService = {
         // Extract bedrooms and bathrooms
         let bedrooms: number | undefined;
         let bathrooms: number | undefined;
-        let propertyType: string | undefined;
-        let landArea: string | undefined;
-        let floorArea: string | undefined;
+        let propertyType: 'house' | 'apartment' | 'townhouse' | 'section' | 'other' | undefined;
+        let landArea: number | undefined;
+        let floorArea: number | undefined;
         
         // Extract attributes if available
         if (item.Attributes) {
@@ -366,11 +402,11 @@ export const TradeMeService = {
             } else if (attr.Name === 'Bathrooms') {
               bathrooms = parseInt(attr.Value || '0', 10);
             } else if (attr.Name === 'PropertyType') {
-              propertyType = attr.Value;
+              propertyType = mapToPropertyType(attr.Value);
             } else if (attr.Name === 'LandArea') {
-              landArea = attr.Value;
+              landArea = parseNumericValue(attr.Value);
             } else if (attr.Name === 'FloorArea') {
-              floorArea = attr.Value;
+              floorArea = parseNumericValue(attr.Value);
             }
           }
         }
@@ -615,16 +651,17 @@ export const TradeMeService = {
     // Extract bedrooms and bathrooms
     let bedrooms: number | undefined = item.Bedrooms;
     let bathrooms: number | undefined = item.Bathrooms;
-    let propertyType: string | undefined = item.PropertyType;
-    let landArea: string | undefined;
-    let floorArea: string | undefined;
+    let propertyType: 'house' | 'apartment' | 'townhouse' | 'section' | 'other' | undefined = 
+      mapToPropertyType(item.PropertyType);
+    let landArea: number | undefined;
+    let floorArea: number | undefined;
     
     if (item.LandArea) {
-      landArea = `${item.LandArea} ${item.LandAreaUnit || 'm²'}`;
+      landArea = typeof item.LandArea === 'number' ? item.LandArea : parseNumericValue(item.LandArea);
     }
     
     if (item.FloorArea) {
-      floorArea = `${item.FloorArea} ${item.FloorAreaUnit || 'm²'}`;
+      floorArea = typeof item.FloorArea === 'number' ? item.FloorArea : parseNumericValue(item.FloorArea);
     }
     
     // Extract attributes if available
@@ -635,11 +672,11 @@ export const TradeMeService = {
         } else if (attr.Name === 'Bathrooms' && !bathrooms) {
           bathrooms = parseInt(attr.Value || '0', 10);
         } else if (attr.Name === 'PropertyType' && !propertyType) {
-          propertyType = attr.Value;
+          propertyType = mapToPropertyType(attr.Value);
         } else if (attr.Name === 'LandArea' && !landArea) {
-          landArea = attr.Value;
+          landArea = parseNumericValue(attr.Value);
         } else if (attr.Name === 'FloorArea' && !floorArea) {
-          floorArea = attr.Value;
+          floorArea = parseNumericValue(attr.Value);
         }
       }
     }
