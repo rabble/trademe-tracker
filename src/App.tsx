@@ -6,6 +6,7 @@ import { PropertiesPage } from './pages/PropertiesPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { PropertyDetailsPage } from './pages/PropertyDetailsPage'
 import { QueryProvider } from './providers/QueryProvider'
+import { OAuthCallback } from './components/trademe/OAuthCallback'
 import './index.css'
 import './styles/app-background.css'
 
@@ -22,6 +23,7 @@ function App() {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
+          <Route path="/oauth-callback" element={<OAuthCallback />} />
         </Routes>
       </Router>
     </QueryProvider>
