@@ -56,18 +56,18 @@ export function PropertyTypesChart({ isLoading = false, error = null }: Property
     );
   }
 
-  const formatYAxis = (value: number) => {
+  const formatYAxis = (value: number): string => {
     if (metric === 'avgPrice') {
       return formatCurrency(value, true);
     }
-    return value;
+    return value.toString();
   };
 
-  const formatTooltip = (value: number) => {
+  const formatTooltip = (value: number): string => {
     if (metric === 'avgPrice') {
       return formatCurrency(value);
     }
-    return value;
+    return value.toString();
   };
 
   return (
