@@ -273,9 +273,11 @@ export const TradeMeService = {
         : `${TRADEME_AUTH_URL}?oauth_token=${requestToken}`;
         
       console.log(`Authorization URL: ${authUrl}`);
+      console.log('Will navigate to this URL in the current window (not opening a new window)');
       
       // Store the current page URL so we can return to it after OAuth
       localStorage.setItem('trademe_oauth_return_url', window.location.href);
+      console.log(`Stored return URL: ${window.location.href}`);
       
       return authUrl;
     } catch (error) {
@@ -380,7 +382,7 @@ export const TradeMeService = {
         // Clean up the return URL
         localStorage.removeItem('trademe_oauth_return_url');
         // Redirect back to the original page
-        window.location.href = returnUrl;
+        window.location.assign(returnUrl); // Use assign instead of setting href directly
       }
       
       return true;

@@ -123,7 +123,7 @@ export function TradeMeDebugPanel() {
       const authUrl = await TradeMeService.getOAuthRequestUrl(true); // Use sandbox
       console.log('Got OAuth URL:', authUrl);
       // Navigate in the current window instead of opening a new one
-      window.location.href = authUrl;
+      window.location.assign(authUrl); // Use assign instead of setting href directly
     } catch (err) {
       console.error('Error starting OAuth flow:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
