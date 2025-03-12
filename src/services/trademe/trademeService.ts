@@ -181,11 +181,9 @@ export const TradeMeService = {
       // Step 1: Get a request token
       const requestTokenUrl = `${OAUTH_URL}/RequestToken`;
       
-      // Force HTTPS for Cloudflare deployment
-      // This ensures the callback URL is always HTTPS which TradeMe requires
-      const host = window.location.host;
-      // Always use https:// (note: only one colon)
-      const callbackUrl = `https://${host}/settings/trademe-callback`;
+      // Use a registered callback URL that TradeMe recognizes
+      // For sandbox, we'll use a standard callback that should be registered with TradeMe
+      const callbackUrl = "https://www.tmsandbox.co.nz/MyTradeMe/OAuth/Complete";
       
       console.log(`Request token URL: ${requestTokenUrl}`);
       console.log(`Callback URL: ${callbackUrl}`);
@@ -276,8 +274,9 @@ export const TradeMeService = {
       console.log('Will navigate to this URL in the current window (not opening a new window)');
       
       // Store the current page URL so we can return to it after OAuth
-      localStorage.setItem('trademe_oauth_return_url', window.location.href);
-      console.log(`Stored return URL: ${window.location.href}`);
+      const returnUrl = window.location.href;
+      localStorage.setItem('trademe_oauth_return_url', returnUrl);
+      console.log(`Stored return URL: ${returnUrl} - will redirect back here after OAuth`);
       
       return authUrl;
     } catch (error) {
@@ -417,6 +416,26 @@ export const TradeMeService = {
       tokenSecretLength: tokenSecret?.length || 0
     });
     return !!token && !!tokenSecret;
+  },
+  
+  /**
+   * Handle OAuth completion
+   * This should be called when the user is redirected back from TradeMe
+   */
+  handleOAuthCompletion(): void {
+    // Get the stored return URL
+    const returnUrl = localStorage.getItem('trademe_oauth_return_url');
+    if (returnUrl) {
+      console.log(`Redirecting back to: ${returnUrl}`);
+      // Clean up the return URL
+      localStorage.removeItem('trademe_oauth_return_url');
+      // Redirect back to the original page
+      window.location.assign(returnUrl);
+    } else {
+      // If no return URL is found, redirect to the home page
+      console.log('No return URL found, redirecting to home page');
+      window.location.assign('/');
+    }
   },
   
   /**
