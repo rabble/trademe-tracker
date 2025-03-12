@@ -23,6 +23,14 @@ router.get('/api/health', () => new Response('OK', { status: 200 }));
 router.all('/api/properties/*', withAuth, propertiesRoutes.handle);
 router.all('/api/analytics/*', withAuth, analyticsRoutes.handle);
 
+// Add a root route for testing
+router.get('/', () => new Response('TradeMe Tracker API is running', { 
+  status: 200,
+  headers: {
+    'Content-Type': 'text/plain'
+  }
+}));
+
 // 404 for everything else
 router.all('*', () => new Response('Not Found', { status: 404 }));
 

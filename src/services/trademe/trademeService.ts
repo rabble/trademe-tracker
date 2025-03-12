@@ -145,7 +145,8 @@ export const TradeMeService = {
           'Authorization': authHeader,
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: `oauth_callback=${encodeURIComponent(callbackUrl)}&scope=${encodeURIComponent(scope)}`
+        body: `oauth_callback=${encodeURIComponent(callbackUrl)}&scope=${encodeURIComponent(scope)}`,
+        mode: 'cors'
       });
       
       if (!response.ok) {
@@ -218,7 +219,8 @@ export const TradeMeService = {
           'Authorization': authHeader,
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: `oauth_verifier=${oauthVerifier}`
+        body: `oauth_verifier=${oauthVerifier}`,
+        mode: 'cors'
       });
       
       console.log(`Response status: ${response.status}`);
@@ -311,9 +313,9 @@ export const TradeMeService = {
         method: 'GET',
         headers: {
           'Authorization': authHeader,
-          'Accept': 'application/json',
-          'Origin': window.location.origin
-        }
+          'Accept': 'application/json'
+        },
+        mode: 'cors'
       });
       
       if (!response.ok) {
@@ -501,9 +503,9 @@ export const TradeMeService = {
         method: 'GET',
         headers: {
           'Authorization': authHeader,
-          'Accept': 'application/json',
-          'Origin': window.location.origin
-        }
+          'Accept': 'application/json'
+        },
+        mode: 'cors'
       });
       
       if (!response.ok) {
