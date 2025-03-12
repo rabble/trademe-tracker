@@ -66,9 +66,25 @@ const OAUTH_ENVIRONMENT_KEY = 'trademe_environment';
  * Get stored OAuth tokens
  */
 function getStoredOAuthTokens(): { token: string; tokenSecret: string; isSandbox: boolean } {
-  const token = localStorage.getItem(OAUTH_TOKEN_KEY) || '';
-  const tokenSecret = localStorage.getItem(OAUTH_TOKEN_SECRET_KEY) || '';
-  const environment = localStorage.getItem(OAUTH_ENVIRONMENT_KEY) || 'sandbox';
+  // Try localStorage first, then fall back to sessionStorage
+  let token = localStorage.getItem(OAUTH_TOKEN_KEY) || '';
+  let tokenSecret = localStorage.getItem(OAUTH_TOKEN_SECRET_KEY) || '';
+  let environment = localStorage.getItem(OAUTH_ENVIRONMENT_KEY) || 'sandbox';
+  
+  // If not found in localStorage, try sessionStorage
+  if (!token || !tokenSecret) {
+    token = sessionStorage.getItem(OAUTH_TOKEN_KEY) || '';
+    tokenSecret = sessionStorage.getItem(OAUTH_TOKEN_SECRET_KEY) || '';
+    environment = sessionStorage.getItem(OAUTH_ENVIRONMENT_KEY) || 'sandbox';
+    
+    // If found in sessionStorage but not localStorage, sync them
+    if ((token || tokenSecret) && (!localStorage.getItem(OAUTH_TOKEN_KEY) || !localStorage.getItem(OAUTH_TOKEN_SECRET_KEY))) {
+      console.log('Syncing OAuth tokens from sessionStorage to localStorage');
+      if (token) localStorage.setItem(OAUTH_TOKEN_KEY, token);
+      if (tokenSecret) localStorage.setItem(OAUTH_TOKEN_SECRET_KEY, tokenSecret);
+      localStorage.setItem(OAUTH_ENVIRONMENT_KEY, environment);
+    }
+  }
   
   return {
     token,
@@ -244,8 +260,12 @@ export const TradeMeService = {
         throw new Error('No request token received from TradeMe');
       }
       
-      // Store the request token secret temporarily
+      // Store the request token secret temporarily in both localStorage and sessionStorage
+      // This helps with cross-tab and browser refresh scenarios
       localStorage.setItem('trademe_request_token_secret', requestTokenSecret);
+      sessionStorage.setItem('trademe_request_token_secret', requestTokenSecret);
+      
+      console.log(`Stored request token secret (${requestTokenSecret.length} chars) in localStorage and sessionStorage`);
       
       // Step 2: Redirect user to authorization page
       const authUrl = isSandbox 
@@ -271,7 +291,19 @@ export const TradeMeService = {
       
       // Get the request token secret from storage
       const requestTokenSecret = localStorage.getItem('trademe_request_token_secret') || '';
-      console.log(`Retrieved request token secret: ${requestTokenSecret ? 'Yes' : 'No'}`);
+      console.log(`Retrieved request token secret: ${requestTokenSecret ? 'Yes' : 'No'}, length: ${requestTokenSecret.length}`);
+      
+      if (!requestTokenSecret) {
+        console.error('No request token secret found in localStorage');
+        // Check if we have it in sessionStorage as a fallback
+        const sessionSecret = sessionStorage.getItem('trademe_request_token_secret');
+        if (sessionSecret) {
+          console.log('Found request token secret in sessionStorage, using that instead');
+          localStorage.setItem('trademe_request_token_secret', sessionSecret);
+        } else {
+          throw new Error('Request token secret not found. Please try the OAuth flow again.');
+        }
+      }
       
       // Step 3: Exchange request token for access token
       const accessTokenUrl = `${OAUTH_URL}/AccessToken`;
@@ -322,12 +354,15 @@ export const TradeMeService = {
         throw new Error('No access token received from TradeMe');
       }
       
-      // Store the access tokens
+      // Store the access tokens in both localStorage and sessionStorage
       localStorage.setItem(OAUTH_TOKEN_KEY, accessToken);
       localStorage.setItem(OAUTH_TOKEN_SECRET_KEY, accessTokenSecret);
+      sessionStorage.setItem(OAUTH_TOKEN_KEY, accessToken);
+      sessionStorage.setItem(OAUTH_TOKEN_SECRET_KEY, accessTokenSecret);
       
       // Clean up the request token secret
       localStorage.removeItem('trademe_request_token_secret');
+      sessionStorage.removeItem('trademe_request_token_secret');
       
       console.log('OAuth tokens stored successfully:', {
         tokenLength: accessToken.length,
@@ -346,9 +381,13 @@ export const TradeMeService = {
    * Disconnect from TradeMe OAuth
    */
   async disconnectOAuth(): Promise<void> {
-    // Clear the stored tokens
+    // Clear the stored tokens from both localStorage and sessionStorage
     localStorage.removeItem(OAUTH_TOKEN_KEY);
     localStorage.removeItem(OAUTH_TOKEN_SECRET_KEY);
+    sessionStorage.removeItem(OAUTH_TOKEN_KEY);
+    sessionStorage.removeItem(OAUTH_TOKEN_SECRET_KEY);
+    
+    console.log('Cleared OAuth tokens from localStorage and sessionStorage');
   },
   
   /**
@@ -363,6 +402,49 @@ export const TradeMeService = {
       tokenSecretLength: tokenSecret?.length || 0
     });
     return !!token && !!tokenSecret;
+  },
+  
+  /**
+   * Test if the callback URL is valid
+   */
+  testCallbackUrl(): { isValid: boolean; url: string; message: string } {
+    try {
+      const host = window.location.host;
+      const callbackUrl = `https://${host}/settings/trademe-callback`;
+      
+      // Check if the URL is valid
+      const url = new URL(callbackUrl);
+      
+      // Check if the protocol is https
+      if (url.protocol !== 'https:') {
+        return {
+          isValid: false,
+          url: callbackUrl,
+          message: 'Callback URL must use HTTPS protocol'
+        };
+      }
+      
+      // Check if the URL has a valid host
+      if (!url.host || url.host.length < 3) {
+        return {
+          isValid: false,
+          url: callbackUrl,
+          message: 'Callback URL has an invalid host'
+        };
+      }
+      
+      return {
+        isValid: true,
+        url: callbackUrl,
+        message: 'Callback URL is valid'
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        url: '',
+        message: `Error creating callback URL: ${error instanceof Error ? error.message : String(error)}`
+      };
+    }
   },
   
   /**
