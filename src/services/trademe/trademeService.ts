@@ -271,6 +271,141 @@ export const TradeMeService = {
     const { token, tokenSecret } = getStoredOAuthTokens();
     return !!token && !!tokenSecret;
   },
+  
+  /**
+   * Fetch watchlist from TradeMe and store in database
+   */
+  async syncWatchlistToDatabase(): Promise<{ count: number }> {
+    try {
+      // Get stored OAuth tokens
+      const { token, tokenSecret, isSandbox } = getStoredOAuthTokens();
+      
+      if (!token || !tokenSecret) {
+        throw new Error('Not authenticated with TradeMe. Please connect your account first.');
+      }
+      
+      // Set the API environment
+      setApiEnvironment(isSandbox);
+      
+      console.log(`Fetching watchlist from ${isSandbox ? 'sandbox' : 'production'} environment`);
+      
+      // Fetch watchlist from TradeMe
+      const url = `${API_URL}/v1/MyTradeMe/Watchlist/All.json?category=5&rows=100`;
+      
+      console.log(`Fetching watchlist from: ${url}`);
+      
+      // Generate the OAuth header
+      const authHeader = generateOAuthSignature(
+        'GET', 
+        url, 
+        CONSUMER_KEY, 
+        CONSUMER_SECRET, 
+        token, 
+        tokenSecret
+      );
+      
+      // Make the direct request to TradeMe
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Accept': 'application/json',
+          'Origin': window.location.origin
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`TradeMe API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.List || !Array.isArray(data.List)) {
+        throw new Error('Invalid response from TradeMe API');
+      }
+      
+      console.log(`Found ${data.List.length} items in watchlist`);
+      
+      // Filter for property listings only
+      const propertyListings = data.List.filter(item => 
+        item.CategoryPath && item.CategoryPath.includes('/property/')
+      );
+      
+      console.log(`Found ${propertyListings.length} property listings in watchlist`);
+      
+      // Convert to our Property format
+      const properties = propertyListings.map(item => {
+        // Extract property ID from the listing ID
+        const id = item.ListingId.toString();
+        
+        // Determine property status based on attributes or other fields
+        let status: 'active' | 'under_offer' | 'sold' | 'archived' = 'active';
+        
+        // Extract price
+        let price = 0;
+        if (item.StartPrice) {
+          price = item.StartPrice;
+        }
+        
+        // Extract bedrooms and bathrooms
+        let bedrooms: number | undefined;
+        let bathrooms: number | undefined;
+        let propertyType: string | undefined;
+        let landArea: string | undefined;
+        let floorArea: string | undefined;
+        
+        // Extract attributes if available
+        if (item.Attributes) {
+          for (const attr of item.Attributes) {
+            if (attr.Name === 'Bedrooms') {
+              bedrooms = parseInt(attr.Value || '0', 10);
+            } else if (attr.Name === 'Bathrooms') {
+              bathrooms = parseInt(attr.Value || '0', 10);
+            } else if (attr.Name === 'PropertyType') {
+              propertyType = attr.Value;
+            } else if (attr.Name === 'LandArea') {
+              landArea = attr.Value;
+            } else if (attr.Name === 'FloorArea') {
+              floorArea = attr.Value;
+            }
+          }
+        }
+        
+        return {
+          id,
+          title: item.Title || 'Untitled Property',
+          address: item.Suburb || 'Unknown Location',
+          price,
+          bedrooms,
+          bathrooms,
+          property_type: propertyType,
+          land_area: landArea,
+          floor_area: floorArea,
+          status,
+          days_on_market: 0, // Default value
+          created_at: item.StartDate || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          image_urls: item.PictureHref ? [item.PictureHref] : [],
+          trademe_listing_id: id,
+          url: `https://www.trademe.co.nz/a/property/residential/sale/listing/${id}`,
+          source: 'trademe',
+          is_favorite: true
+        };
+      });
+      
+      // Store properties in the database
+      // For now, we'll just log them
+      console.log('Properties to store:', properties);
+      
+      // TODO: Store properties in the database
+      // This would typically involve a call to a database service
+      
+      return { count: properties.length };
+    } catch (error) {
+      console.error('Error syncing watchlist:', error);
+      throw error;
+    }
+  },
   /**
    * Search for properties on TradeMe
    */

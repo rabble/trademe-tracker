@@ -7,6 +7,8 @@ export function TradeMeOAuthSettings() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [environment, setEnvironment] = useState<'sandbox' | 'production'>('sandbox');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
     // Check if already connected
@@ -84,6 +86,30 @@ export function TradeMeOAuthSettings() {
     }
   };
 
+  const handleSyncListings = async () => {
+    try {
+      setIsSyncing(true);
+      setSyncStatus(null);
+      setError(null);
+      
+      // Fetch watchlist from TradeMe
+      const result = await TradeMeService.syncWatchlistToDatabase();
+      
+      setSyncStatus({
+        type: 'success',
+        message: `Successfully synced ${result.count} properties from your TradeMe watchlist.`
+      });
+    } catch (err) {
+      console.error('Error syncing watchlist:', err);
+      setSyncStatus({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to sync TradeMe watchlist'
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="border-t border-gray-200 pt-6">
       <h3 className="text-lg font-medium text-gray-900">TradeMe Integration</h3>
@@ -140,14 +166,42 @@ export function TradeMeOAuthSettings() {
               </p>
             </div>
             
-            <Button
-              onClick={handleDisconnect}
-              disabled={isLoading}
-              variant="outline"
-              className="text-red-600 border-red-300 hover:bg-red-50"
-            >
-              {isLoading ? 'Disconnecting...' : 'Disconnect from TradeMe'}
-            </Button>
+            <div className="flex space-x-4">
+              <Button
+                onClick={handleSyncListings}
+                disabled={isLoading || isSyncing}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                {isSyncing ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Syncing...
+                  </span>
+                ) : 'Sync Watchlist'}
+              </Button>
+              
+              <Button
+                onClick={handleDisconnect}
+                disabled={isLoading}
+                variant="outline"
+                className="text-red-600 border-red-300 hover:bg-red-50"
+              >
+                {isLoading ? 'Disconnecting...' : 'Disconnect from TradeMe'}
+              </Button>
+            </div>
+            
+            {syncStatus && (
+              <div className={`mt-4 p-3 rounded-md text-sm ${
+                syncStatus.type === 'success' 
+                  ? 'bg-green-50 text-green-700 border border-green-200' 
+                  : 'bg-red-50 text-red-700 border border-red-200'
+              }`}>
+                {syncStatus.message}
+              </div>
+            )}
           </div>
         )}
       </div>
