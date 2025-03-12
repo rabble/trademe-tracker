@@ -140,6 +140,12 @@ export const TradeMeService = {
   async getOAuthRequestUrl(isSandbox: boolean = true): Promise<string> {
     try {
       console.log(`Starting OAuth flow with ${isSandbox ? 'sandbox' : 'production'} environment`);
+      console.log('Network status check:', {
+        online: navigator.onLine,
+        userAgent: navigator.userAgent,
+        protocol: window.location.protocol,
+        host: window.location.host
+      });
       
       // Set the API environment
       setApiEnvironment(isSandbox);
@@ -150,7 +156,9 @@ export const TradeMeService = {
       // Force HTTPS for Cloudflare deployment
       // This ensures the callback URL is always HTTPS which TradeMe requires
       const host = window.location.host;
-      const callbackUrl = `https://${host}/settings/trademe-callback`;
+      const protocol = window.location.protocol;
+      // Use the current protocol if it's already HTTPS, otherwise force HTTPS
+      const callbackUrl = `${protocol === 'https:' ? protocol : 'https:'}://${host}/settings/trademe-callback`;
       
       console.log(`Request token URL: ${requestTokenUrl}`);
       console.log(`Callback URL: ${callbackUrl}`);
@@ -175,6 +183,12 @@ export const TradeMeService = {
       console.log('Making request for OAuth token...');
       
       // Make the request to get a request token
+      console.log('Making OAuth request with headers:', {
+        authorization: authHeader.substring(0, 20) + '...[truncated]',
+        contentType: 'application/x-www-form-urlencoded',
+        body: `oauth_callback=${encodeURIComponent(callbackUrl)}&scope=${encodeURIComponent(scope)}`
+      });
+      
       const response = await fetch(requestTokenUrl, {
         method: 'POST',
         headers: {
@@ -185,9 +199,12 @@ export const TradeMeService = {
         mode: 'cors'
       });
       
+      console.log('OAuth request response status:', response.status);
+      
       if (!response.ok) {
         const errorText = await response.text();
         console.error('OAuth request token error:', errorText);
+        console.error('Response headers:', Object.fromEntries([...response.headers.entries()]));
         throw new Error(`Failed to get request token: ${response.status} ${response.statusText}`);
       }
       

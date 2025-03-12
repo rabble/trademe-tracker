@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TradeMeService } from '../../services/trademe/trademeService';
+import { supabase } from '../../lib/supabase';
+import { runNetworkDiagnostics } from '../../utils/networkDiagnostics';
 
 export function TradeMeDebugPanel() {
   const [debugInfo, setDebugInfo] = useState<Record<string, any>>({});
@@ -7,12 +9,54 @@ export function TradeMeDebugPanel() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [syncResult, setSyncResult] = useState<{ count: number } | null>(null);
+  const [supabaseStatus, setSupabaseStatus] = useState<{
+    isConnected: boolean;
+    error: string | null;
+    pingTime: number | null;
+  }>({
+    isConnected: false,
+    error: null,
+    pingTime: null
+  });
+  const [networkDiagnostics, setNetworkDiagnostics] = useState<Record<string, any> | null>(null);
+  const [runningDiagnostics, setRunningDiagnostics] = useState(false);
 
   useEffect(() => {
     if (isVisible) {
       refreshDebugInfo();
+      checkSupabaseConnection();
     }
   }, [isVisible]);
+
+  const checkSupabaseConnection = async () => {
+    try {
+      const startTime = performance.now();
+      const { data, error } = await supabase.from('properties').select('count').limit(1);
+      const endTime = performance.now();
+      
+      if (error) {
+        console.error('Supabase connection error:', error);
+        setSupabaseStatus({
+          isConnected: false,
+          error: `${error.code}: ${error.message}`,
+          pingTime: null
+        });
+      } else {
+        setSupabaseStatus({
+          isConnected: true,
+          error: null,
+          pingTime: Math.round(endTime - startTime)
+        });
+      }
+    } catch (err) {
+      console.error('Error checking Supabase connection:', err);
+      setSupabaseStatus({
+        isConnected: false,
+        error: err instanceof Error ? err.message : String(err),
+        pingTime: null
+      });
+    }
+  };
 
   const refreshDebugInfo = () => {
     try {
@@ -21,6 +65,21 @@ export function TradeMeDebugPanel() {
     } catch (err) {
       console.error('Error getting debug info:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
+    }
+  };
+  
+  const handleRunDiagnostics = async () => {
+    try {
+      setRunningDiagnostics(true);
+      setError(null);
+      const results = await runNetworkDiagnostics();
+      console.log('Network diagnostics results:', results);
+      setNetworkDiagnostics(results);
+    } catch (err) {
+      console.error('Error running network diagnostics:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setRunningDiagnostics(false);
     }
   };
 
@@ -80,10 +139,24 @@ export function TradeMeDebugPanel() {
 
           <div className="mb-4">
             <button 
-              onClick={refreshDebugInfo}
+              onClick={() => {
+                refreshDebugInfo();
+                checkSupabaseConnection();
+              }}
               className="bg-blue-600 text-white px-3 py-1 rounded-md mr-2"
             >
               Refresh Info
+            </button>
+            <button 
+              onClick={handleRunDiagnostics}
+              disabled={runningDiagnostics}
+              className={`px-3 py-1 rounded-md mr-2 ${
+                runningDiagnostics 
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                  : 'bg-purple-600 text-white hover:bg-purple-700'
+              }`}
+            >
+              {runningDiagnostics ? 'Running...' : 'Network Diagnostics'}
             </button>
             <button 
               onClick={handleSyncWatchlist}
@@ -150,6 +223,30 @@ export function TradeMeDebugPanel() {
           </div>
 
           <div className="mt-4 bg-gray-100 p-4 rounded-lg">
+            <h3 className="font-bold mb-2">Supabase Connection</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div>Connected:</div>
+              <div className={supabaseStatus.isConnected ? 'text-green-600 font-bold' : 'text-red-600'}>
+                {supabaseStatus.isConnected ? 'Yes' : 'No'}
+              </div>
+              
+              {supabaseStatus.pingTime && (
+                <>
+                  <div>Response Time:</div>
+                  <div>{supabaseStatus.pingTime}ms</div>
+                </>
+              )}
+              
+              {supabaseStatus.error && (
+                <>
+                  <div>Error:</div>
+                  <div className="text-red-600">{supabaseStatus.error}</div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 bg-gray-100 p-4 rounded-lg">
             <h3 className="font-bold mb-2">Local Storage Keys</h3>
             <ul className="list-disc pl-5">
               {debugInfo.storedKeys?.map((key: string) => (
@@ -157,6 +254,60 @@ export function TradeMeDebugPanel() {
               ))}
             </ul>
           </div>
+
+          {networkDiagnostics && (
+            <div className="mt-4 bg-gray-100 p-4 rounded-lg">
+              <h3 className="font-bold mb-2">Network Diagnostics</h3>
+              
+              <div className="mb-3">
+                <h4 className="font-semibold">Browser Info</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>Online Status:</div>
+                  <div className={networkDiagnostics.browser.online ? 'text-green-600' : 'text-red-600'}>
+                    {networkDiagnostics.browser.online ? 'Online' : 'Offline'}
+                  </div>
+                  <div>User Agent:</div>
+                  <div className="break-all">{networkDiagnostics.browser.userAgent}</div>
+                </div>
+              </div>
+              
+              <div className="mb-3">
+                <h4 className="font-semibold">Connectivity Tests</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>Supabase:</div>
+                  <div className={networkDiagnostics.connectivity.supabase.success ? 'text-green-600' : 'text-red-600'}>
+                    {networkDiagnostics.connectivity.supabase.success 
+                      ? `Connected (${networkDiagnostics.connectivity.supabase.time}ms)` 
+                      : `Failed: ${networkDiagnostics.connectivity.supabase.error}`}
+                  </div>
+                  
+                  <div>TradeMe API:</div>
+                  <div className={networkDiagnostics.connectivity.trademe.success ? 'text-green-600' : 'text-red-600'}>
+                    {networkDiagnostics.connectivity.trademe.success 
+                      ? `Connected (${networkDiagnostics.connectivity.trademe.time}ms)` 
+                      : `Failed: ${networkDiagnostics.connectivity.trademe.error}`}
+                  </div>
+                  
+                  <div>TradeMe Sandbox:</div>
+                  <div className={networkDiagnostics.connectivity.trademeSandbox.success ? 'text-green-600' : 'text-red-600'}>
+                    {networkDiagnostics.connectivity.trademeSandbox.success 
+                      ? `Connected (${networkDiagnostics.connectivity.trademeSandbox.time}ms)` 
+                      : `Failed: ${networkDiagnostics.connectivity.trademeSandbox.error}`}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mb-3">
+                <h4 className="font-semibold">Location Info</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>Protocol:</div>
+                  <div>{networkDiagnostics.location.protocol}</div>
+                  <div>Host:</div>
+                  <div>{networkDiagnostics.location.host}</div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="mt-4">
             <h3 className="font-bold mb-2">Console Output</h3>
