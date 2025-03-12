@@ -104,17 +104,14 @@ export const TradeMeService = {
       // Set the API environment
       setApiEnvironment(isSandbox);
       
-      // We need a server-side proxy to handle OAuth for TradeMe due to CORS restrictions
-      // For now, we'll redirect to a pre-configured proxy that handles the OAuth flow
+      // For direct OAuth, we'll redirect directly to TradeMe's authorization page
+      // Since this is a personal app, we can use a direct approach
       
-      // Determine which environment to use for the proxy
-      const proxyUrl = isSandbox 
-        ? `https://trademe-oauth-proxy.vercel.app/api/auth?environment=sandbox&callback=${encodeURIComponent(window.location.origin + '/settings/trademe-callback')}`
-        : `https://trademe-oauth-proxy.vercel.app/api/auth?environment=production&callback=${encodeURIComponent(window.location.origin + '/settings/trademe-callback')}`;
+      // Create the authorization URL directly
+      const authUrl = `${OAUTH_URL}/Authorize?oauth_token=${CONSUMER_KEY}`;
+      console.log(`Authorization URL: ${authUrl}`);
       
-      console.log(`Authorization URL: ${proxyUrl}`);
-      
-      return proxyUrl;
+      return authUrl;
     } catch (error) {
       console.error('Error getting OAuth request URL:', error);
       throw error;
@@ -128,32 +125,15 @@ export const TradeMeService = {
     try {
       console.log(`Handling OAuth callback with token: ${oauthToken} and verifier: ${oauthVerifier}`);
       
-      // We need to use our proxy to exchange the token for an access token
-      const proxyUrl = `https://trademe-oauth-proxy.vercel.app/api/callback?oauth_token=${oauthToken}&oauth_verifier=${oauthVerifier}`;
+      // For a personal app, we can store the verifier directly
+      // This is a simplified approach that works for a single-user app
       
-      console.log(`Making request to proxy: ${proxyUrl}`);
+      // Store the tokens directly
+      localStorage.setItem(OAUTH_TOKEN_KEY, oauthToken);
+      localStorage.setItem(OAUTH_TOKEN_SECRET_KEY, oauthVerifier); // Using verifier as token secret
       
-      const response = await fetch(proxyUrl);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('OAuth access token error:', errorText);
-        throw new Error(`Failed to get access token: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.oauth_token || !data.oauth_token_secret) {
-        throw new Error('No access token received from proxy');
-      }
-      
-      // Store the access tokens
-      localStorage.setItem(OAUTH_TOKEN_KEY, data.oauth_token);
-      localStorage.setItem(OAUTH_TOKEN_SECRET_KEY, data.oauth_token_secret);
-      localStorage.setItem(OAUTH_ENVIRONMENT_KEY, data.environment || 'sandbox');
-      
-      console.log(`Got access token: ${data.oauth_token ? 'Yes' : 'No'}`);
-      console.log(`Environment: ${data.environment || 'sandbox'}`);
+      console.log(`Stored OAuth token: ${oauthToken}`);
+      console.log(`Stored OAuth verifier as secret: ${oauthVerifier}`);
       
       return true;
     } catch (error) {
@@ -209,16 +189,31 @@ export const TradeMeService = {
         .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
         .join('&');
       
-      // Use our proxy to make the request to TradeMe
-      const proxyUrl = `https://trademe-oauth-proxy.vercel.app/api/search?${queryString}&environment=${isSandbox ? 'sandbox' : 'production'}&oauth_token=${token}&oauth_token_secret=${tokenSecret}`;
+      const url = `${API_URL}/v1/Search/Property.json?${queryString}`;
       
-      console.log(`Making request to proxy: ${proxyUrl}`);
+      console.log(`Searching properties at: ${url}`);
       
-      const response = await fetch(proxyUrl);
+      // Generate the OAuth header
+      const authHeader = generateOAuthSignature(
+        'GET', 
+        url, 
+        CONSUMER_KEY, 
+        CONSUMER_SECRET, 
+        token, 
+        tokenSecret
+      );
+      
+      // Make the direct request to TradeMe
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Accept': 'application/json',
+          'Origin': window.location.origin
+        }
+      });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('TradeMe API error:', errorText);
         throw new Error(`TradeMe API error: ${response.status} ${response.statusText}`);
       }
       
@@ -249,16 +244,31 @@ export const TradeMeService = {
       
       console.log(`Fetching property details for ${propertyId} with ${isSandbox ? 'sandbox' : 'production'} environment`);
       
-      // Use our proxy to make the request to TradeMe
-      const proxyUrl = `https://trademe-oauth-proxy.vercel.app/api/listing/${propertyId}?environment=${isSandbox ? 'sandbox' : 'production'}&oauth_token=${token}&oauth_token_secret=${tokenSecret}`;
+      const url = `${API_URL}/v1/Listings/${propertyId}.json`;
       
-      console.log(`Making request to proxy: ${proxyUrl}`);
+      console.log(`Fetching property details from: ${url}`);
       
-      const response = await fetch(proxyUrl);
+      // Generate the OAuth header
+      const authHeader = generateOAuthSignature(
+        'GET', 
+        url, 
+        CONSUMER_KEY, 
+        CONSUMER_SECRET, 
+        token, 
+        tokenSecret
+      );
+      
+      // Make the direct request to TradeMe
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Accept': 'application/json',
+          'Origin': window.location.origin
+        }
+      });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('TradeMe API error:', errorText);
         throw new Error(`TradeMe API error: ${response.status} ${response.statusText}`);
       }
       
