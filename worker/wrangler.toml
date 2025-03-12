@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 main = "src/index.ts"
 
 [observability.logs]
-enabled = false
+enabled = true
 
 [vars]
 # Define your environment variables here
