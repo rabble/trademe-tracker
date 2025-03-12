@@ -17,6 +17,21 @@ export function TradeMeOAuthSettings() {
       const env = localStorage.getItem('trademe_environment') || 'sandbox';
       setEnvironment(env as 'sandbox' | 'production');
     }
+    
+    // Set up an event listener to detect when the OAuth flow completes
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'trademe_oauth_token' && event.newValue) {
+        setIsConnected(true);
+        const env = localStorage.getItem('trademe_environment') || 'sandbox';
+        setEnvironment(env as 'sandbox' | 'production');
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const handleConnectToSandbox = async () => {

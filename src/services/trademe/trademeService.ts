@@ -84,7 +84,7 @@ function generateOAuthSignature(
   Object.assign(oauthParams, additionalParams);
   
   // Create the signature (PLAINTEXT method)
-  const signature = `${consumerSecret}&${tokenSecret}`;
+  const signature = `${encodeURIComponent(consumerSecret)}&${encodeURIComponent(tokenSecret)}`;
   
   // Create the Authorization header
   let authHeader = 'OAuth ';
@@ -110,7 +110,9 @@ export const TradeMeService = {
       
       // Step 1: Get a request token
       const requestTokenUrl = `${OAUTH_URL}/RequestToken`;
-      const callbackUrl = `${window.location.origin}/settings/trademe-callback`;
+      
+      // Force HTTPS for the callback URL regardless of current protocol
+      const callbackUrl = `https://${window.location.host}/settings/trademe-callback`;
       
       console.log(`Request token URL: ${requestTokenUrl}`);
       console.log(`Callback URL: ${callbackUrl}`);
