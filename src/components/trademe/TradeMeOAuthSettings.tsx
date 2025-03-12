@@ -44,8 +44,8 @@ export function TradeMeOAuthSettings() {
       // Start the OAuth flow with the sandbox environment
       const authUrl = await TradeMeService.getOAuthRequestUrl(true);
       
-      // Open the auth URL in a new window
-      window.open(authUrl, '_blank', 'width=600,height=700');
+      // Navigate in the current window
+      window.location.assign(authUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect to TradeMe Sandbox');
     } finally {
@@ -61,8 +61,8 @@ export function TradeMeOAuthSettings() {
       // Start the OAuth flow with the production environment
       const authUrl = await TradeMeService.getOAuthRequestUrl(false);
       
-      // Open the auth URL in a new window
-      window.open(authUrl, '_blank', 'width=600,height=700');
+      // Navigate in the current window
+      window.location.assign(authUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect to TradeMe Production');
     } finally {
