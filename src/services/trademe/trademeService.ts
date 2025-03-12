@@ -274,6 +274,9 @@ export const TradeMeService = {
         
       console.log(`Authorization URL: ${authUrl}`);
       
+      // Store the current page URL so we can return to it after OAuth
+      localStorage.setItem('trademe_oauth_return_url', window.location.href);
+      
       return authUrl;
     } catch (error) {
       console.error('Error getting OAuth request URL:', error);
@@ -369,6 +372,16 @@ export const TradeMeService = {
         tokenSecretLength: accessTokenSecret.length
       });
       console.log('Local storage keys after callback:', Object.keys(localStorage).filter(key => key.includes('trademe')));
+      
+      // Get the return URL if it exists
+      const returnUrl = localStorage.getItem('trademe_oauth_return_url');
+      if (returnUrl) {
+        console.log(`Redirecting back to: ${returnUrl}`);
+        // Clean up the return URL
+        localStorage.removeItem('trademe_oauth_return_url');
+        // Redirect back to the original page
+        window.location.href = returnUrl;
+      }
       
       return true;
     } catch (error) {
