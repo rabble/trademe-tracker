@@ -35,8 +35,8 @@ crons = ["0 15 * * *"] # 3:00 AM NZT (15:00 UTC)
 # KV Namespace for storing property data
 [[kv_namespaces]]
 binding = "PROPERTIES_KV"
-id = "your-kv-namespace-id-here"
-preview_id = "your-preview-kv-namespace-id-here"
+id = "633473f72f9c444ca81d0413d340d3c0"
+preview_id = "633473f72f9c444ca81d0413d340d3c0"
 
 # Secrets (add these using wrangler secret put)
 # SUPABASE_URL
