@@ -1,8 +1,6 @@
 name = "trademe-tracker"
 type = "javascript"
-account_id = "" # You'll need to add your Cloudflare account ID here
 workers_dev = true
-main = "src/index.ts"
 compatibility_date = "2023-12-01"
 compatibility_flags = ["nodejs_compat"]
 node_compat = true
@@ -45,9 +43,7 @@ preview_id = "your-preview-kv-namespace-id-here"
 # Add site configuration for frontend deployment
 [site]
 bucket = "../dist"
-entry-point = "src/index.ts"
 
 # Build configuration
 [build]
 command = "cd .. && npm run build"
-upload.format = "service-worker"
