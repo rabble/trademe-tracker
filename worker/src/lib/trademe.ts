@@ -465,9 +465,6 @@ export class TradeMe {
         console.error(`Fallback also failed for property ${propertyId}:`, fallbackError);
         throw error; // Throw the original error
       }
-    } catch (error) {
-      console.error(`Error getting property details:`, error);
-      throw error;
     }
   }
 }
