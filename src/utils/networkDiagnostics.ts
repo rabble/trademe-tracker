@@ -5,9 +5,13 @@
 /**
  * Check if a domain is reachable
  * @param domain Domain to check
+ * @param path Optional path to check (defaults to /favicon.ico)
  * @returns Promise with ping result
  */
-export async function pingDomain(domain: string): Promise<{
+export async function pingDomain(
+  domain: string, 
+  path: string = '/favicon.ico'
+): Promise<{
   success: boolean;
   time: number | null;
   error: string | null;
@@ -19,7 +23,10 @@ export async function pingDomain(domain: string): Promise<{
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
     
-    const response = await fetch(`https://${domain}/favicon.ico`, {
+    const url = `https://${domain}${path}`;
+    console.log(`Pinging URL: ${url}`);
+    
+    const response = await fetch(url, {
       method: 'HEAD',
       mode: 'no-cors', // This allows us to ping the domain without CORS issues
       cache: 'no-cache',
@@ -92,8 +99,9 @@ export async function runNetworkDiagnostics(): Promise<Record<string, any>> {
     supabase: await pingDomain('tkflwbqtspizculeiizm.supabase.co'),
     trademe: await pingDomain('api.trademe.co.nz'),
     trademeSandbox: await pingDomain('api.tmsandbox.co.nz'),
-    trademeOAuth: await pingDomain('api.trademe.co.nz/Oauth'),
-    trademeSandboxOAuth: await pingDomain('api.tmsandbox.co.nz/Oauth')
+    trademeOAuth: await pingDomain('api.trademe.co.nz', '/Oauth'),
+    trademeSandboxOAuth: await pingDomain('api.tmsandbox.co.nz', '/Oauth'),
+    trademeOAuthRequestToken: await pingDomain('api.tmsandbox.co.nz', '/Oauth/RequestToken')
   };
   
   return results;

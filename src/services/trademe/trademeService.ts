@@ -168,12 +168,12 @@ export const TradeMeService = {
       // Force HTTPS for Cloudflare deployment
       // This ensures the callback URL is always HTTPS which TradeMe requires
       const host = window.location.host;
-      const protocol = window.location.protocol;
-      // Use the current protocol if it's already HTTPS, otherwise force HTTPS
-      const callbackUrl = `${protocol === 'https:' ? protocol : 'https:'}://${host}/settings/trademe-callback`;
+      // Always use https:// (note: only one colon)
+      const callbackUrl = `https://${host}/settings/trademe-callback`;
       
       console.log(`Request token URL: ${requestTokenUrl}`);
       console.log(`Callback URL: ${callbackUrl}`);
+      console.log(`Encoded Callback URL: ${encodeURIComponent(callbackUrl)}`);
       
       // Define the scope for the token
       const scope = "MyTradeMeRead";
@@ -219,7 +219,15 @@ export const TradeMeService = {
         const errorText = await response.text();
         console.error('OAuth request token error:', errorText);
         console.error('Response headers:', Object.fromEntries([...response.headers.entries()]));
-        throw new Error(`Failed to get request token: ${response.status} ${response.statusText}`);
+        console.error('Request details:', {
+          url: requestTokenUrl,
+          callbackUrl,
+          encodedCallback: encodeURIComponent(callbackUrl),
+          authHeaderLength: authHeader.length,
+          status: response.status,
+          statusText: response.statusText
+        });
+        throw new Error(`Failed to get request token: ${response.status} ${response.statusText} - ${errorText}`);
       }
       
       const responseText = await response.text();

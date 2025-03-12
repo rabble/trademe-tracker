@@ -131,6 +131,27 @@ export function TradeMeDebugPanel() {
     }
   };
   
+  const testCallbackUrl = () => {
+    try {
+      const host = window.location.host;
+      const callbackUrl = `https://${host}/settings/trademe-callback`;
+      const encodedCallback = encodeURIComponent(callbackUrl);
+      
+      console.log('Callback URL test:', {
+        host,
+        callbackUrl,
+        encodedCallback,
+        length: callbackUrl.length,
+        encodedLength: encodedCallback.length
+      });
+      
+      alert(`Callback URL: ${callbackUrl}\nEncoded: ${encodedCallback}`);
+    } catch (err) {
+      console.error('Error testing callback URL:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    }
+  };
+  
   const handleTestConnection = async () => {
     try {
       setIsLoading(true);
@@ -219,6 +240,12 @@ export function TradeMeDebugPanel() {
               }`}
             >
               {isLoading ? 'Starting...' : 'Start OAuth Flow'}
+            </button>
+            <button 
+              onClick={testCallbackUrl}
+              className="bg-teal-600 text-white px-3 py-1 rounded-md mr-2 hover:bg-teal-700"
+            >
+              Test Callback URL
             </button>
             <button 
               onClick={handleTestConnection}
@@ -428,6 +455,13 @@ export function TradeMeDebugPanel() {
                     {networkDiagnostics.connectivity.trademeSandboxOAuth.success 
                       ? `Connected (${networkDiagnostics.connectivity.trademeSandboxOAuth.time}ms)` 
                       : `Failed: ${networkDiagnostics.connectivity.trademeSandboxOAuth.error}`}
+                  </div>
+                  
+                  <div>OAuth RequestToken:</div>
+                  <div className={networkDiagnostics.connectivity.trademeOAuthRequestToken.success ? 'text-green-600' : 'text-red-600'}>
+                    {networkDiagnostics.connectivity.trademeOAuthRequestToken.success 
+                      ? `Connected (${networkDiagnostics.connectivity.trademeOAuthRequestToken.time}ms)` 
+                      : `Failed: ${networkDiagnostics.connectivity.trademeOAuthRequestToken.error}`}
                   </div>
                 </div>
               </div>
