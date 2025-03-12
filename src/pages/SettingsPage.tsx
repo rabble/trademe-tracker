@@ -1,3 +1,5 @@
+import { TradeMeOAuthSettings } from '../components/trademe/TradeMeOAuthSettings';
+
 export function SettingsPage() {
   return (
     <div className="bg-white shadow rounded-lg p-6">
@@ -51,6 +53,8 @@ export function SettingsPage() {
             </div>
           </div>
         </div>
+        
+        <TradeMeOAuthSettings />
         
         <div className="border-t border-gray-200 pt-6">
           <h3 className="text-lg font-medium text-gray-900">Notification Preferences</h3>
