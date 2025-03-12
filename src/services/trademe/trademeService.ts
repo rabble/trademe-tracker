@@ -6,8 +6,12 @@ const TRADEME_SANDBOX_API_URL = 'https://api.tmsandbox.co.nz';
 const TRADEME_API_URL = 'https://api.trademe.co.nz';
 
 // TradeMe OAuth URLs
-const TRADEME_SANDBOX_OAUTH_URL = 'https://secure.tmsandbox.co.nz/Oauth';
-const TRADEME_OAUTH_URL = 'https://secure.trademe.co.nz/Oauth';
+const TRADEME_SANDBOX_OAUTH_URL = 'https://api.tmsandbox.co.nz/Oauth';
+const TRADEME_OAUTH_URL = 'https://api.trademe.co.nz/Oauth';
+
+// TradeMe Authorization URLs
+const TRADEME_SANDBOX_AUTH_URL = 'https://www.tmsandbox.co.nz/Oauth/Authorize';
+const TRADEME_AUTH_URL = 'https://www.trademe.co.nz/Oauth/Authorize';
 
 // Use sandbox for development by default
 let API_URL = TRADEME_SANDBOX_API_URL;
@@ -104,11 +108,70 @@ export const TradeMeService = {
       // Set the API environment
       setApiEnvironment(isSandbox);
       
-      // For direct OAuth, we'll redirect directly to TradeMe's authorization page
-      // Since this is a personal app, we can use a direct approach
+      // Step 1: Get a request token
+      const requestTokenUrl = `${OAUTH_URL}/RequestToken`;
+      const callbackUrl = `${window.location.origin}/settings/trademe-callback`;
       
-      // Create the authorization URL directly
-      const authUrl = `${OAUTH_URL}/Authorize?oauth_token=${CONSUMER_KEY}`;
+      console.log(`Request token URL: ${requestTokenUrl}`);
+      console.log(`Callback URL: ${callbackUrl}`);
+      
+      // Define the scope for the token
+      const scope = "MyTradeMeRead,MyTradeMeWrite,BiddingAndBuying";
+      
+      // Generate the OAuth header
+      const authHeader = generateOAuthSignature(
+        'POST', 
+        requestTokenUrl, 
+        CONSUMER_KEY, 
+        CONSUMER_SECRET, 
+        '', 
+        '', 
+        { 
+          oauth_callback: callbackUrl,
+          scope: scope
+        }
+      );
+      
+      console.log('Making request for OAuth token...');
+      
+      // Make the request to get a request token
+      const response = await fetch(requestTokenUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `oauth_callback=${encodeURIComponent(callbackUrl)}&scope=${encodeURIComponent(scope)}`
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OAuth request token error:', errorText);
+        throw new Error(`Failed to get request token: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+      
+      const params = new URLSearchParams(responseText);
+      
+      const requestToken = params.get('oauth_token') || '';
+      const requestTokenSecret = params.get('oauth_token_secret') || '';
+      
+      console.log(`Got request token: ${requestToken}`);
+      
+      if (!requestToken) {
+        throw new Error('No request token received from TradeMe');
+      }
+      
+      // Store the request token secret temporarily
+      localStorage.setItem('trademe_request_token_secret', requestTokenSecret);
+      
+      // Step 2: Redirect user to authorization page
+      const authUrl = isSandbox 
+        ? `${TRADEME_SANDBOX_AUTH_URL}?oauth_token=${requestToken}`
+        : `${TRADEME_AUTH_URL}?oauth_token=${requestToken}`;
+        
       console.log(`Authorization URL: ${authUrl}`);
       
       return authUrl;
@@ -125,15 +188,63 @@ export const TradeMeService = {
     try {
       console.log(`Handling OAuth callback with token: ${oauthToken} and verifier: ${oauthVerifier}`);
       
-      // For a personal app, we can store the verifier directly
-      // This is a simplified approach that works for a single-user app
+      // Get the request token secret from storage
+      const requestTokenSecret = localStorage.getItem('trademe_request_token_secret') || '';
+      console.log(`Retrieved request token secret: ${requestTokenSecret ? 'Yes' : 'No'}`);
       
-      // Store the tokens directly
-      localStorage.setItem(OAUTH_TOKEN_KEY, oauthToken);
-      localStorage.setItem(OAUTH_TOKEN_SECRET_KEY, oauthVerifier); // Using verifier as token secret
+      // Step 3: Exchange request token for access token
+      const accessTokenUrl = `${OAUTH_URL}/AccessToken`;
+      console.log(`Access token URL: ${accessTokenUrl}`);
       
-      console.log(`Stored OAuth token: ${oauthToken}`);
-      console.log(`Stored OAuth verifier as secret: ${oauthVerifier}`);
+      const authHeader = generateOAuthSignature(
+        'POST', 
+        accessTokenUrl, 
+        CONSUMER_KEY, 
+        CONSUMER_SECRET, 
+        oauthToken, 
+        requestTokenSecret, 
+        { oauth_verifier: oauthVerifier }
+      );
+      
+      console.log('Making request for access token...');
+      
+      const response = await fetch(accessTokenUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `oauth_verifier=${oauthVerifier}`
+      });
+      
+      console.log(`Response status: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OAuth access token error:', errorText);
+        throw new Error(`Failed to get access token: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+      
+      const params = new URLSearchParams(responseText);
+      
+      const accessToken = params.get('oauth_token') || '';
+      const accessTokenSecret = params.get('oauth_token_secret') || '';
+      
+      console.log(`Got access token: ${accessToken ? 'Yes' : 'No'}`);
+      
+      if (!accessToken || !accessTokenSecret) {
+        throw new Error('No access token received from TradeMe');
+      }
+      
+      // Store the access tokens
+      localStorage.setItem(OAUTH_TOKEN_KEY, accessToken);
+      localStorage.setItem(OAUTH_TOKEN_SECRET_KEY, accessTokenSecret);
+      
+      // Clean up the request token secret
+      localStorage.removeItem('trademe_request_token_secret');
       
       return true;
     } catch (error) {
