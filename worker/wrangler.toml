@@ -5,6 +5,9 @@ compatibility_date = "2023-12-01"
 compatibility_flags = ["nodejs_compat"]
 node_compat = true
 
+[observability.logs]
+enabled = false
+
 [vars]
 # Define your environment variables here
 API_BASE_URL = "https://api.trademe.co.nz/v1"
