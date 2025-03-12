@@ -68,6 +68,7 @@ export interface Property {
   agent?: string;
   agency?: string;
   last_updated?: string;
+  trademe_listing_id?: string;
 }
 
 export interface PropertyImage {

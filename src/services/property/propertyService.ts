@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase'
 import { Property } from '../../types'
 import { sampleProperties } from '../../data/sampleProperties'
+import { TradeMeService } from '../trademe/trademeService'
 
 /**
  * Interface for property filters
@@ -35,11 +36,49 @@ export const PropertyService = {
    */
   async fetchProperties(
     filters?: PropertyFilters,
-    pagination?: PaginationOptions
+    pagination?: PaginationOptions,
+    useTrademe: boolean = false
   ): Promise<{ data: Property[]; count: number }> {
     try {
-      // Use sample data instead of Supabase query
-      let filteredProperties = [...sampleProperties];
+      let filteredProperties: Property[] = [];
+      
+      // If useTrademe is true, fetch properties from TradeMe API
+      if (useTrademe) {
+        try {
+          console.log('Fetching properties from TradeMe API');
+          
+          // Convert our filters to TradeMe search params
+          const searchParams: Record<string, string> = {};
+          
+          if (filters) {
+            if (filters.minPrice !== undefined) {
+              searchParams.price_min = filters.minPrice.toString();
+            }
+            
+            if (filters.maxPrice !== undefined) {
+              searchParams.price_max = filters.maxPrice.toString();
+            }
+            
+            if (filters.bedrooms) {
+              searchParams.bedrooms_min = filters.bedrooms.toString();
+            }
+            
+            if (filters.searchQuery) {
+              searchParams.search_string = filters.searchQuery;
+            }
+          }
+          
+          // Fetch properties from TradeMe
+          const trademeProperties = await TradeMeService.searchProperties(searchParams);
+          filteredProperties = trademeProperties;
+        } catch (error) {
+          console.error('Error fetching from TradeMe, falling back to sample data:', error);
+          filteredProperties = [...sampleProperties];
+        }
+      } else {
+        // Use sample data instead of Supabase query
+        filteredProperties = [...sampleProperties];
+      }
 
       // Apply filters if provided
       if (filters) {

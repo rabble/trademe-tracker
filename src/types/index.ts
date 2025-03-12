@@ -16,8 +16,9 @@ export interface Property {
   days_on_market: number;
   created_at: string;
   updated_at: string;
-  trademe_id?: string;
+  trademe_listing_id?: string;
   url?: string;
+  image_urls?: string[];
   description?: string;
   user_notes?: string;
   land_area?: number;

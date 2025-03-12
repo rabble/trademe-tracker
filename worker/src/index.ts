@@ -41,6 +41,11 @@ export default {
   // Handle scheduled events
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(scheduledScraper(env));
+    
+    // Log that we're using sandbox mode if enabled
+    if (env.TRADEME_SANDBOX_MODE === 'true') {
+      console.log('TradeMe API is running in sandbox mode');
+    }
   },
 };
 
@@ -58,4 +63,5 @@ export interface Env {
   SUPABASE_URL: string;
   SUPABASE_ANON_KEY: string;
   SUPABASE_STORAGE_BUCKET: string;
+  TRADEME_SANDBOX_MODE: string;
 }
