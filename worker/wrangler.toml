@@ -18,19 +18,15 @@ TRADEME_SANDBOX_MODE = "true"  # Set to "false" for production
 
 # Development environment
 [env.dev]
-vars = { 
-  ENVIRONMENT = "development", 
-  SCRAPE_INTERVAL_HOURS = "24",
-  TRADEME_SANDBOX_MODE = "true"
-}
+vars.ENVIRONMENT = "development"
+vars.SCRAPE_INTERVAL_HOURS = "24"
+vars.TRADEME_SANDBOX_MODE = "true"
 
 # Production environment
 [env.production]
-vars = { 
-  ENVIRONMENT = "production", 
-  SCRAPE_INTERVAL_HOURS = "24",
-  TRADEME_SANDBOX_MODE = "false"
-}
+vars.ENVIRONMENT = "production"
+vars.SCRAPE_INTERVAL_HOURS = "24"
+vars.TRADEME_SANDBOX_MODE = "false"
 
 # Trigger for scheduled scraping job
 [triggers]
