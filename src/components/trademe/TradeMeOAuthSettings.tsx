@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../../components/ui/button';
+import { Button } from '../ui/button';
 import { TradeMeService } from '../../services/trademe/trademeService';
 
 export function TradeMeOAuthSettings() {
@@ -103,7 +103,7 @@ export function TradeMeOAuthSettings() {
               {isLoading ? 'Connecting...' : 'Connect to TradeMe Sandbox'}
             </Button>
             
-            <div className="block">
+            <div className="block mt-3">
               <Button
                 onClick={handleConnectToProduction}
                 disabled={isLoading}

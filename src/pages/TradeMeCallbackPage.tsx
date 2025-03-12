@@ -11,10 +11,15 @@ export function TradeMeCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        console.log('TradeMeCallbackPage: Handling OAuth callback');
+        console.log('URL search params:', location.search);
+        
         // Get the query parameters from the URL
         const searchParams = new URLSearchParams(location.search);
         const oauthToken = searchParams.get('oauth_token');
         const oauthVerifier = searchParams.get('oauth_verifier');
+        
+        console.log(`OAuth token: ${oauthToken}, OAuth verifier: ${oauthVerifier}`);
         
         if (!oauthToken || !oauthVerifier) {
           throw new Error('Missing OAuth parameters in callback URL');
@@ -24,6 +29,7 @@ export function TradeMeCallbackPage() {
         const success = await TradeMeService.handleOAuthCallback(oauthToken, oauthVerifier);
         
         if (success) {
+          console.log('OAuth authentication successful');
           setStatus('success');
           // Redirect back to settings page after a short delay
           setTimeout(() => {

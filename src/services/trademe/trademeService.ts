@@ -1,5 +1,4 @@
 import { Property } from '../../types';
-import CryptoJS from 'crypto-js';
 
 // TradeMe API base URL for sandbox
 const TRADEME_SANDBOX_API_URL = 'https://api.tmsandbox.co.nz';
@@ -49,6 +48,7 @@ function setApiEnvironment(isSandbox: boolean): void {
 
 /**
  * Generate OAuth 1.0a signature for TradeMe API
+ * TradeMe uses PLAINTEXT signature method which is simpler than HMAC-SHA1
  */
 function generateOAuthSignature(
   method: string,
@@ -64,18 +64,33 @@ function generateOAuthSignature(
                Math.random().toString(36).substring(2, 15);
   
   // Create the parameter string with additional params if provided
-  let parameterString = `oauth_consumer_key=${consumerKey}&oauth_nonce=${nonce}&oauth_signature_method=PLAINTEXT&oauth_timestamp=${timestamp}&oauth_token=${token}&oauth_version=1.0`;
+  let oauthParams: Record<string, string> = {
+    oauth_consumer_key: consumerKey,
+    oauth_nonce: nonce,
+    oauth_signature_method: 'PLAINTEXT',
+    oauth_timestamp: timestamp,
+    oauth_version: '1.0'
+  };
   
-  // Add additional params to the parameter string
-  for (const [key, value] of Object.entries(additionalParams)) {
-    parameterString += `&${key}=${encodeURIComponent(value)}`;
+  if (token) {
+    oauthParams.oauth_token = token;
   }
   
-  // Create the signature
-  const signature = `${encodeURIComponent(consumerSecret)}&${encodeURIComponent(tokenSecret)}`;
+  // Add additional params
+  Object.assign(oauthParams, additionalParams);
+  
+  // Create the signature (PLAINTEXT method)
+  const signature = `${consumerSecret}&${tokenSecret}`;
   
   // Create the Authorization header
-  return `OAuth oauth_consumer_key="${encodeURIComponent(consumerKey)}", oauth_nonce="${nonce}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_token="${token}", oauth_version="1.0", oauth_signature="${signature}"`;
+  let authHeader = 'OAuth ';
+  const headerParams = { ...oauthParams, oauth_signature: signature };
+  
+  authHeader += Object.entries(headerParams)
+    .map(([key, value]) => `${key}="${encodeURIComponent(value)}"`)
+    .join(', ');
+  
+  return authHeader;
 }
 
 export const TradeMeService = {
@@ -84,12 +99,17 @@ export const TradeMeService = {
    */
   async getOAuthRequestUrl(isSandbox: boolean = true): Promise<string> {
     try {
+      console.log(`Starting OAuth flow with ${isSandbox ? 'sandbox' : 'production'} environment`);
+      
       // Set the API environment
       setApiEnvironment(isSandbox);
       
       // Step 1: Get a request token
       const requestTokenUrl = `${OAUTH_URL}/RequestToken`;
       const callbackUrl = `${window.location.origin}/settings/trademe-callback`;
+      
+      console.log(`Request token URL: ${requestTokenUrl}`);
+      console.log(`Callback URL: ${callbackUrl}`);
       
       const authHeader = generateOAuthSignature(
         'POST', 
@@ -101,6 +121,8 @@ export const TradeMeService = {
         { oauth_callback: callbackUrl }
       );
       
+      console.log('Making request for OAuth token...');
+      
       const response = await fetch(requestTokenUrl, {
         method: 'POST',
         headers: {
@@ -110,15 +132,23 @@ export const TradeMeService = {
         body: `oauth_callback=${encodeURIComponent(callbackUrl)}`
       });
       
+      console.log(`Response status: ${response.status}`);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OAuth request token error:', errorText);
         throw new Error(`Failed to get request token: ${response.status} ${response.statusText}`);
       }
       
       const responseText = await response.text();
+      console.log('Response text:', responseText);
+      
       const params = new URLSearchParams(responseText);
       
       const requestToken = params.get('oauth_token') || '';
       const requestTokenSecret = params.get('oauth_token_secret') || '';
+      
+      console.log(`Got request token: ${requestToken}`);
       
       if (!requestToken) {
         throw new Error('No request token received from TradeMe');
@@ -128,7 +158,10 @@ export const TradeMeService = {
       localStorage.setItem('trademe_request_token_secret', requestTokenSecret);
       
       // Step 2: Redirect user to authorization page
-      return `${OAUTH_URL}/Authorize?oauth_token=${requestToken}`;
+      const authUrl = `${OAUTH_URL}/Authorize?oauth_token=${requestToken}`;
+      console.log(`Authorization URL: ${authUrl}`);
+      
+      return authUrl;
     } catch (error) {
       console.error('Error getting OAuth request URL:', error);
       throw error;
@@ -140,11 +173,15 @@ export const TradeMeService = {
    */
   async handleOAuthCallback(oauthToken: string, oauthVerifier: string): Promise<boolean> {
     try {
+      console.log(`Handling OAuth callback with token: ${oauthToken} and verifier: ${oauthVerifier}`);
+      
       // Get the request token secret from storage
       const requestTokenSecret = localStorage.getItem('trademe_request_token_secret') || '';
+      console.log(`Retrieved request token secret: ${requestTokenSecret ? 'Yes' : 'No'}`);
       
       // Step 3: Exchange request token for access token
       const accessTokenUrl = `${OAUTH_URL}/AccessToken`;
+      console.log(`Access token URL: ${accessTokenUrl}`);
       
       const authHeader = generateOAuthSignature(
         'POST', 
@@ -156,6 +193,8 @@ export const TradeMeService = {
         { oauth_verifier: oauthVerifier }
       );
       
+      console.log('Making request for access token...');
+      
       const response = await fetch(accessTokenUrl, {
         method: 'POST',
         headers: {
@@ -165,15 +204,23 @@ export const TradeMeService = {
         body: `oauth_verifier=${oauthVerifier}`
       });
       
+      console.log(`Response status: ${response.status}`);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OAuth access token error:', errorText);
         throw new Error(`Failed to get access token: ${response.status} ${response.statusText}`);
       }
       
       const responseText = await response.text();
+      console.log('Response text:', responseText);
+      
       const params = new URLSearchParams(responseText);
       
       const accessToken = params.get('oauth_token') || '';
       const accessTokenSecret = params.get('oauth_token_secret') || '';
+      
+      console.log(`Got access token: ${accessToken ? 'Yes' : 'No'}`);
       
       if (!accessToken || !accessTokenSecret) {
         throw new Error('No access token received from TradeMe');
