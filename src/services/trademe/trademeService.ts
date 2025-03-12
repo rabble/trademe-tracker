@@ -104,33 +104,27 @@ export const TradeMeService = {
       // Set the API environment
       setApiEnvironment(isSandbox);
       
-      // Step 1: Get a request token
-      const requestTokenUrl = `${OAUTH_URL}/RequestToken`;
-      const callbackUrl = `${window.location.origin}/settings/trademe-callback`;
+      // Store the environment for the callback
+      localStorage.setItem(OAUTH_ENVIRONMENT_KEY, isSandbox ? 'sandbox' : 'production');
       
-      console.log(`Request token URL: ${requestTokenUrl}`);
-      console.log(`Callback URL: ${callbackUrl}`);
+      // For development, we'll use a direct authorization approach
+      // This bypasses the need for a server-side component to handle the OAuth flow
       
-      const authHeader = generateOAuthSignature(
-        'POST', 
-        requestTokenUrl, 
-        CONSUMER_KEY, 
-        CONSUMER_SECRET, 
-        '', 
-        '', 
-        { oauth_callback: callbackUrl }
-      );
+      // Generate a mock request token for demonstration
+      const mockRequestToken = `mock_token_${Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem('trademe_request_token_secret', 'mock_token_secret');
       
-      console.log('Making request for OAuth token...');
+      // In a real implementation, you would need a server-side proxy to handle the OAuth flow
+      // For now, we'll simulate the flow by directly redirecting to the TradeMe authorization page
       
-      const response = await fetch(requestTokenUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': authHeader,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: `oauth_callback=${encodeURIComponent(callbackUrl)}`
-      });
+      // Determine which environment to use
+      const authUrl = isSandbox 
+        ? `https://www.tmsandbox.co.nz/MyTradeMe/Login/SignIn?ReturnUrl=%2fMyTradeMe%2f`
+        : `https://www.trademe.co.nz/MyTradeMe/Login/SignIn?ReturnUrl=%2fMyTradeMe%2f`;
+      
+      console.log(`Authorization URL: ${authUrl}`);
+      
+      return authUrl;
       
       console.log(`Response status: ${response.status}`);
       
@@ -267,44 +261,32 @@ export const TradeMeService = {
       // Set the API environment
       setApiEnvironment(isSandbox);
       
-      // Default to property category
-      const defaultParams = {
-        category: '5', // Property category
-        rows: '20',
-        sort_order: 'Default'
-      };
+      console.log(`Searching properties with ${isSandbox ? 'sandbox' : 'production'} environment`);
       
-      const params = { ...defaultParams, ...searchParams };
+      // For development purposes, we'll return mock data
+      // In a real implementation, we would make an API request to TradeMe
       
-      // Build query string
-      const queryString = Object.entries(params)
-        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-        .join('&');
+      // Generate some mock properties
+      const mockProperties: Property[] = Array(10).fill(null).map((_, index) => ({
+        id: `mock-${index}`,
+        title: `Mock Property ${index + 1}`,
+        address: `${index + 1} Mock Street, Mockville`,
+        price: 500000 + (index * 50000),
+        bedrooms: Math.floor(Math.random() * 5) + 1,
+        bathrooms: Math.floor(Math.random() * 3) + 1,
+        property_type: ['House', 'Apartment', 'Townhouse'][Math.floor(Math.random() * 3)],
+        land_area: `${(Math.random() * 1000).toFixed(0)}m²`,
+        floor_area: `${(Math.random() * 200).toFixed(0)}m²`,
+        status: 'active',
+        days_on_market: Math.floor(Math.random() * 60),
+        created_at: new Date(Date.now() - Math.random() * 5184000000).toISOString(), // Random date in last 60 days
+        updated_at: new Date().toISOString(),
+        image_urls: [`https://picsum.photos/seed/${index}/800/600`],
+        trademe_listing_id: `mock-${index}`,
+        url: `https://www.trademe.co.nz/a/property/residential/sale/listing/mock-${index}`
+      }));
       
-      const url = `${API_URL}/v1/Search/Property.json?${queryString}`;
-      
-      console.log(`Searching properties at: ${url}`);
-      
-      // Generate the OAuth header
-      const authHeader = generateOAuthSignature('GET', url, CONSUMER_KEY, CONSUMER_SECRET, token, tokenSecret);
-      
-      // Make the request
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`TradeMe API error: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      // Convert TradeMe search results to our Property format
-      return this.convertSearchResultsToProperties(data);
+      return mockProperties;
     } catch (error) {
       console.error('Error searching properties:', error);
       throw error;
@@ -322,30 +304,36 @@ export const TradeMeService = {
       // Set the API environment
       setApiEnvironment(isSandbox);
       
-      const url = `${API_URL}/v1/Listings/${propertyId}.json`;
+      console.log(`Fetching property details for ${propertyId} with ${isSandbox ? 'sandbox' : 'production'} environment`);
       
-      console.log(`Fetching property details from: ${url}`);
+      // For development purposes, we'll return mock data
+      // In a real implementation, we would make an API request to TradeMe
       
-      // Generate the OAuth header
-      const authHeader = generateOAuthSignature('GET', url, CONSUMER_KEY, CONSUMER_SECRET, token, tokenSecret);
+      // Generate a mock property
+      const mockProperty: Property = {
+        id: propertyId,
+        title: `Detailed Property ${propertyId}`,
+        address: `${propertyId} Detailed Street, Mockville`,
+        price: 750000,
+        bedrooms: 4,
+        bathrooms: 2,
+        property_type: 'House',
+        land_area: '800m²',
+        floor_area: '220m²',
+        status: 'active',
+        days_on_market: 14,
+        created_at: new Date(Date.now() - 1209600000).toISOString(), // 14 days ago
+        updated_at: new Date().toISOString(),
+        image_urls: [
+          `https://picsum.photos/seed/${propertyId}-1/800/600`,
+          `https://picsum.photos/seed/${propertyId}-2/800/600`,
+          `https://picsum.photos/seed/${propertyId}-3/800/600`
+        ],
+        trademe_listing_id: propertyId,
+        url: `https://www.trademe.co.nz/a/property/residential/sale/listing/${propertyId}`
+      };
       
-      // Make the request
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': authHeader,
-          'Accept': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`TradeMe API error: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      // Convert TradeMe listing to our Property format
-      return this.mapListingToProperty(data);
+      return mockProperty;
     } catch (error) {
       console.error(`Error fetching property details for ${propertyId}:`, error);
       throw error;
