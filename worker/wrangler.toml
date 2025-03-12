@@ -9,14 +9,25 @@ node_compat = true
 API_BASE_URL = "https://api.trademe.co.nz/v1"
 TRADEME_BASE_URL = "https://www.trademe.co.nz"
 SUPABASE_STORAGE_BUCKET = "property-images"
+TRADEME_CONSUMER_KEY = "05853D50C9B49D0BBF512C4F7C288098"
+TRADEME_CONSUMER_SECRET = "EE038BB9632A0BB6E1A6637555067E24"
+TRADEME_SANDBOX_MODE = "true"  # Set to "false" for production
 
 # Development environment
 [env.dev]
-vars = { ENVIRONMENT = "development", SCRAPE_INTERVAL_HOURS = "24" }
+vars = { 
+  ENVIRONMENT = "development", 
+  SCRAPE_INTERVAL_HOURS = "24",
+  TRADEME_SANDBOX_MODE = "true"
+}
 
 # Production environment
 [env.production]
-vars = { ENVIRONMENT = "production", SCRAPE_INTERVAL_HOURS = "24" }
+vars = { 
+  ENVIRONMENT = "production", 
+  SCRAPE_INTERVAL_HOURS = "24",
+  TRADEME_SANDBOX_MODE = "false"
+}
 
 # Trigger for scheduled scraping job
 [triggers]
@@ -29,7 +40,14 @@ id = "your-kv-namespace-id-here"
 preview_id = "your-preview-kv-namespace-id-here"
 
 # Secrets (add these using wrangler secret put)
-# TRADEME_USERNAME
-# TRADEME_PASSWORD
 # SUPABASE_URL
 # SUPABASE_ANON_KEY
+
+# Add site configuration for frontend deployment
+[site]
+bucket = "../dist"
+entry-point = "."
+
+# Build configuration
+[build]
+command = "cd .. && npm run build"

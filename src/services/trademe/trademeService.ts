@@ -111,9 +111,10 @@ export const TradeMeService = {
       // Step 1: Get a request token
       const requestTokenUrl = `${OAUTH_URL}/RequestToken`;
       
-      // Use the current protocol and host for the callback URL
-      // When deployed to a server with HTTPS, this will use HTTPS
-      const callbackUrl = `${window.location.protocol}//${window.location.host}/settings/trademe-callback`;
+      // Force HTTPS for Cloudflare deployment
+      // This ensures the callback URL is always HTTPS which TradeMe requires
+      const host = window.location.host;
+      const callbackUrl = `https://${host}/settings/trademe-callback`;
       
       console.log(`Request token URL: ${requestTokenUrl}`);
       console.log(`Callback URL: ${callbackUrl}`);
@@ -409,7 +410,7 @@ export const TradeMeService = {
           const { data: existingProperty } = await supabase
             .from('properties')
             .select('id')
-            .eq('trademe_listing_id', property.id)
+            .eq('trademe_listing_id', property.trademe_listing_id)
             .single();
           
           if (existingProperty) {
@@ -417,7 +418,7 @@ export const TradeMeService = {
             const { error } = await supabase
               .from('properties')
               .update(property)
-              .eq('trademe_listing_id', property.id);
+              .eq('trademe_listing_id', property.trademe_listing_id);
             
             if (error) {
               console.error(`Error updating property ${property.id}:`, error);
