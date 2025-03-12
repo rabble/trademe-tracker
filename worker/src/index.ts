@@ -61,50 +61,55 @@ export default {
           const key = path.replace(/^\//, '');
           
           // Try to get the asset from KV
-          let asset = await env.__STATIC_CONTENT.get(key);
+          let asset = null;
           
-          // If not found directly, try with the hashed filename pattern
-          if (asset === null) {
-            console.log(`Asset not found directly: ${key}`);
-            
+          // First, try to find the exact asset by key
+          if (key === 'index.html') {
+            // For index.html, find the hashed version
+            const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
+            if (indexFile) {
+              console.log(`Found index file: ${indexFile.name}`);
+              asset = await env.__STATIC_CONTENT.get(indexFile.name);
+            }
+          } else if (path.startsWith('/assets/')) {
             // For assets in the /assets/ directory, they might be hashed
-            if (path.startsWith('/assets/')) {
-              const baseName = path.split('/').pop();
-              if (baseName) {
-                const fileNameParts = baseName.split('.');
-                const extension = fileNameParts.pop();
-                const nameWithoutExt = fileNameParts.join('.');
-                
-                // Try to find a matching asset with a hash
-                const matchingAsset = assets.keys.find(k => 
-                  k.name.startsWith(`assets/${nameWithoutExt}`) && 
-                  k.name.endsWith(`.${extension}`)
-                );
-                
-                if (matchingAsset) {
-                  console.log(`Found matching hashed asset: ${matchingAsset.name}`);
-                  asset = await env.__STATIC_CONTENT.get(matchingAsset.name);
-                }
+            const baseName = path.split('/').pop();
+            if (baseName) {
+              const fileNameParts = baseName.split('.');
+              const extension = fileNameParts.pop();
+              const nameWithoutExt = fileNameParts.join('.');
+              
+              // Try to find a matching asset with a hash
+              const matchingAsset = assets.keys.find(k => 
+                k.name.startsWith(`assets/${nameWithoutExt}`) && 
+                k.name.endsWith(`.${extension}`)
+              );
+              
+              if (matchingAsset) {
+                console.log(`Found matching hashed asset: ${matchingAsset.name}`);
+                asset = await env.__STATIC_CONTENT.get(matchingAsset.name);
               }
             }
+          } else {
+            // Try direct lookup for other files
+            asset = await env.__STATIC_CONTENT.get(key);
           }
           
           // If still not found, try index.html as a fallback for SPA routing
           if (asset === null) {
-            console.log(`Asset not found, trying index.html as fallback`);
-            if (path !== '/index.html') {
-              // Try to find the index.html file (might be hashed)
-              const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
+            console.log(`Asset not found, trying index.html as fallback for path: ${path}`);
+            
+            // Try to find the index.html file (might be hashed)
+            const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
+            
+            if (indexFile) {
+              console.log(`Using index file as fallback: ${indexFile.name}`);
+              asset = await env.__STATIC_CONTENT.get(indexFile.name);
               
-              if (indexFile) {
-                console.log(`Found index file: ${indexFile.name}`);
-                asset = await env.__STATIC_CONTENT.get(indexFile.name);
-                
-                if (asset !== null) {
-                  return new Response(asset, {
-                    headers: { 'Content-Type': 'text/html' }
-                  });
-                }
+              if (asset !== null) {
+                return new Response(asset, {
+                  headers: { 'Content-Type': 'text/html' }
+                });
               }
             }
             
