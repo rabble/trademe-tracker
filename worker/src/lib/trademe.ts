@@ -45,7 +45,7 @@ export class TradeMe {
     const signatureBaseString = `${method}&${encodeURIComponent(url)}&${encodeURIComponent(parameterString)}`;
     
     // Create the signature
-    const signature = `${encodeURIComponent(this.consumerSecret)}&${encodeURIComponent(this.oauthTokenSecret)}`;
+    const signature = `${this.consumerSecret}&${this.oauthTokenSecret}`;
     
     // Log OAuth parameters for debugging
     console.log('OAuth parameters:', {
@@ -60,7 +60,7 @@ export class TradeMe {
     });
     
     // Create the Authorization header
-    const authHeader = `OAuth oauth_consumer_key="${encodeURIComponent(this.consumerKey)}", oauth_token="${encodeURIComponent(this.oauthToken)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
+    const authHeader = `OAuth oauth_consumer_key="${this.consumerKey}", oauth_token="${this.oauthToken}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
     
     console.log('Generated auth header length:', authHeader.length);
     return authHeader;

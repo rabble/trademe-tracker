@@ -319,9 +319,26 @@ export function TradeMeDebugPanel() {
                   refreshDebugInfo();
                   alert('All TradeMe tokens cleared from localStorage');
                 }}
-                className="bg-red-500 text-white px-3 py-1 rounded-md"
+                className="bg-red-500 text-white px-3 py-1 rounded-md mr-2"
               >
                 Clear All Tokens
+              </button>
+              
+              <button 
+                onClick={() => {
+                  const token = prompt('Enter OAuth Token:');
+                  const tokenSecret = prompt('Enter OAuth Token Secret:');
+                  if (token && tokenSecret) {
+                    localStorage.setItem('trademe_oauth_token', token);
+                    localStorage.setItem('trademe_oauth_token_secret', tokenSecret);
+                    localStorage.setItem('trademe_environment', 'sandbox');
+                    refreshDebugInfo();
+                    alert('OAuth tokens set successfully');
+                  }
+                }}
+                className="bg-green-500 text-white px-3 py-1 rounded-md"
+              >
+                Set Tokens Manually
               </button>
             </div>
           </div>

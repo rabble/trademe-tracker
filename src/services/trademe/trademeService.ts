@@ -184,10 +184,10 @@ export const TradeMeService = {
                    Math.random().toString(36).substring(2, 15);
       
       // Create the signature (PLAINTEXT method)
-      const signature = `${encodeURIComponent(CONSUMER_SECRET)}&`;
+      const signature = `${CONSUMER_SECRET}&`;
       
       // Create the Authorization header directly
-      const authHeader = `OAuth oauth_consumer_key="${encodeURIComponent(CONSUMER_KEY)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_callback="${encodeURIComponent(callbackUrl)}", oauth_signature="${signature}"`;
+      const authHeader = `OAuth oauth_consumer_key="${CONSUMER_KEY}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_callback="${encodeURIComponent(callbackUrl)}", oauth_signature="${signature}"`;
       
       console.log('Making request for OAuth token...');
       
@@ -209,7 +209,8 @@ export const TradeMeService = {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: `scope=${encodeURIComponent(scope)}`,
-        mode: 'cors'
+        mode: 'cors',
+        credentials: 'omit'
       });
       
       console.log('OAuth request response status:', response.status);
@@ -274,10 +275,10 @@ export const TradeMeService = {
                    Math.random().toString(36).substring(2, 15);
       
       // Create the signature (PLAINTEXT method)
-      const signature = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(requestTokenSecret)}`;
+      const signature = `${CONSUMER_SECRET}&${requestTokenSecret}`;
       
       // Create the Authorization header directly
-      const authHeader = `OAuth oauth_consumer_key="${encodeURIComponent(CONSUMER_KEY)}", oauth_token="${encodeURIComponent(oauthToken)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_verifier="${encodeURIComponent(oauthVerifier)}", oauth_signature="${signature}"`;
+      const authHeader = `OAuth oauth_consumer_key="${CONSUMER_KEY}", oauth_token="${oauthToken}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_verifier="${oauthVerifier}", oauth_signature="${signature}"`;
       
       console.log('Making request for access token with auth header:', authHeader.substring(0, 50) + '...');
       
@@ -287,7 +288,8 @@ export const TradeMeService = {
           'Authorization': authHeader,
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        mode: 'cors'
+        mode: 'cors',
+        credentials: 'omit'
       });
       
       console.log(`Response status: ${response.status}`);
@@ -419,10 +421,10 @@ export const TradeMeService = {
                    Math.random().toString(36).substring(2, 15);
       
       // Create the signature (PLAINTEXT method)
-      const signature = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(tokenSecret)}`;
+      const signature = `${CONSUMER_SECRET}&${tokenSecret}`;
       
       // Create the Authorization header directly
-      const authHeader = `OAuth oauth_consumer_key="${encodeURIComponent(CONSUMER_KEY)}", oauth_token="${encodeURIComponent(token)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
+      const authHeader = `OAuth oauth_consumer_key="${CONSUMER_KEY}", oauth_token="${token}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
       
       console.log('Making request to TradeMe API with auth header:', 
         authHeader.substring(0, 20) + '...[truncated]');
@@ -620,10 +622,10 @@ export const TradeMeService = {
                    Math.random().toString(36).substring(2, 15);
       
       // Create the signature (PLAINTEXT method)
-      const signature = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(tokenSecret)}`;
+      const signature = `${CONSUMER_SECRET}&${tokenSecret}`;
       
       // Create the Authorization header directly
-      const authHeader = `OAuth oauth_consumer_key="${encodeURIComponent(CONSUMER_KEY)}", oauth_token="${encodeURIComponent(token)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
+      const authHeader = `OAuth oauth_consumer_key="${CONSUMER_KEY}", oauth_token="${token}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
       
       console.log('Making test request with auth header:', authHeader.substring(0, 50) + '...');
       
