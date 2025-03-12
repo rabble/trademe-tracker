@@ -176,7 +176,7 @@ export const TradeMeService = {
       console.log(`Callback URL: ${callbackUrl}`);
       
       // Define the scope for the token
-      const scope = "MyTradeMeRead,MyTradeMeWrite";
+      const scope = "MyTradeMeRead";
       
       // Create the OAuth parameters
       const timestamp = Math.floor(Date.now() / 1000).toString();
@@ -191,7 +191,15 @@ export const TradeMeService = {
       
       console.log('Making request for OAuth token...');
       
-      console.log('Making OAuth request with auth header:', authHeader.substring(0, 50) + '...');
+      console.log('Making OAuth request with auth header:', authHeader);
+      console.log('OAuth parameters:', {
+        consumerKey: CONSUMER_KEY,
+        hasConsumerSecret: !!CONSUMER_SECRET,
+        timestamp,
+        nonce: nonce.substring(0, 5) + '...',
+        callbackUrl,
+        scope
+      });
       
       // Make the request to get a request token
       const response = await fetch(requestTokenUrl, {
@@ -360,7 +368,16 @@ export const TradeMeService = {
       tokenLength: token?.length || 0,
       tokenSecretLength: tokenSecret?.length || 0,
       storedKeys: Object.keys(localStorage).filter(key => key.includes('trademe')),
-      apiUrl: isSandbox ? TRADEME_SANDBOX_API_URL : TRADEME_API_URL
+      apiUrl: isSandbox ? TRADEME_SANDBOX_API_URL : TRADEME_API_URL,
+      consumerKey: CONSUMER_KEY,
+      consumerSecretExists: !!CONSUMER_SECRET,
+      oauthUrl: isSandbox ? TRADEME_SANDBOX_OAUTH_URL : TRADEME_OAUTH_URL,
+      authUrl: isSandbox ? TRADEME_SANDBOX_AUTH_URL : TRADEME_AUTH_URL,
+      localStorageData: Object.fromEntries(
+        Object.keys(localStorage)
+          .filter(key => key.includes('trademe'))
+          .map(key => [key, localStorage.getItem(key)?.substring(0, 10) + '...'])
+      )
     };
   },
   
@@ -572,6 +589,84 @@ export const TradeMeService = {
       throw error;
     }
   },
+  /**
+   * Test the OAuth connection
+   */
+  async testOAuthConnection(): Promise<{ success: boolean; message: string; details?: any }> {
+    try {
+      // Get stored OAuth tokens
+      const { token, tokenSecret, isSandbox } = getStoredOAuthTokens();
+      
+      if (!token || !tokenSecret) {
+        return { 
+          success: false, 
+          message: 'Not authenticated with TradeMe. Missing tokens.' 
+        };
+      }
+      
+      // Set the API environment
+      setApiEnvironment(isSandbox);
+      
+      console.log(`Testing OAuth connection with ${isSandbox ? 'sandbox' : 'production'} environment`);
+      
+      // Use a simple endpoint to test the connection
+      const url = `${API_URL}/v1/MyTradeMe/Summary.json`;
+      
+      console.log(`Testing connection to: ${url}`);
+      
+      // Create the OAuth parameters
+      const timestamp = Math.floor(Date.now() / 1000).toString();
+      const nonce = Math.random().toString(36).substring(2, 15) + 
+                   Math.random().toString(36).substring(2, 15);
+      
+      // Create the signature (PLAINTEXT method)
+      const signature = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(tokenSecret)}`;
+      
+      // Create the Authorization header directly
+      const authHeader = `OAuth oauth_consumer_key="${encodeURIComponent(CONSUMER_KEY)}", oauth_token="${encodeURIComponent(token)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
+      
+      console.log('Making test request with auth header:', authHeader.substring(0, 50) + '...');
+      
+      // Make the direct request to TradeMe
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Accept': 'application/json'
+        },
+        mode: 'cors'
+      });
+      
+      console.log('TradeMe API test response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('TradeMe API test error response:', errorText);
+        return { 
+          success: false, 
+          message: `API request failed with status ${response.status}: ${response.statusText}`,
+          details: { errorText, status: response.status }
+        };
+      }
+      
+      const data = await response.json();
+      console.log('TradeMe API test response data:', data);
+      
+      return { 
+        success: true, 
+        message: 'Successfully connected to TradeMe API',
+        details: data
+      };
+    } catch (error) {
+      console.error('Error testing OAuth connection:', error);
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Unknown error',
+        details: { error }
+      };
+    }
+  },
+  
   /**
    * Search for properties on TradeMe
    */

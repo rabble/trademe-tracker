@@ -9,6 +9,11 @@ export function TradeMeDebugPanel() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [syncResult, setSyncResult] = useState<{ count: number } | null>(null);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    message: string;
+    details?: any;
+  } | null>(null);
   const [supabaseStatus, setSupabaseStatus] = useState<{
     isConnected: boolean;
     error: string | null;
@@ -114,11 +119,31 @@ export function TradeMeDebugPanel() {
     try {
       setIsLoading(true);
       setError(null);
+      setTestResult(null);
       const authUrl = await TradeMeService.getOAuthRequestUrl(true); // Use sandbox
       console.log('Got OAuth URL:', authUrl);
       window.open(authUrl, '_blank');
     } catch (err) {
       console.error('Error starting OAuth flow:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleTestConnection = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      setTestResult(null);
+      const result = await TradeMeService.testOAuthConnection();
+      setTestResult(result);
+      if (!result.success) {
+        setError(result.message);
+      }
+      refreshDebugInfo();
+    } catch (err) {
+      console.error('Error testing connection:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setIsLoading(false);
@@ -187,13 +212,24 @@ export function TradeMeDebugPanel() {
             <button 
               onClick={handleStartOAuth}
               disabled={isLoading}
-              className={`px-3 py-1 rounded-md ${
+              className={`px-3 py-1 rounded-md mr-2 ${
                 isLoading 
                   ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
                   : 'bg-indigo-600 text-white hover:bg-indigo-700'
               }`}
             >
               {isLoading ? 'Starting...' : 'Start OAuth Flow'}
+            </button>
+            <button 
+              onClick={handleTestConnection}
+              disabled={isLoading || !debugInfo.isConnected}
+              className={`px-3 py-1 rounded-md ${
+                isLoading || !debugInfo.isConnected
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                  : 'bg-yellow-600 text-white hover:bg-yellow-700'
+              }`}
+            >
+              {isLoading ? 'Testing...' : 'Test Connection'}
             </button>
           </div>
 
@@ -206,6 +242,25 @@ export function TradeMeDebugPanel() {
           {syncResult && (
             <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-800 rounded">
               <strong>Sync Result:</strong> {syncResult.count} properties synced
+            </div>
+          )}
+          
+          {testResult && (
+            <div className={`mb-4 p-3 ${testResult.success ? 'bg-green-100 border-green-300 text-green-800' : 'bg-yellow-100 border-yellow-300 text-yellow-800'} rounded`}>
+              <div className="font-bold mb-2">
+                {testResult.success ? '✅ Connection Test Successful' : '⚠️ Connection Test Failed'}
+              </div>
+              <div>{testResult.message}</div>
+              {testResult.details && (
+                <div className="mt-2">
+                  <details>
+                    <summary className="cursor-pointer font-medium">Response Details</summary>
+                    <pre className="mt-2 text-xs bg-gray-50 p-2 rounded overflow-auto max-h-40">
+                      {JSON.stringify(testResult.details, null, 2)}
+                    </pre>
+                  </details>
+                </div>
+              )}
             </div>
           )}
 
@@ -234,6 +289,40 @@ export function TradeMeDebugPanel() {
               
               <div>API URL:</div>
               <div className="break-all">{debugInfo.apiUrl}</div>
+              
+              <div>Consumer Key:</div>
+              <div className="break-all">{debugInfo.consumerKey || 'Not available'}</div>
+              
+              <div>Consumer Secret:</div>
+              <div>{debugInfo.consumerSecretExists ? 'Available' : 'Not available'}</div>
+            </div>
+            
+            <div className="mt-4">
+              <button 
+                onClick={() => {
+                  const token = localStorage.getItem('trademe_oauth_token');
+                  const tokenSecret = localStorage.getItem('trademe_oauth_token_secret');
+                  console.log('Current OAuth tokens:', { token, tokenSecret });
+                  alert(`Current tokens:\nToken: ${token ? token.substring(0, 10) + '...' : 'None'}\nToken Secret: ${tokenSecret ? tokenSecret.substring(0, 10) + '...' : 'None'}`);
+                }}
+                className="bg-gray-500 text-white px-3 py-1 rounded-md mr-2"
+              >
+                Show Raw Tokens
+              </button>
+              
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('trademe_oauth_token');
+                  localStorage.removeItem('trademe_oauth_token_secret');
+                  localStorage.removeItem('trademe_environment');
+                  localStorage.removeItem('trademe_request_token_secret');
+                  refreshDebugInfo();
+                  alert('All TradeMe tokens cleared from localStorage');
+                }}
+                className="bg-red-500 text-white px-3 py-1 rounded-md"
+              >
+                Clear All Tokens
+              </button>
             </div>
           </div>
 
@@ -308,6 +397,20 @@ export function TradeMeDebugPanel() {
                     {networkDiagnostics.connectivity.trademeSandbox.success 
                       ? `Connected (${networkDiagnostics.connectivity.trademeSandbox.time}ms)` 
                       : `Failed: ${networkDiagnostics.connectivity.trademeSandbox.error}`}
+                  </div>
+                  
+                  <div>TradeMe OAuth:</div>
+                  <div className={networkDiagnostics.connectivity.trademeOAuth.success ? 'text-green-600' : 'text-red-600'}>
+                    {networkDiagnostics.connectivity.trademeOAuth.success 
+                      ? `Connected (${networkDiagnostics.connectivity.trademeOAuth.time}ms)` 
+                      : `Failed: ${networkDiagnostics.connectivity.trademeOAuth.error}`}
+                  </div>
+                  
+                  <div>TradeMe Sandbox OAuth:</div>
+                  <div className={networkDiagnostics.connectivity.trademeSandboxOAuth.success ? 'text-green-600' : 'text-red-600'}>
+                    {networkDiagnostics.connectivity.trademeSandboxOAuth.success 
+                      ? `Connected (${networkDiagnostics.connectivity.trademeSandboxOAuth.time}ms)` 
+                      : `Failed: ${networkDiagnostics.connectivity.trademeSandboxOAuth.error}`}
                   </div>
                 </div>
               </div>

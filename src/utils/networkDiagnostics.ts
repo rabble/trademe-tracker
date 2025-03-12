@@ -91,7 +91,9 @@ export async function runNetworkDiagnostics(): Promise<Record<string, any>> {
   results.connectivity = {
     supabase: await pingDomain('tkflwbqtspizculeiizm.supabase.co'),
     trademe: await pingDomain('api.trademe.co.nz'),
-    trademeSandbox: await pingDomain('api.tmsandbox.co.nz')
+    trademeSandbox: await pingDomain('api.tmsandbox.co.nz'),
+    trademeOAuth: await pingDomain('api.trademe.co.nz/Oauth'),
+    trademeSandboxOAuth: await pingDomain('api.tmsandbox.co.nz/Oauth')
   };
   
   return results;
