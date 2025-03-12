@@ -58,7 +58,8 @@ export function TradeMePropertySearch() {
     bedrooms: property.bedrooms,
     bathrooms: property.bathrooms,
     imageUrl: property.image_urls?.[0],
-    status: property.status
+    status: property.status,
+    daysOnMarket: property.days_on_market || 0
   }));
 
   return (
