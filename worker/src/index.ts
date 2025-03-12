@@ -23,24 +23,23 @@ router.get('/api/health', () => new Response('OK', { status: 200 }));
 router.all('/api/properties/*', withAuth, propertiesRoutes.handle);
 router.all('/api/analytics/*', withAuth, analyticsRoutes.handle);
 
-// Add a root route for testing
-router.get('/', () => new Response('TradeMe Tracker API is running', { 
-  status: 200,
-  headers: {
-    'Content-Type': 'text/plain'
-  }
-}));
-
-// 404 for everything else
-router.all('*', () => new Response('Not Found', { status: 404 }));
+// 404 for API routes
+router.all('/api/*', () => new Response('API Not Found', { status: 404 }));
 
 // Event handlers
 export default {
   // Handle HTTP requests
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
-      // Handle the request with our router
-      return router.handle(request, env, ctx).catch(errorHandler);
+      const url = new URL(request.url);
+      
+      // Handle API requests
+      if (url.pathname.startsWith('/api/')) {
+        return router.handle(request, env, ctx).catch(errorHandler);
+      }
+      
+      // For all other requests, serve static assets from the site
+      return env.ASSETS.fetch(request);
     } catch (error) {
       return errorHandler(error);
     }
@@ -72,4 +71,6 @@ export interface Env {
   SUPABASE_ANON_KEY: string;
   SUPABASE_STORAGE_BUCKET: string;
   TRADEME_SANDBOX_MODE: string;
+  // Static assets
+  ASSETS: { fetch: (request: Request) => Promise<Response> };
 }
