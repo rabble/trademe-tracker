@@ -39,7 +39,15 @@ export default {
       }
       
       // For all other requests, serve static assets from the site
-      return env.ASSETS.fetch(request);
+      if (env.ASSETS) {
+        return env.ASSETS.fetch(request);
+      } else {
+        // Fallback for when ASSETS binding is not available
+        return new Response("Static assets not configured", {
+          status: 404,
+          headers: { "Content-Type": "text/plain" }
+        });
+      }
     } catch (error) {
       return errorHandler(error);
     }
@@ -72,5 +80,5 @@ export interface Env {
   SUPABASE_STORAGE_BUCKET: string;
   TRADEME_SANDBOX_MODE: string;
   // Static assets
-  ASSETS: { fetch: (request: Request) => Promise<Response> };
+  ASSETS?: { fetch: (request: Request) => Promise<Response> };
 }
