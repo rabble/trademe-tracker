@@ -126,6 +126,18 @@ function generateOAuthSignature(
   let authHeader = 'OAuth ';
   const headerParams = { ...oauthParams, oauth_signature: signature };
   
+  // Log the parameters for debugging
+  console.log('OAuth parameters:', {
+    method,
+    url,
+    timestamp,
+    nonce: nonce.substring(0, 5) + '...',
+    signatureMethod: 'PLAINTEXT',
+    hasToken: !!token,
+    hasTokenSecret: !!tokenSecret,
+    additionalParamKeys: Object.keys(additionalParams)
+  });
+  
   authHeader += Object.entries(headerParams)
     .map(([key, value]) => `${key}="${encodeURIComponent(value)}"`)
     .join(', ');
@@ -164,38 +176,31 @@ export const TradeMeService = {
       console.log(`Callback URL: ${callbackUrl}`);
       
       // Define the scope for the token
-      const scope = "MyTradeMeRead,MyTradeMeWrite,BiddingAndBuying";
+      const scope = "MyTradeMeRead,MyTradeMeWrite";
       
-      // Generate the OAuth header
-      const authHeader = generateOAuthSignature(
-        'POST', 
-        requestTokenUrl, 
-        CONSUMER_KEY, 
-        CONSUMER_SECRET, 
-        '', 
-        '', 
-        { 
-          oauth_callback: callbackUrl,
-          scope: scope
-        }
-      );
+      // Create the OAuth parameters
+      const timestamp = Math.floor(Date.now() / 1000).toString();
+      const nonce = Math.random().toString(36).substring(2, 15) + 
+                   Math.random().toString(36).substring(2, 15);
+      
+      // Create the signature (PLAINTEXT method)
+      const signature = `${encodeURIComponent(CONSUMER_SECRET)}&`;
+      
+      // Create the Authorization header directly
+      const authHeader = `OAuth oauth_consumer_key="${encodeURIComponent(CONSUMER_KEY)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_callback="${encodeURIComponent(callbackUrl)}", oauth_signature="${signature}"`;
       
       console.log('Making request for OAuth token...');
       
-      // Make the request to get a request token
-      console.log('Making OAuth request with headers:', {
-        authorization: authHeader.substring(0, 20) + '...[truncated]',
-        contentType: 'application/x-www-form-urlencoded',
-        body: `oauth_callback=${encodeURIComponent(callbackUrl)}&scope=${encodeURIComponent(scope)}`
-      });
+      console.log('Making OAuth request with auth header:', authHeader.substring(0, 50) + '...');
       
+      // Make the request to get a request token
       const response = await fetch(requestTokenUrl, {
         method: 'POST',
         headers: {
           'Authorization': authHeader,
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: `oauth_callback=${encodeURIComponent(callbackUrl)}&scope=${encodeURIComponent(scope)}`,
+        body: `scope=${encodeURIComponent(scope)}`,
         mode: 'cors'
       });
       
@@ -255,17 +260,18 @@ export const TradeMeService = {
       const accessTokenUrl = `${OAUTH_URL}/AccessToken`;
       console.log(`Access token URL: ${accessTokenUrl}`);
       
-      const authHeader = generateOAuthSignature(
-        'POST', 
-        accessTokenUrl, 
-        CONSUMER_KEY, 
-        CONSUMER_SECRET, 
-        oauthToken, 
-        requestTokenSecret, 
-        { oauth_verifier: oauthVerifier }
-      );
+      // Create the OAuth parameters
+      const timestamp = Math.floor(Date.now() / 1000).toString();
+      const nonce = Math.random().toString(36).substring(2, 15) + 
+                   Math.random().toString(36).substring(2, 15);
       
-      console.log('Making request for access token...');
+      // Create the signature (PLAINTEXT method)
+      const signature = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(requestTokenSecret)}`;
+      
+      // Create the Authorization header directly
+      const authHeader = `OAuth oauth_consumer_key="${encodeURIComponent(CONSUMER_KEY)}", oauth_token="${encodeURIComponent(oauthToken)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_verifier="${encodeURIComponent(oauthVerifier)}", oauth_signature="${signature}"`;
+      
+      console.log('Making request for access token with auth header:', authHeader.substring(0, 50) + '...');
       
       const response = await fetch(accessTokenUrl, {
         method: 'POST',
@@ -273,7 +279,6 @@ export const TradeMeService = {
           'Authorization': authHeader,
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: `oauth_verifier=${oauthVerifier}`,
         mode: 'cors'
       });
       
@@ -391,15 +396,16 @@ export const TradeMeService = {
       
       console.log(`Fetching watchlist from: ${url}`);
       
-      // Generate the OAuth header
-      const authHeader = generateOAuthSignature(
-        'GET', 
-        url, 
-        CONSUMER_KEY, 
-        CONSUMER_SECRET, 
-        token, 
-        tokenSecret
-      );
+      // Create the OAuth parameters
+      const timestamp = Math.floor(Date.now() / 1000).toString();
+      const nonce = Math.random().toString(36).substring(2, 15) + 
+                   Math.random().toString(36).substring(2, 15);
+      
+      // Create the signature (PLAINTEXT method)
+      const signature = `${encodeURIComponent(CONSUMER_SECRET)}&${encodeURIComponent(tokenSecret)}`;
+      
+      // Create the Authorization header directly
+      const authHeader = `OAuth oauth_consumer_key="${encodeURIComponent(CONSUMER_KEY)}", oauth_token="${encodeURIComponent(token)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
       
       console.log('Making request to TradeMe API with auth header:', 
         authHeader.substring(0, 20) + '...[truncated]');

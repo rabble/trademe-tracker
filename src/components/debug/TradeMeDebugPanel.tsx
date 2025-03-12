@@ -109,6 +109,21 @@ export function TradeMeDebugPanel() {
       setError(err instanceof Error ? err.message : 'Unknown error');
     }
   };
+  
+  const handleStartOAuth = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const authUrl = await TradeMeService.getOAuthRequestUrl(true); // Use sandbox
+      console.log('Got OAuth URL:', authUrl);
+      window.open(authUrl, '_blank');
+    } catch (err) {
+      console.error('Error starting OAuth flow:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Always visible, so we don't need the conditional rendering
 
@@ -161,13 +176,24 @@ export function TradeMeDebugPanel() {
             <button 
               onClick={handleDisconnect}
               disabled={!debugInfo.isConnected}
-              className={`px-3 py-1 rounded-md ${
+              className={`px-3 py-1 rounded-md mr-2 ${
                 !debugInfo.isConnected 
                   ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
                   : 'bg-red-600 text-white hover:bg-red-700'
               }`}
             >
               Disconnect
+            </button>
+            <button 
+              onClick={handleStartOAuth}
+              disabled={isLoading}
+              className={`px-3 py-1 rounded-md ${
+                isLoading 
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              }`}
+            >
+              {isLoading ? 'Starting...' : 'Start OAuth Flow'}
             </button>
           </div>
 
