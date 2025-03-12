@@ -165,7 +165,11 @@ export const TradeMeService = {
   /**
    * Get OAuth request URL for TradeMe authentication
    */
-  async getOAuthRequestUrl(isSandbox: boolean = true): Promise<string> {
+  async getOAuthRequestUrl(isSandbox: boolean = true): Promise<{
+    authUrl: string;
+    requestToken: string;
+    requestTokenSecret: string;
+  }> {
     try {
       console.log(`Starting OAuth flow with ${isSandbox ? 'sandbox' : 'production'} environment`);
       console.log('Network status check:', {
@@ -181,9 +185,10 @@ export const TradeMeService = {
       // Step 1: Get a request token
       const requestTokenUrl = `${OAUTH_URL}/RequestToken`;
       
-      // Use a registered callback URL that TradeMe recognizes
-      // For sandbox, we'll use a standard callback that should be registered with TradeMe
-      const callbackUrl = "https://www.tmsandbox.co.nz/MyTradeMe/OAuth/Complete";
+      // Use "oob" (out-of-band) as the callback URL
+      // This is a special value that tells TradeMe to display the verification code to the user
+      // instead of redirecting to a callback URL
+      const callbackUrl = "oob";
       
       console.log(`Request token URL: ${requestTokenUrl}`);
       console.log(`Callback URL: ${callbackUrl}`);
@@ -201,7 +206,7 @@ export const TradeMeService = {
       const signature = `${CONSUMER_SECRET}&`;
       
       // Create the Authorization header directly
-      const authHeader = `OAuth oauth_consumer_key="${CONSUMER_KEY}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_callback="${encodeURIComponent(callbackUrl)}", oauth_signature="${signature}"`;
+      const authHeader = `OAuth oauth_consumer_key="${CONSUMER_KEY}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_callback="${callbackUrl}", oauth_signature="${signature}"`;
       
       console.log('Making request for OAuth token...');
       
@@ -278,9 +283,91 @@ export const TradeMeService = {
       localStorage.setItem('trademe_oauth_return_url', returnUrl);
       console.log(`Stored return URL: ${returnUrl} - will redirect back here after OAuth`);
       
-      return authUrl;
+      return {
+        authUrl,
+        requestToken,
+        requestTokenSecret
+      };
     } catch (error) {
       console.error('Error getting OAuth request URL:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Complete the OAuth flow with a verification code
+   */
+  async completeOAuthFlow(
+    requestToken: string,
+    requestTokenSecret: string,
+    verificationCode: string
+  ): Promise<boolean> {
+    try {
+      console.log(`Completing OAuth flow with verification code: ${verificationCode.substring(0, 2)}...`);
+      
+      // Step 3: Exchange request token for access token
+      const accessTokenUrl = `${OAUTH_URL}/AccessToken`;
+      console.log(`Access token URL: ${accessTokenUrl}`);
+      
+      // Create the OAuth parameters
+      const timestamp = Math.floor(Date.now() / 1000).toString();
+      const nonce = Math.random().toString(36).substring(2, 15) + 
+                   Math.random().toString(36).substring(2, 15);
+      
+      // Create the signature (PLAINTEXT method)
+      const signature = `${CONSUMER_SECRET}&${requestTokenSecret}`;
+      
+      // Create the Authorization header directly
+      const authHeader = `OAuth oauth_consumer_key="${CONSUMER_KEY}", oauth_token="${requestToken}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_verifier="${verificationCode}", oauth_signature="${signature}"`;
+      
+      console.log('Making request for access token with auth header:', authHeader.substring(0, 50) + '...');
+      
+      const response = await fetch(accessTokenUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        mode: 'cors',
+        credentials: 'omit'
+      });
+      
+      console.log(`Response status: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OAuth access token error:', errorText);
+        throw new Error(`Failed to get access token: ${response.status} ${response.statusText}`);
+      }
+      
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+      
+      const params = new URLSearchParams(responseText);
+      
+      const accessToken = params.get('oauth_token') || '';
+      const accessTokenSecret = params.get('oauth_token_secret') || '';
+      
+      console.log(`Got access token: ${accessToken ? 'Yes' : 'No'}`);
+      
+      if (!accessToken || !accessTokenSecret) {
+        throw new Error('No access token received from TradeMe');
+      }
+      
+      // Store the access tokens in both localStorage and sessionStorage
+      localStorage.setItem(OAUTH_TOKEN_KEY, accessToken);
+      localStorage.setItem(OAUTH_TOKEN_SECRET_KEY, accessTokenSecret);
+      sessionStorage.setItem(OAUTH_TOKEN_KEY, accessToken);
+      sessionStorage.setItem(OAUTH_TOKEN_SECRET_KEY, accessTokenSecret);
+      
+      console.log('OAuth tokens stored successfully:', {
+        tokenLength: accessToken.length,
+        tokenSecretLength: accessTokenSecret.length
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error completing OAuth flow:', error);
       throw error;
     }
   },

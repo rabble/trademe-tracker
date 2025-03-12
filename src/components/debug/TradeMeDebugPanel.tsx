@@ -115,18 +115,68 @@ export function TradeMeDebugPanel() {
     }
   };
   
+  const [verificationCode, setVerificationCode] = useState('');
+  const [showVerificationInput, setShowVerificationInput] = useState(false);
+  const [requestToken, setRequestToken] = useState('');
+  const [requestTokenSecret, setRequestTokenSecret] = useState('');
+
   const handleStartOAuth = async () => {
     try {
       setIsLoading(true);
       setError(null);
       setTestResult(null);
-      const authUrl = await TradeMeService.getOAuthRequestUrl(true); // Use sandbox
-      console.log('Got OAuth URL:', authUrl);
-      // Navigate in the current window instead of opening a new one
-      window.location.assign(authUrl); // Use assign instead of setting href directly
+      setShowVerificationInput(false);
+      
+      const result = await TradeMeService.getOAuthRequestUrl(true); // Use sandbox
+      console.log('Got OAuth URL:', result.authUrl);
+      
+      // Store the request token and secret
+      setRequestToken(result.requestToken);
+      setRequestTokenSecret(result.requestTokenSecret);
+      
+      // Show the verification code input
+      setShowVerificationInput(true);
+      
+      // Navigate in the current window
+      window.location.assign(result.authUrl);
     } catch (err) {
       console.error('Error starting OAuth flow:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleVerificationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!verificationCode) {
+      setError('Please enter the verification code');
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Complete the OAuth flow with the verification code
+      const success = await TradeMeService.completeOAuthFlow(
+        requestToken,
+        requestTokenSecret,
+        verificationCode
+      );
+      
+      if (success) {
+        refreshDebugInfo();
+        setShowVerificationInput(false);
+        setVerificationCode('');
+        alert('Successfully connected to TradeMe!');
+      } else {
+        throw new Error('Failed to complete OAuth flow');
+      }
+    } catch (err) {
+      console.error('Error completing OAuth flow:', err);
+      setError(err instanceof Error ? err.message : 'Failed to complete OAuth flow');
     } finally {
       setIsLoading(false);
     }
@@ -231,17 +281,41 @@ export function TradeMeDebugPanel() {
             >
               Disconnect
             </button>
-            <button 
-              onClick={handleStartOAuth}
-              disabled={isLoading}
-              className={`px-3 py-1 rounded-md mr-2 ${
-                isLoading 
-                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              }`}
-            >
-              {isLoading ? 'Starting...' : 'Start OAuth Flow'}
-            </button>
+            {showVerificationInput ? (
+              <form onSubmit={handleVerificationSubmit} className="flex items-center space-x-2 mr-2">
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder="Verification code"
+                  className="px-2 py-1 border border-gray-300 rounded-md text-sm"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading || !verificationCode}
+                  className={`px-3 py-1 rounded-md ${
+                    isLoading || !verificationCode
+                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  }`}
+                >
+                  {isLoading ? 'Verifying...' : 'Submit Code'}
+                </button>
+              </form>
+            ) : (
+              <button 
+                onClick={handleStartOAuth}
+                disabled={isLoading}
+                className={`px-3 py-1 rounded-md mr-2 ${
+                  isLoading 
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                }`}
+              >
+                {isLoading ? 'Starting...' : 'Start OAuth Flow'}
+              </button>
+            )}
             <button 
               onClick={testCallbackUrl}
               className="bg-teal-600 text-white px-3 py-1 rounded-md mr-2 hover:bg-teal-700"

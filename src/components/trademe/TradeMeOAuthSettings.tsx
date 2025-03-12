@@ -36,18 +36,68 @@ export function TradeMeOAuthSettings() {
     };
   }, []);
 
+  const [verificationCode, setVerificationCode] = useState('');
+  const [showVerificationInput, setShowVerificationInput] = useState(false);
+  const [requestToken, setRequestToken] = useState('');
+  const [requestTokenSecret, setRequestTokenSecret] = useState('');
+
   const handleConnectToSandbox = async () => {
     try {
       setIsLoading(true);
       setError(null);
+      setShowVerificationInput(false);
       
       // Start the OAuth flow with the sandbox environment
-      const authUrl = await TradeMeService.getOAuthRequestUrl(true);
+      const result = await TradeMeService.getOAuthRequestUrl(true);
       
-      // Navigate in the current window
-      window.location.assign(authUrl);
+      if (result.requestToken && result.requestTokenSecret) {
+        // Store the request token and secret
+        setRequestToken(result.requestToken);
+        setRequestTokenSecret(result.requestTokenSecret);
+        
+        // Show the verification code input
+        setShowVerificationInput(true);
+        
+        // Open the authorization URL in the current window
+        window.location.assign(result.authUrl);
+      } else {
+        throw new Error('Failed to get request token');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect to TradeMe Sandbox');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleVerificationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!verificationCode) {
+      setError('Please enter the verification code');
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Complete the OAuth flow with the verification code
+      const success = await TradeMeService.completeOAuthFlow(
+        requestToken,
+        requestTokenSecret,
+        verificationCode
+      );
+      
+      if (success) {
+        setIsConnected(true);
+        setEnvironment('sandbox');
+        setShowVerificationInput(false);
+      } else {
+        throw new Error('Failed to complete OAuth flow');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to complete OAuth flow');
     } finally {
       setIsLoading(false);
     }
@@ -57,12 +107,24 @@ export function TradeMeOAuthSettings() {
     try {
       setIsLoading(true);
       setError(null);
+      setShowVerificationInput(false);
       
       // Start the OAuth flow with the production environment
-      const authUrl = await TradeMeService.getOAuthRequestUrl(false);
+      const result = await TradeMeService.getOAuthRequestUrl(false);
       
-      // Navigate in the current window
-      window.location.assign(authUrl);
+      if (result.requestToken && result.requestTokenSecret) {
+        // Store the request token and secret
+        setRequestToken(result.requestToken);
+        setRequestTokenSecret(result.requestTokenSecret);
+        
+        // Show the verification code input
+        setShowVerificationInput(true);
+        
+        // Open the authorization URL in the current window
+        window.location.assign(result.authUrl);
+      } else {
+        throw new Error('Failed to get request token');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect to TradeMe Production');
     } finally {
@@ -126,28 +188,56 @@ export function TradeMeOAuthSettings() {
       <div className="mt-4">
         {!isConnected ? (
           <div className="space-y-3">
-            <Button
-              onClick={handleConnectToSandbox}
-              disabled={isLoading}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              {isLoading ? 'Connecting...' : 'Connect to TradeMe Sandbox'}
-            </Button>
-            
-            <div className="block mt-3">
-              <Button
-                onClick={handleConnectToProduction}
-                disabled={isLoading}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {isLoading ? 'Connecting...' : 'Connect to TradeMe Production'}
-              </Button>
-            </div>
-            
-            <div className="text-xs text-gray-500 mt-2">
-              <p>Sandbox is for testing purposes only. No real data will be accessed.</p>
-              <p>Production will access your actual TradeMe account and watchlist.</p>
-            </div>
+            {showVerificationInput ? (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
+                <h3 className="text-sm font-medium text-yellow-800 mb-2">Enter Verification Code</h3>
+                <p className="text-xs text-yellow-700 mb-3">
+                  After authorizing on TradeMe, you'll be shown a verification code. Enter it below to complete the connection.
+                </p>
+                <form onSubmit={handleVerificationSubmit} className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    placeholder="Enter verification code"
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                  <Button
+                    type="submit"
+                    disabled={isLoading || !verificationCode}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  >
+                    {isLoading ? 'Verifying...' : 'Submit'}
+                  </Button>
+                </form>
+              </div>
+            ) : (
+              <>
+                <Button
+                  onClick={handleConnectToSandbox}
+                  disabled={isLoading}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {isLoading ? 'Connecting...' : 'Connect to TradeMe Sandbox'}
+                </Button>
+                
+                <div className="block mt-3">
+                  <Button
+                    onClick={handleConnectToProduction}
+                    disabled={isLoading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {isLoading ? 'Connecting...' : 'Connect to TradeMe Production'}
+                  </Button>
+                </div>
+                
+                <div className="text-xs text-gray-500 mt-2">
+                  <p>Sandbox is for testing purposes only. No real data will be accessed.</p>
+                  <p>Production will access your actual TradeMe account and watchlist.</p>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div>
