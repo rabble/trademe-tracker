@@ -1,0 +1,11 @@
+body {
+  background-color: #ffcce6; /* Light pink background */
+}
+
+.bg-white {
+  background-color: #fff8fa !important; /* Very light pink for white backgrounds */
+}
+
+.bg-gray-100 {
+  background-color: #ffe6f2 !important; /* Light pink for gray backgrounds */
+}

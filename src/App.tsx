@@ -7,6 +7,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { PropertyDetailsPage } from './pages/PropertyDetailsPage'
 import { QueryProvider } from './providers/QueryProvider'
 import './index.css'
+import './styles/app-background.css'
 
 function App() {
   return (

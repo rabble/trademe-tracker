@@ -226,7 +226,7 @@ export function TradeMeDebugPanel() {
 
   return (
     <div className="fixed bottom-0 right-0 z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto" style={{backgroundColor: '#fff0f5'}}>
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">TradeMe Debug Panel</h2>

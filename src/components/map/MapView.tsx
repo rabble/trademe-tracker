@@ -42,7 +42,7 @@ export function MapView({ properties, isLoading, error }: MapViewProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="bg-white rounded-lg shadow overflow-hidden" style={{backgroundColor: '#fff0f5'}}>
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <h2 className="text-lg font-medium text-gray-900">Property Map</h2>
         <div className="flex space-x-2">

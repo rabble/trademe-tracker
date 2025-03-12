@@ -92,6 +92,7 @@ export function PropertyCard({
           ${status === 'sold' ? 'border-l-4 border-red-400' : ''}
           ${priceChange?.type === 'decrease' ? 'border-t-4 border-green-400' : ''}
         `}
+        style={{backgroundColor: '#fff0f5'}}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
