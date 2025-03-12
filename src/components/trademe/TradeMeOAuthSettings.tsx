@@ -29,19 +29,6 @@ export function TradeMeOAuthSettings() {
       
       // Open the auth URL in a new window
       window.open(authUrl, '_blank', 'width=600,height=700');
-      
-      // For development purposes, we'll simulate a successful connection
-      // In a real implementation, we would wait for the callback
-      setTimeout(() => {
-        // Store a mock token to simulate successful authentication
-        localStorage.setItem('trademe_oauth_token', 'mock_sandbox_token');
-        localStorage.setItem('trademe_oauth_token_secret', 'mock_sandbox_token_secret');
-        localStorage.setItem('trademe_environment', 'sandbox');
-        
-        setIsConnected(true);
-        setEnvironment('sandbox');
-      }, 1000);
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect to TradeMe Sandbox');
     } finally {
@@ -59,19 +46,6 @@ export function TradeMeOAuthSettings() {
       
       // Open the auth URL in a new window
       window.open(authUrl, '_blank', 'width=600,height=700');
-      
-      // For development purposes, we'll simulate a successful connection
-      // In a real implementation, we would wait for the callback
-      setTimeout(() => {
-        // Store a mock token to simulate successful authentication
-        localStorage.setItem('trademe_oauth_token', 'mock_production_token');
-        localStorage.setItem('trademe_oauth_token_secret', 'mock_production_token_secret');
-        localStorage.setItem('trademe_environment', 'production');
-        
-        setIsConnected(true);
-        setEnvironment('production');
-      }, 1000);
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect to TradeMe Production');
     } finally {

@@ -104,58 +104,17 @@ export const TradeMeService = {
       // Set the API environment
       setApiEnvironment(isSandbox);
       
-      // Store the environment for the callback
-      localStorage.setItem(OAUTH_ENVIRONMENT_KEY, isSandbox ? 'sandbox' : 'production');
+      // We need a server-side proxy to handle OAuth for TradeMe due to CORS restrictions
+      // For now, we'll redirect to a pre-configured proxy that handles the OAuth flow
       
-      // For development, we'll use a direct authorization approach
-      // This bypasses the need for a server-side component to handle the OAuth flow
+      // Determine which environment to use for the proxy
+      const proxyUrl = isSandbox 
+        ? `https://trademe-oauth-proxy.vercel.app/api/auth?environment=sandbox&callback=${encodeURIComponent(window.location.origin + '/settings/trademe-callback')}`
+        : `https://trademe-oauth-proxy.vercel.app/api/auth?environment=production&callback=${encodeURIComponent(window.location.origin + '/settings/trademe-callback')}`;
       
-      // Generate a mock request token for demonstration
-      const mockRequestToken = `mock_token_${Math.random().toString(36).substring(2, 15)}`;
-      localStorage.setItem('trademe_request_token_secret', 'mock_token_secret');
+      console.log(`Authorization URL: ${proxyUrl}`);
       
-      // In a real implementation, you would need a server-side proxy to handle the OAuth flow
-      // For now, we'll simulate the flow by directly redirecting to the TradeMe authorization page
-      
-      // Determine which environment to use
-      const authUrl = isSandbox 
-        ? `https://www.tmsandbox.co.nz/MyTradeMe/Login/SignIn?ReturnUrl=%2fMyTradeMe%2f`
-        : `https://www.trademe.co.nz/MyTradeMe/Login/SignIn?ReturnUrl=%2fMyTradeMe%2f`;
-      
-      console.log(`Authorization URL: ${authUrl}`);
-      
-      return authUrl;
-      
-      console.log(`Response status: ${response.status}`);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('OAuth request token error:', errorText);
-        throw new Error(`Failed to get request token: ${response.status} ${response.statusText}`);
-      }
-      
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
-      
-      const params = new URLSearchParams(responseText);
-      
-      const requestToken = params.get('oauth_token') || '';
-      const requestTokenSecret = params.get('oauth_token_secret') || '';
-      
-      console.log(`Got request token: ${requestToken}`);
-      
-      if (!requestToken) {
-        throw new Error('No request token received from TradeMe');
-      }
-      
-      // Store the request token secret temporarily
-      localStorage.setItem('trademe_request_token_secret', requestTokenSecret);
-      
-      // Step 2: Redirect user to authorization page
-      const authUrl = `${OAUTH_URL}/Authorize?oauth_token=${requestToken}`;
-      console.log(`Authorization URL: ${authUrl}`);
-      
-      return authUrl;
+      return proxyUrl;
     } catch (error) {
       console.error('Error getting OAuth request URL:', error);
       throw error;
@@ -169,36 +128,12 @@ export const TradeMeService = {
     try {
       console.log(`Handling OAuth callback with token: ${oauthToken} and verifier: ${oauthVerifier}`);
       
-      // Get the request token secret from storage
-      const requestTokenSecret = localStorage.getItem('trademe_request_token_secret') || '';
-      console.log(`Retrieved request token secret: ${requestTokenSecret ? 'Yes' : 'No'}`);
+      // We need to use our proxy to exchange the token for an access token
+      const proxyUrl = `https://trademe-oauth-proxy.vercel.app/api/callback?oauth_token=${oauthToken}&oauth_verifier=${oauthVerifier}`;
       
-      // Step 3: Exchange request token for access token
-      const accessTokenUrl = `${OAUTH_URL}/AccessToken`;
-      console.log(`Access token URL: ${accessTokenUrl}`);
+      console.log(`Making request to proxy: ${proxyUrl}`);
       
-      const authHeader = generateOAuthSignature(
-        'POST', 
-        accessTokenUrl, 
-        CONSUMER_KEY, 
-        CONSUMER_SECRET, 
-        oauthToken, 
-        requestTokenSecret, 
-        { oauth_verifier: oauthVerifier }
-      );
-      
-      console.log('Making request for access token...');
-      
-      const response = await fetch(accessTokenUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': authHeader,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: `oauth_verifier=${oauthVerifier}`
-      });
-      
-      console.log(`Response status: ${response.status}`);
+      const response = await fetch(proxyUrl);
       
       if (!response.ok) {
         const errorText = await response.text();
@@ -206,26 +141,19 @@ export const TradeMeService = {
         throw new Error(`Failed to get access token: ${response.status} ${response.statusText}`);
       }
       
-      const responseText = await response.text();
-      console.log('Response text:', responseText);
+      const data = await response.json();
       
-      const params = new URLSearchParams(responseText);
-      
-      const accessToken = params.get('oauth_token') || '';
-      const accessTokenSecret = params.get('oauth_token_secret') || '';
-      
-      console.log(`Got access token: ${accessToken ? 'Yes' : 'No'}`);
-      
-      if (!accessToken || !accessTokenSecret) {
-        throw new Error('No access token received from TradeMe');
+      if (!data.oauth_token || !data.oauth_token_secret) {
+        throw new Error('No access token received from proxy');
       }
       
       // Store the access tokens
-      localStorage.setItem(OAUTH_TOKEN_KEY, accessToken);
-      localStorage.setItem(OAUTH_TOKEN_SECRET_KEY, accessTokenSecret);
+      localStorage.setItem(OAUTH_TOKEN_KEY, data.oauth_token);
+      localStorage.setItem(OAUTH_TOKEN_SECRET_KEY, data.oauth_token_secret);
+      localStorage.setItem(OAUTH_ENVIRONMENT_KEY, data.environment || 'sandbox');
       
-      // Clean up the request token secret
-      localStorage.removeItem('trademe_request_token_secret');
+      console.log(`Got access token: ${data.oauth_token ? 'Yes' : 'No'}`);
+      console.log(`Environment: ${data.environment || 'sandbox'}`);
       
       return true;
     } catch (error) {
@@ -258,35 +186,46 @@ export const TradeMeService = {
       // Get stored OAuth tokens
       const { token, tokenSecret, isSandbox } = getStoredOAuthTokens();
       
+      if (!token || !tokenSecret) {
+        throw new Error('Not authenticated with TradeMe. Please connect your account first.');
+      }
+      
       // Set the API environment
       setApiEnvironment(isSandbox);
       
       console.log(`Searching properties with ${isSandbox ? 'sandbox' : 'production'} environment`);
       
-      // For development purposes, we'll return mock data
-      // In a real implementation, we would make an API request to TradeMe
+      // Default to property category
+      const defaultParams = {
+        category: '5', // Property category
+        rows: '20',
+        sort_order: 'Default'
+      };
       
-      // Generate some mock properties
-      const mockProperties: Property[] = Array(10).fill(null).map((_, index) => ({
-        id: `mock-${index}`,
-        title: `Mock Property ${index + 1}`,
-        address: `${index + 1} Mock Street, Mockville`,
-        price: 500000 + (index * 50000),
-        bedrooms: Math.floor(Math.random() * 5) + 1,
-        bathrooms: Math.floor(Math.random() * 3) + 1,
-        property_type: ['House', 'Apartment', 'Townhouse'][Math.floor(Math.random() * 3)],
-        land_area: `${(Math.random() * 1000).toFixed(0)}m²`,
-        floor_area: `${(Math.random() * 200).toFixed(0)}m²`,
-        status: 'active',
-        days_on_market: Math.floor(Math.random() * 60),
-        created_at: new Date(Date.now() - Math.random() * 5184000000).toISOString(), // Random date in last 60 days
-        updated_at: new Date().toISOString(),
-        image_urls: [`https://picsum.photos/seed/${index}/800/600`],
-        trademe_listing_id: `mock-${index}`,
-        url: `https://www.trademe.co.nz/a/property/residential/sale/listing/mock-${index}`
-      }));
+      const params = { ...defaultParams, ...searchParams };
       
-      return mockProperties;
+      // Build query string
+      const queryString = Object.entries(params)
+        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        .join('&');
+      
+      // Use our proxy to make the request to TradeMe
+      const proxyUrl = `https://trademe-oauth-proxy.vercel.app/api/search?${queryString}&environment=${isSandbox ? 'sandbox' : 'production'}&oauth_token=${token}&oauth_token_secret=${tokenSecret}`;
+      
+      console.log(`Making request to proxy: ${proxyUrl}`);
+      
+      const response = await fetch(proxyUrl);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('TradeMe API error:', errorText);
+        throw new Error(`TradeMe API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Convert TradeMe search results to our Property format
+      return this.convertSearchResultsToProperties(data);
     } catch (error) {
       console.error('Error searching properties:', error);
       throw error;
@@ -301,39 +240,32 @@ export const TradeMeService = {
       // Get stored OAuth tokens
       const { token, tokenSecret, isSandbox } = getStoredOAuthTokens();
       
+      if (!token || !tokenSecret) {
+        throw new Error('Not authenticated with TradeMe. Please connect your account first.');
+      }
+      
       // Set the API environment
       setApiEnvironment(isSandbox);
       
       console.log(`Fetching property details for ${propertyId} with ${isSandbox ? 'sandbox' : 'production'} environment`);
       
-      // For development purposes, we'll return mock data
-      // In a real implementation, we would make an API request to TradeMe
+      // Use our proxy to make the request to TradeMe
+      const proxyUrl = `https://trademe-oauth-proxy.vercel.app/api/listing/${propertyId}?environment=${isSandbox ? 'sandbox' : 'production'}&oauth_token=${token}&oauth_token_secret=${tokenSecret}`;
       
-      // Generate a mock property
-      const mockProperty: Property = {
-        id: propertyId,
-        title: `Detailed Property ${propertyId}`,
-        address: `${propertyId} Detailed Street, Mockville`,
-        price: 750000,
-        bedrooms: 4,
-        bathrooms: 2,
-        property_type: 'House',
-        land_area: '800m²',
-        floor_area: '220m²',
-        status: 'active',
-        days_on_market: 14,
-        created_at: new Date(Date.now() - 1209600000).toISOString(), // 14 days ago
-        updated_at: new Date().toISOString(),
-        image_urls: [
-          `https://picsum.photos/seed/${propertyId}-1/800/600`,
-          `https://picsum.photos/seed/${propertyId}-2/800/600`,
-          `https://picsum.photos/seed/${propertyId}-3/800/600`
-        ],
-        trademe_listing_id: propertyId,
-        url: `https://www.trademe.co.nz/a/property/residential/sale/listing/${propertyId}`
-      };
+      console.log(`Making request to proxy: ${proxyUrl}`);
       
-      return mockProperty;
+      const response = await fetch(proxyUrl);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('TradeMe API error:', errorText);
+        throw new Error(`TradeMe API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Convert TradeMe listing to our Property format
+      return this.mapListingToProperty(data);
     } catch (error) {
       console.error(`Error fetching property details for ${propertyId}:`, error);
       throw error;

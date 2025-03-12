@@ -12,29 +12,31 @@ export function TradeMeCallbackPage() {
     const handleCallback = async () => {
       try {
         console.log('TradeMeCallbackPage: Handling OAuth callback');
+        console.log('URL search params:', location.search);
         
-        // For development purposes, we'll simulate a successful callback
-        // In a real implementation, we would process the OAuth parameters
+        // Get the query parameters from the URL
+        const searchParams = new URLSearchParams(location.search);
+        const oauthToken = searchParams.get('oauth_token');
+        const oauthVerifier = searchParams.get('oauth_verifier');
         
-        // Check if we already have tokens (set by the mock flow)
-        const hasTokens = localStorage.getItem('trademe_oauth_token') && 
-                         localStorage.getItem('trademe_oauth_token_secret');
+        console.log(`OAuth token: ${oauthToken}, OAuth verifier: ${oauthVerifier}`);
         
-        if (hasTokens) {
-          console.log('OAuth authentication successful (mock)');
+        if (!oauthToken || !oauthVerifier) {
+          throw new Error('Missing OAuth parameters in callback URL');
+        }
+        
+        // Handle the OAuth callback
+        const success = await TradeMeService.handleOAuthCallback(oauthToken, oauthVerifier);
+        
+        if (success) {
+          console.log('OAuth authentication successful');
           setStatus('success');
           // Redirect back to settings page after a short delay
           setTimeout(() => {
             navigate('/settings');
           }, 3000);
         } else {
-          // If we don't have tokens, this is a real callback that we can't handle yet
-          // In a real implementation, we would process the OAuth parameters
-          console.log('No mock tokens found, this would be a real callback');
-          setStatus('success');
-          setTimeout(() => {
-            navigate('/settings');
-          }, 3000);
+          throw new Error('Failed to authenticate with TradeMe');
         }
       } catch (err) {
         console.error('Error handling TradeMe OAuth callback:', err);
