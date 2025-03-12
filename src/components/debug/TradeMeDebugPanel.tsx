@@ -5,7 +5,7 @@ import { runNetworkDiagnostics } from '../../utils/networkDiagnostics';
 
 export function TradeMeDebugPanel() {
   const [debugInfo, setDebugInfo] = useState<Record<string, any>>({});
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true); // Always start visible
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [syncResult, setSyncResult] = useState<{ count: number } | null>(null);
@@ -110,30 +110,19 @@ export function TradeMeDebugPanel() {
     }
   };
 
-  if (!isVisible) {
-    return (
-      <div className="fixed bottom-4 right-4 z-50">
-        <button 
-          onClick={() => setIsVisible(true)}
-          className="bg-red-600 text-white px-4 py-2 rounded-md shadow-md hover:bg-red-700"
-        >
-          Debug TradeMe
-        </button>
-      </div>
-    );
-  }
+  // Always visible, so we don't need the conditional rendering
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed bottom-0 right-0 z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">TradeMe Debug Panel</h2>
             <button 
-              onClick={() => setIsVisible(false)}
+              onClick={() => setIsVisible(!isVisible)}
               className="text-gray-500 hover:text-gray-700"
             >
-              Close
+              {isVisible ? "Minimize" : "Expand"}
             </button>
           </div>
 
