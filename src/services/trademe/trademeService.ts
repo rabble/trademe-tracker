@@ -111,8 +111,9 @@ export const TradeMeService = {
       // Step 1: Get a request token
       const requestTokenUrl = `${OAUTH_URL}/RequestToken`;
       
-      // Force HTTPS for the callback URL regardless of current protocol
-      const callbackUrl = `https://${window.location.host}/settings/trademe-callback`;
+      // Use the current protocol and host for the callback URL
+      // When deployed to a server with HTTPS, this will use HTTPS
+      const callbackUrl = `${window.location.protocol}//${window.location.host}/settings/trademe-callback`;
       
       console.log(`Request token URL: ${requestTokenUrl}`);
       console.log(`Callback URL: ${callbackUrl}`);
@@ -372,7 +373,6 @@ export const TradeMeService = {
         }
         
         return {
-          id,
           title: item.Title || 'Untitled Property',
           address: item.Suburb || 'Unknown Location',
           price,
@@ -389,18 +389,62 @@ export const TradeMeService = {
           trademe_listing_id: id,
           url: `https://www.trademe.co.nz/a/property/residential/sale/listing/${id}`,
           source: 'trademe',
-          is_favorite: true
+          is_favorite: true,
+          user_id: localStorage.getItem('user_id') || 'anonymous' // Associate with current user
         };
       });
       
-      // Store properties in the database
-      // For now, we'll just log them
-      console.log('Properties to store:', properties);
+      // Store properties in Supabase
+      console.log('Storing properties in Supabase:', properties);
       
-      // TODO: Store properties in the database
-      // This would typically involve a call to a database service
-      
-      return { count: properties.length };
+      try {
+        // Import supabase client
+        const { supabase } = await import('../../lib/supabase');
+        
+        // Store each property in the database
+        let successCount = 0;
+        
+        for (const property of properties) {
+          // Check if property already exists
+          const { data: existingProperty } = await supabase
+            .from('properties')
+            .select('id')
+            .eq('trademe_listing_id', property.id)
+            .single();
+          
+          if (existingProperty) {
+            // Update existing property
+            const { error } = await supabase
+              .from('properties')
+              .update(property)
+              .eq('trademe_listing_id', property.id);
+            
+            if (error) {
+              console.error(`Error updating property ${property.id}:`, error);
+            } else {
+              successCount++;
+            }
+          } else {
+            // Insert new property
+            const { error } = await supabase
+              .from('properties')
+              .insert(property);
+            
+            if (error) {
+              console.error(`Error inserting property ${property.id}:`, error);
+            } else {
+              successCount++;
+            }
+          }
+        }
+        
+        console.log(`Successfully stored ${successCount} out of ${properties.length} properties`);
+        
+        return { count: successCount };
+      } catch (dbError) {
+        console.error('Error storing properties in database:', dbError);
+        throw new Error(`Failed to store properties in database: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
+      }
     } catch (error) {
       console.error('Error syncing watchlist:', error);
       throw error;
