@@ -227,7 +227,8 @@ export const TradeMeService = {
    */
   async handleOAuthCallback(oauthToken: string, oauthVerifier: string): Promise<boolean> {
     try {
-      console.log(`Handling OAuth callback with token: ${oauthToken} and verifier: ${oauthVerifier}`);
+      console.log(`Handling OAuth callback with token: ${oauthToken.substring(0, 5)}... and verifier: ${oauthVerifier.substring(0, 5)}...`);
+      console.log('Local storage keys before callback:', Object.keys(localStorage).filter(key => key.includes('trademe')));
       
       // Get the request token secret from storage
       const requestTokenSecret = localStorage.getItem('trademe_request_token_secret') || '';
@@ -288,6 +289,12 @@ export const TradeMeService = {
       // Clean up the request token secret
       localStorage.removeItem('trademe_request_token_secret');
       
+      console.log('OAuth tokens stored successfully:', {
+        tokenLength: accessToken.length,
+        tokenSecretLength: accessTokenSecret.length
+      });
+      console.log('Local storage keys after callback:', Object.keys(localStorage).filter(key => key.includes('trademe')));
+      
       return true;
     } catch (error) {
       console.error('Error handling OAuth callback:', error);
@@ -309,7 +316,30 @@ export const TradeMeService = {
    */
   isConnectedToTradeMe(): boolean {
     const { token, tokenSecret } = getStoredOAuthTokens();
+    console.log('TradeMe connection status:', {
+      hasToken: !!token,
+      hasTokenSecret: !!tokenSecret,
+      tokenLength: token?.length || 0,
+      tokenSecretLength: tokenSecret?.length || 0
+    });
     return !!token && !!tokenSecret;
+  },
+  
+  /**
+   * Get debug information about TradeMe connection
+   */
+  getConnectionDebugInfo(): Record<string, any> {
+    const { token, tokenSecret, isSandbox } = getStoredOAuthTokens();
+    return {
+      isConnected: !!token && !!tokenSecret,
+      environment: isSandbox ? 'sandbox' : 'production',
+      tokenExists: !!token,
+      tokenSecretExists: !!tokenSecret,
+      tokenLength: token?.length || 0,
+      tokenSecretLength: tokenSecret?.length || 0,
+      storedKeys: Object.keys(localStorage).filter(key => key.includes('trademe')),
+      apiUrl: isSandbox ? TRADEME_SANDBOX_API_URL : TRADEME_API_URL
+    };
   },
   
   /**
@@ -317,10 +347,20 @@ export const TradeMeService = {
    */
   async syncWatchlistToDatabase(): Promise<{ count: number }> {
     try {
+      console.log('Starting syncWatchlistToDatabase...');
+      
       // Get stored OAuth tokens
       const { token, tokenSecret, isSandbox } = getStoredOAuthTokens();
+      console.log('OAuth tokens retrieved:', {
+        hasToken: !!token,
+        hasTokenSecret: !!tokenSecret,
+        tokenLength: token?.length || 0,
+        tokenSecretLength: tokenSecret?.length || 0,
+        isSandbox
+      });
       
       if (!token || !tokenSecret) {
+        console.error('Not authenticated with TradeMe. Missing tokens.');
         throw new Error('Not authenticated with TradeMe. Please connect your account first.');
       }
       
@@ -344,6 +384,9 @@ export const TradeMeService = {
         tokenSecret
       );
       
+      console.log('Making request to TradeMe API with auth header:', 
+        authHeader.substring(0, 20) + '...[truncated]');
+      
       // Make the direct request to TradeMe
       const response = await fetch(url, {
         method: 'GET',
@@ -354,13 +397,30 @@ export const TradeMeService = {
         mode: 'cors'
       });
       
+      console.log('TradeMe API response status:', response.status);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('TradeMe API error response:', errorText);
         throw new Error(`TradeMe API error: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log('TradeMe API response data structure:', {
+        hasData: !!data,
+        hasList: !!data?.List,
+        isListArray: Array.isArray(data?.List),
+        listLength: data?.List?.length || 0,
+        totalCount: data?.TotalCount,
+        firstFewItems: data?.List?.slice(0, 2).map((item: any) => ({
+          id: item.ListingId,
+          title: item.Title,
+          hasAttributes: !!item.Attributes
+        }))
+      });
       
       if (!data.List || !Array.isArray(data.List)) {
+        console.error('Invalid response from TradeMe API:', data);
         throw new Error('Invalid response from TradeMe API');
       }
       

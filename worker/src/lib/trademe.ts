@@ -47,8 +47,23 @@ export class TradeMe {
     // Create the signature
     const signature = `${encodeURIComponent(this.consumerSecret)}&${encodeURIComponent(this.oauthTokenSecret)}`;
     
+    // Log OAuth parameters for debugging
+    console.log('OAuth parameters:', {
+      method,
+      url,
+      consumerKeyLength: this.consumerKey.length,
+      tokenLength: this.oauthToken.length,
+      tokenSecretLength: this.oauthTokenSecret.length,
+      timestamp,
+      nonce: nonce.substring(0, 5) + '...',
+      signatureMethod: 'PLAINTEXT'
+    });
+    
     // Create the Authorization header
-    return `OAuth oauth_consumer_key="${encodeURIComponent(this.consumerKey)}", oauth_token="${encodeURIComponent(this.oauthToken)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
+    const authHeader = `OAuth oauth_consumer_key="${encodeURIComponent(this.consumerKey)}", oauth_token="${encodeURIComponent(this.oauthToken)}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
+    
+    console.log('Generated auth header length:', authHeader.length);
+    return authHeader;
   }
   
   /**
@@ -84,11 +99,20 @@ export class TradeMe {
         const url = `${this.apiUrl}/v1/MyTradeMe/Watchlist/All.json?category=5&rows=100`;
         
         console.log(`Fetching watchlist from: ${url}`);
+        console.log('TradeMe API credentials:', {
+          apiUrl: this.apiUrl,
+          hasConsumerKey: !!this.consumerKey,
+          hasConsumerSecret: !!this.consumerSecret,
+          hasOAuthToken: !!this.oauthToken,
+          hasOAuthTokenSecret: !!this.oauthTokenSecret,
+          isSandbox: this.isSandbox
+        });
         
         // Generate the OAuth header
         const authHeader = this.generateAuthHeader('GET', url);
         
         // Make the request
+        console.log('Making request to TradeMe API...');
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -98,11 +122,26 @@ export class TradeMe {
           timeout: this.timeout
         });
         
+        console.log('TradeMe API response status:', response.status);
+        
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('TradeMe API error response:', errorText);
           throw new Error(`API request failed with status ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json() as TradeMeWatchlistResponse;
+        console.log('TradeMe API response data:', {
+          totalCount: data.TotalCount,
+          page: data.Page,
+          pageSize: data.PageSize,
+          listLength: data.List?.length || 0,
+          sampleItem: data.List && data.List.length > 0 ? {
+            id: data.List[0].ListingId,
+            title: data.List[0].Title?.substring(0, 20) + '...',
+            hasAttributes: !!data.List[0].Attributes
+          } : null
+        });
         return data;
       } catch (error) {
         console.error(`Error fetching watchlist (attempt ${retries + 1}/${this.maxRetries}):`, error);
