@@ -45,6 +45,8 @@ preview_id = "633473f72f9c444ca81d0413d340d3c0"
 # Add site configuration for frontend deployment
 [site]
 bucket = "../dist"
+include = ["**/*"]
+exclude = []
 
 # Build configuration
 [build]

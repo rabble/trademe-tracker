@@ -40,9 +40,10 @@ export default {
       
       // For all other requests, serve static assets from the site
       try {
+        console.log(`Handling request for: ${url.pathname}`);
+        
         // When deployed with wrangler, the __STATIC_CONTENT binding is available
         if (env.__STATIC_CONTENT) {
-          const url = new URL(request.url);
           let path = url.pathname;
           
           // Default to index.html for the root path
@@ -50,29 +51,71 @@ export default {
             path = '/index.html';
           }
           
+          console.log(`Looking for asset: ${path}`);
+          
+          // List all available assets for debugging
+          const assets = await env.__STATIC_CONTENT.list();
+          console.log('Available assets:', assets.keys.map(k => k.name));
+          
           // Remove leading slash for KV lookup
           const key = path.replace(/^\//, '');
           
           // Try to get the asset from KV
-          const asset = await env.__STATIC_CONTENT.get(key, 'arrayBuffer');
+          let asset = await env.__STATIC_CONTENT.get(key);
           
+          // If not found directly, try with the hashed filename pattern
           if (asset === null) {
-            // If the asset doesn't exist, try index.html as a fallback for SPA routing
+            console.log(`Asset not found directly: ${key}`);
+            
+            // For assets in the /assets/ directory, they might be hashed
+            if (path.startsWith('/assets/')) {
+              const baseName = path.split('/').pop();
+              if (baseName) {
+                const fileNameParts = baseName.split('.');
+                const extension = fileNameParts.pop();
+                const nameWithoutExt = fileNameParts.join('.');
+                
+                // Try to find a matching asset with a hash
+                const matchingAsset = assets.keys.find(k => 
+                  k.name.startsWith(`assets/${nameWithoutExt}`) && 
+                  k.name.endsWith(`.${extension}`)
+                );
+                
+                if (matchingAsset) {
+                  console.log(`Found matching hashed asset: ${matchingAsset.name}`);
+                  asset = await env.__STATIC_CONTENT.get(matchingAsset.name);
+                }
+              }
+            }
+          }
+          
+          // If still not found, try index.html as a fallback for SPA routing
+          if (asset === null) {
+            console.log(`Asset not found, trying index.html as fallback`);
             if (path !== '/index.html') {
-              const indexHtml = await env.__STATIC_CONTENT.get('index.html', 'arrayBuffer');
-              if (indexHtml !== null) {
-                return new Response(indexHtml, {
-                  headers: { 'Content-Type': 'text/html' }
-                });
+              // Try to find the index.html file (might be hashed)
+              const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
+              
+              if (indexFile) {
+                console.log(`Found index file: ${indexFile.name}`);
+                asset = await env.__STATIC_CONTENT.get(indexFile.name);
+                
+                if (asset !== null) {
+                  return new Response(asset, {
+                    headers: { 'Content-Type': 'text/html' }
+                  });
+                }
               }
             }
             
+            console.log('No matching assets found');
             return new Response("Not found", { status: 404 });
           }
           
           // Set appropriate content type
           const contentType = getContentType(path);
           
+          console.log(`Serving asset with content type: ${contentType}`);
           return new Response(asset, {
             headers: {
               'Content-Type': contentType,
