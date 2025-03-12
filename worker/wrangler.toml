@@ -2,7 +2,6 @@ name = "trademe-tracker"
 workers_dev = true
 compatibility_date = "2023-12-01"
 compatibility_flags = ["nodejs_compat"]
-node_compat = true
 main = "src/index.ts"
 
 [observability.logs]
