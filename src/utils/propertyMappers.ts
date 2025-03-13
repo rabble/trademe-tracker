@@ -202,8 +202,7 @@ export function mapWatchlistItemToProperty(item: any, userId: string = 'anonymou
   // Note: Only add properties that exist in the Property type
   return {
     ...property,
-    // is_favorite is not in the Property type, so we don't add it
-    user_id: userId,
+    // Only add properties that are defined in the Property type
     source: 'trademe'
   };
 }
