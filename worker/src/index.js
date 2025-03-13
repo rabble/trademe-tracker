@@ -1,3 +1,82 @@
+// Function to generate a simple HTML page
+function getIndexHtml() {
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TradeMe Property Tracker</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+      .container {
+        max-width: 800px;
+        padding: 2rem;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      h1 {
+        color: #0066cc;
+        margin-bottom: 1rem;
+      }
+      p {
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+      }
+      .loading {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(0, 102, 204, 0.3);
+        border-radius: 50%;
+        border-top-color: #0066cc;
+        animation: spin 1s ease-in-out infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #1a1a1a;
+          color: #f0f0f0;
+        }
+        .container {
+          background-color: #2a2a2a;
+        }
+        h1 {
+          color: #4d9fff;
+        }
+        .loading {
+          border: 3px solid rgba(77, 159, 255, 0.3);
+          border-top-color: #4d9fff;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>TradeMe Property Tracker</h1>
+      <p>Loading application...</p>
+      <div class="loading"></div>
+      <div id="root"></div>
+      <noscript>
+        <p>You need to enable JavaScript to run this app.</p>
+      </noscript>
+    </div>
+  </body>
+</html>`;
+}
+
 export default {
   async fetch(request, env, ctx) {
     try {
@@ -14,26 +93,23 @@ export default {
       try {
         console.log(`Handling request for: ${url.pathname}`);
         
-        // Use Cloudflare's built-in static asset handling
-        return env.ASSETS.fetch(request);
+        // Check if we have the ASSETS binding
+        if (env.ASSETS) {
+          console.log('Using ASSETS binding to serve static content');
+          return env.ASSETS.fetch(request);
+        } else {
+          console.log('ASSETS binding not available, serving fallback HTML');
+          // Serve a simple HTML page as fallback
+          return new Response(getIndexHtml(), {
+            headers: { 'Content-Type': 'text/html' }
+          });
+        }
       } catch (error) {
         console.error("Error serving static content:", error);
         
-        // If the error is that the asset is not found, try serving index.html for SPA routing
-        if (error.status === 404 && !url.pathname.includes('.')) {
-          try {
-            // Create a new request for index.html
-            const indexRequest = new Request(`${url.origin}/index.html`, request);
-            return env.ASSETS.fetch(indexRequest);
-          } catch (indexError) {
-            // If we still can't find index.html, return a simple 404
-            return new Response("Not Found", { status: 404 });
-          }
-        }
-        
-        return new Response("Error serving static content", { 
-          status: 500,
-          headers: { "Content-Type": "text/plain" }
+        // Serve fallback HTML
+        return new Response(getIndexHtml(), {
+          headers: { 'Content-Type': 'text/html' }
         });
       }
     } catch (error) {
