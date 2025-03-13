@@ -54,6 +54,27 @@ export function DebugPage() {
             message: 'Connection successful',
             data
           });
+          
+          // Check database schema
+          console.log('Checking database schema...');
+          try {
+            const { data: tablesData, error: tablesError } = await supabase
+              .from('pg_tables')
+              .select('*')
+              .eq('schemaname', 'public');
+              
+            if (tablesError) {
+              console.error('Error fetching tables:', tablesError);
+            } else {
+              console.log('Available tables:', tablesData);
+              setEnvInfo(prev => ({ 
+                ...prev, 
+                availableTables: tablesData?.map(t => t.tablename).join(', ') || 'None found' 
+              }));
+            }
+          } catch (schemaError) {
+            console.error('Error checking schema:', schemaError);
+          }
         }
       } catch (error) {
         console.error('Unexpected error during Supabase test:', error);
@@ -96,6 +117,22 @@ export function DebugPage() {
             message: 'Connection successful',
             data
           });
+          
+          // Check database schema
+          Promise.resolve(supabase.from('information_schema.tables')
+            .select('table_name')
+            .eq('table_schema', 'public'))
+            .then(({ data: schemaData, error: schemaError }) => {
+              if (schemaError) {
+                console.error('Error fetching schema:', schemaError);
+              } else {
+                console.log('Schema information:', schemaData);
+                setEnvInfo(prev => ({ 
+                  ...prev, 
+                  availableTables: schemaData?.map((t: any) => t.table_name).join(', ') || 'None found' 
+                }));
+              }
+            });
         }
       })
       .catch((error: unknown) => {
@@ -153,6 +190,18 @@ export function DebugPage() {
                   <pre className="bg-gray-100 p-2 rounded text-sm overflow-auto text-red-600">
                     {JSON.stringify(supabaseTest.error, null, 2)}
                   </pre>
+                  
+                  {supabaseTest.error.code === 'PGRST200' && (
+                    <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                      <h4 className="font-semibold text-yellow-700">Schema Relationship Error</h4>
+                      <p className="text-sm text-yellow-700 mb-2">
+                        This error indicates a missing relationship between tables in your database schema.
+                      </p>
+                      <p className="text-sm text-yellow-700">
+                        You may need to create foreign key relationships between tables or check if the tables exist.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -202,12 +251,43 @@ export function DebugPage() {
         <p className="mb-2">
           Open your browser's developer console (F12 or Cmd+Option+I) to view detailed logs.
         </p>
-        <button
-          onClick={() => console.log('Debug data:', { envInfo, diagnostics, supabaseTest })}
-          className="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-        >
-          Log Debug Data to Console
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => console.log('Debug data:', { envInfo, diagnostics, supabaseTest })}
+            className="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          >
+            Log Debug Data to Console
+          </button>
+          
+          <button
+            onClick={async () => {
+              console.log('Testing property_insights table...');
+              const { data, error } = await supabase.from('property_insights').select('*').limit(1);
+              console.log('Result:', { data, error });
+              
+              if (error && error.code === 'PGRST204') {
+                console.log('Table property_insights does not exist. This explains the relationship error.');
+              }
+            }}
+            className="px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+          >
+            Test property_insights Table
+          </button>
+          
+          <button
+            onClick={async () => {
+              console.log('Listing all tables in public schema...');
+              const { data, error } = await supabase
+                .from('information_schema.tables')
+                .select('table_name')
+                .eq('table_schema', 'public');
+              console.log('Available tables:', { data, error });
+            }}
+            className="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200"
+          >
+            List All Tables
+          </button>
+        </div>
       </div>
     </div>
   );
