@@ -70,7 +70,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
     "vite": "^5.1.0",
-    "wrangler": "^3.110.0"
+    "wrangler": "^4.0.0"
   },
   "description": "A web application that automatically tracks favorited properties from TradeMe, primarily residential and land listings.",
   "main": "postcss.config.js",
