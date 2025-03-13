@@ -6,6 +6,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { propertiesRoutes } from './routes/properties';
 import { analyticsRoutes } from './routes/analytics';
 import { scheduledScraper } from './services/scraper';
+import { getIndexHtmlTemplate } from './templates/indexTemplate';
 
 // Create a new router
 const router = Router();
@@ -40,110 +41,11 @@ export default {
       
       // For all other requests, serve static assets from the site
       try {
-        console.log(`Handling request for: ${url.pathname}`);
-        
-        // When deployed with wrangler, the __STATIC_CONTENT binding is available
-        if (env.__STATIC_CONTENT) {
-          let path = url.pathname;
-          
-          // Default to index.html for the root path
-          if (path === '/' || path === '') {
-            path = '/index.html';
-          }
-          
-          console.log(`Looking for asset: ${path}`);
-          
-          // List all available assets for debugging
-          const assets = await env.__STATIC_CONTENT.list();
-          console.log('Available assets:', assets.keys.map(k => k.name));
-          
-          // Remove leading slash for KV lookup
-          const key = path.replace(/^\//, '');
-          
-          // Try to get the asset from KV
-          let asset = null;
-          
-          // First, try to find the exact asset by key
-          if (key === 'index.html') {
-            // For index.html, find the hashed version
-            const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
-            if (indexFile) {
-              console.log(`Found index file: ${indexFile.name}`);
-              asset = await env.__STATIC_CONTENT.get(indexFile.name);
-            }
-          } else if (path.startsWith('/assets/')) {
-            // For assets in the /assets/ directory, they might be hashed
-            const baseName = path.split('/').pop();
-            if (baseName) {
-              const fileNameParts = baseName.split('.');
-              const extension = fileNameParts.pop();
-              const nameWithoutExt = fileNameParts.join('.');
-              
-              // Try to find a matching asset with a hash
-              const matchingAsset = assets.keys.find(k => 
-                k.name.startsWith(`assets/${nameWithoutExt}`) && 
-                k.name.endsWith(`.${extension}`)
-              );
-              
-              if (matchingAsset) {
-                console.log(`Found matching hashed asset: ${matchingAsset.name}`);
-                asset = await env.__STATIC_CONTENT.get(matchingAsset.name);
-              }
-            }
-          } else {
-            // Try direct lookup for other files
-            asset = await env.__STATIC_CONTENT.get(key);
-          }
-          
-          // If still not found, try index.html as a fallback for SPA routing
-          if (asset === null) {
-            console.log(`Asset not found, trying index.html as fallback for path: ${path}`);
-            
-            // Try to find the index.html file (might be hashed)
-            const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
-            
-            if (indexFile) {
-              console.log(`Using index file as fallback: ${indexFile.name}`);
-              asset = await env.__STATIC_CONTENT.get(indexFile.name);
-              
-              if (asset !== null) {
-                return new Response(asset, {
-                  headers: { 'Content-Type': 'text/html' }
-                });
-              }
-            }
-            
-            // If we still don't have an asset, serve the embedded index.html
-            console.log('No matching assets found, serving embedded index.html');
-            return new Response(getEmbeddedIndexHtml(), {
-              headers: { 'Content-Type': 'text/html' }
-            });
-          }
-          
-          // Set appropriate content type
-          const contentType = getContentType(path);
-          
-          console.log(`Serving asset with content type: ${contentType}`);
-          return new Response(asset, {
-            headers: {
-              'Content-Type': contentType,
-              'Cache-Control': 'public, max-age=3600'
-            }
-          });
-        } else if (env.ASSETS) {
-          // Fallback to ASSETS binding if available
-          return env.ASSETS.fetch(request);
-        } else {
-          // Fallback for when no static content bindings are available
-          console.log('No static content bindings available, serving embedded index.html');
-          return new Response(getEmbeddedIndexHtml(), {
-            headers: { "Content-Type": "text/html" }
-          });
-        }
+        return await serveStaticContent(request, env);
       } catch (error) {
         console.error("Error serving static content:", error);
         // Serve the embedded index.html as a last resort
-        return new Response(getEmbeddedIndexHtml(), { 
+        return new Response(getIndexHtmlTemplate(), { 
           headers: { "Content-Type": "text/html" }
         });
       }
@@ -193,102 +95,120 @@ function getContentType(path: string): string {
 }
 
 /**
- * Returns an embedded version of index.html as a fallback
- * when the file cannot be found in KV storage
+ * Serves static content from KV storage or embedded fallback
  */
-function getEmbeddedIndexHtml(): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TradeMe Property Tracker</title>
-    <style>
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        background-color: #f5f5f5;
-        color: #333;
-      }
-      .container {
-        max-width: 800px;
-        padding: 2rem;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        text-align: center;
-      }
-      h1 {
-        color: #0066cc;
-        margin-bottom: 1rem;
-      }
-      p {
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
-      }
-      .loading {
-        display: inline-block;
-        width: 50px;
-        height: 50px;
-        border: 3px solid rgba(0, 102, 204, 0.3);
-        border-radius: 50%;
-        border-top-color: #0066cc;
-        animation: spin 1s ease-in-out infinite;
-      }
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-      @media (prefers-color-scheme: dark) {
-        body {
-          background-color: #1a1a1a;
-          color: #f0f0f0;
+async function serveStaticContent(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url);
+  console.log(`Handling request for: ${url.pathname}`);
+  
+  // When deployed with wrangler, the __STATIC_CONTENT binding is available
+  if (env.__STATIC_CONTENT) {
+    let path = url.pathname;
+    
+    // Default to index.html for the root path
+    if (path === '/' || path === '') {
+      path = '/index.html';
+    }
+    
+    console.log(`Looking for asset: ${path}`);
+    
+    // List all available assets for debugging
+    const assets = await env.__STATIC_CONTENT.list();
+    console.log('Available assets:', assets.keys.map(k => k.name));
+    
+    // Remove leading slash for KV lookup
+    const key = path.replace(/^\//, '');
+    
+    // Try to get the asset from KV
+    const asset = await findAsset(key, path, assets, env.__STATIC_CONTENT);
+    
+    if (asset !== null) {
+      // Set appropriate content type
+      const contentType = getContentType(path);
+      
+      console.log(`Serving asset with content type: ${contentType}`);
+      return new Response(asset, {
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=3600'
         }
-        .container {
-          background-color: #2a2a2a;
-        }
-        h1 {
-          color: #4d9fff;
-        }
-        .loading {
-          border: 3px solid rgba(77, 159, 255, 0.3);
-          border-top-color: #4d9fff;
-        }
+      });
+    }
+    
+    // If asset is null, serve the fallback index.html
+    console.log('No matching assets found, serving embedded index.html');
+    return new Response(getIndexHtmlTemplate(), {
+      headers: { 'Content-Type': 'text/html' }
+    });
+  } else if (env.ASSETS) {
+    // Fallback to ASSETS binding if available
+    return env.ASSETS.fetch(request);
+  } else {
+    // Fallback for when no static content bindings are available
+    console.log('No static content bindings available, serving embedded index.html');
+    return new Response(getIndexHtmlTemplate(), {
+      headers: { "Content-Type": "text/html" }
+    });
+  }
+}
+
+/**
+ * Finds an asset in KV storage, handling various cases like hashed filenames
+ */
+async function findAsset(
+  key: string, 
+  path: string, 
+  assets: { keys: { name: string }[] }, 
+  kv: KVNamespace
+): Promise<string | null> {
+  let asset = null;
+  
+  // First, try to find the exact asset by key
+  if (key === 'index.html') {
+    // For index.html, find the hashed version
+    const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
+    if (indexFile) {
+      console.log(`Found index file: ${indexFile.name}`);
+      asset = await kv.get(indexFile.name);
+    }
+  } else if (path.startsWith('/assets/')) {
+    // For assets in the /assets/ directory, they might be hashed
+    const baseName = path.split('/').pop();
+    if (baseName) {
+      const fileNameParts = baseName.split('.');
+      const extension = fileNameParts.pop();
+      const nameWithoutExt = fileNameParts.join('.');
+      
+      // Try to find a matching asset with a hash
+      const matchingAsset = assets.keys.find(k => 
+        k.name.startsWith(`assets/${nameWithoutExt}`) && 
+        k.name.endsWith(`.${extension}`)
+      );
+      
+      if (matchingAsset) {
+        console.log(`Found matching hashed asset: ${matchingAsset.name}`);
+        asset = await kv.get(matchingAsset.name);
       }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>TradeMe Property Tracker</h1>
-      <p>Loading application...</p>
-      <div class="loading"></div>
-      <div id="root"></div>
-      <noscript>
-        <p>You need to enable JavaScript to run this app.</p>
-      </noscript>
-    </div>
-    <script>
-      // Check if the API is available
-      fetch('/api/health')
-        .then(response => {
-          if (response.ok) {
-            document.querySelector('p').textContent = 'API is available. Application is loading...';
-          } else {
-            document.querySelector('p').textContent = 'API is not responding. Please try again later.';
-          }
-        })
-        .catch(error => {
-          document.querySelector('p').textContent = 'Cannot connect to API. Please try again later.';
-          console.error('API health check failed:', error);
-        });
-    </script>
-  </body>
-</html>`;
+    }
+  } else {
+    // Try direct lookup for other files
+    asset = await kv.get(key);
+  }
+  
+  // If still not found, try index.html as a fallback for SPA routing
+  if (asset === null) {
+    console.log(`Asset not found, trying index.html as fallback for path: ${path}`);
+    
+    // Try to find the index.html file (might be hashed)
+    const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
+    
+    if (indexFile) {
+      console.log(`Using index file as fallback: ${indexFile.name}`);
+      asset = await kv.get(indexFile.name);
+    }
+  }
+  
+  return asset;
 }
 
 // Environment interface
