@@ -82,27 +82,29 @@ export function DebugPage() {
     });
     
     // Re-test Supabase
-    supabase.from('properties').select('count').limit(1).then(({ data, error }) => {
-      if (error) {
+    Promise.resolve(supabase.from('properties').select('count').limit(1))
+      .then(({ data, error }) => {
+        if (error) {
+          setSupabaseTest({
+            success: false,
+            message: `Error: ${error.message}`,
+            error
+          });
+        } else {
+          setSupabaseTest({
+            success: true,
+            message: 'Connection successful',
+            data
+          });
+        }
+      })
+      .catch((error: unknown) => {
         setSupabaseTest({
           success: false,
-          message: `Error: ${error.message}`,
+          message: `Exception: ${error instanceof Error ? error.message : String(error)}`,
           error
         });
-      } else {
-        setSupabaseTest({
-          success: true,
-          message: 'Connection successful',
-          data
-        });
-      }
-    }).catch((error: unknown) => {
-      setSupabaseTest({
-        success: false,
-        message: `Exception: ${error instanceof Error ? error.message : String(error)}`,
-        error
       });
-    });
   };
 
   return (
