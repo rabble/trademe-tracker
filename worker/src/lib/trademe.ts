@@ -1,4 +1,6 @@
 import { Property, PropertyImage, PropertyStatus, TradeMeWatchlistResponse, TradeMeWatchlistItem } from '../types';
+import { generateDirectOAuthHeader } from '../utils/oauthUtils';
+import { TRADEME_SANDBOX_API_URL, TRADEME_API_URL, CONSUMER_KEY, CONSUMER_SECRET } from '../config/trademeConfig';
 
 interface TradeMeOptions {
   apiUrl?: string;
@@ -23,9 +25,9 @@ export class TradeMe {
   
   constructor(options: TradeMeOptions) {
     this.isSandbox = options.isSandbox || false;
-    this.apiUrl = this.isSandbox ? 'https://api.tmsandbox.co.nz' : (options.apiUrl || 'https://api.trademe.co.nz');
-    this.consumerKey = options.consumerKey || '05853D50C9B49D0BBF512C4F7C288098';
-    this.consumerSecret = options.consumerSecret || 'EE038BB9632A0BB6E1A6637555067E24';
+    this.apiUrl = this.isSandbox ? TRADEME_SANDBOX_API_URL : (options.apiUrl || TRADEME_API_URL);
+    this.consumerKey = options.consumerKey || CONSUMER_KEY;
+    this.consumerSecret = options.consumerSecret || CONSUMER_SECRET;
     this.oauthToken = options.oauthToken || '';
     this.oauthTokenSecret = options.oauthTokenSecret || '';
     this.maxRetries = options.maxRetries || 3;
@@ -36,34 +38,16 @@ export class TradeMe {
    * Generate OAuth 1.0a authorization header
    */
   private generateAuthHeader(method: string, url: string): string {
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-    const nonce = Math.random().toString(36).substring(2, 15) + 
-                 Math.random().toString(36).substring(2, 15);
-    
-    // Create the signature base string
-    const parameterString = `oauth_consumer_key=${this.consumerKey}&oauth_nonce=${nonce}&oauth_signature_method=PLAINTEXT&oauth_timestamp=${timestamp}&oauth_token=${this.oauthToken}&oauth_version=1.0`;
-    const signatureBaseString = `${method}&${encodeURIComponent(url)}&${encodeURIComponent(parameterString)}`;
-    
-    // Create the signature
-    const signature = `${this.consumerSecret}&${this.oauthTokenSecret}`;
-    
-    // Log OAuth parameters for debugging
-    console.log('OAuth parameters:', {
-      method,
-      url,
-      consumerKeyLength: this.consumerKey.length,
-      tokenLength: this.oauthToken.length,
-      tokenSecretLength: this.oauthTokenSecret.length,
-      timestamp,
-      nonce: nonce.substring(0, 5) + '...',
-      signatureMethod: 'PLAINTEXT'
-    });
-    
-    // Create the Authorization header
-    const authHeader = `OAuth oauth_consumer_key="${this.consumerKey}", oauth_token="${this.oauthToken}", oauth_signature_method="PLAINTEXT", oauth_timestamp="${timestamp}", oauth_nonce="${nonce}", oauth_version="1.0", oauth_signature="${signature}"`;
-    
-    console.log('Generated auth header length:', authHeader.length);
-    return authHeader;
+    // Use the imported OAuth utility function
+    return generateDirectOAuthHeader(
+      'api',
+      this.consumerKey,
+      this.consumerSecret,
+      {
+        token: this.oauthToken,
+        tokenSecret: this.oauthTokenSecret
+      }
+    );
   }
   
   /**
