@@ -96,7 +96,7 @@ export function DebugPage() {
           data
         });
       }
-    }).catch(error => {
+    }).catch((error: unknown) => {
       setSupabaseTest({
         success: false,
         message: `Exception: ${error instanceof Error ? error.message : String(error)}`,
