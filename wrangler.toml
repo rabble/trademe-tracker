@@ -1,6 +1,9 @@
 name = "trademe-tracker"
 main = "worker/src/index.js"
 compatibility_date = "2023-12-01"
+compatibility_flags = ["nodejs_compat"]
 
 [site]
 bucket = "./dist"
+site_include = ["**/*"]
+entry-point = "worker/src/index.js"
