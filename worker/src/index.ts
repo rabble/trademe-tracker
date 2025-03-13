@@ -103,6 +103,7 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
   
   // When deployed with wrangler, the __STATIC_CONTENT binding is available
   if (env.__STATIC_CONTENT) {
+    try {
     let path = url.pathname;
     
     // Default to index.html for the root path
@@ -113,8 +114,14 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
     console.log(`Looking for asset: ${path}`);
     
     // List all available assets for debugging
-    const assets = await env.__STATIC_CONTENT.list();
-    console.log('Available assets:', assets.keys.map(k => k.name));
+    let assets;
+    try {
+      assets = await env.__STATIC_CONTENT.list();
+      console.log('Available assets:', assets?.keys?.map(k => k.name) || 'No assets found');
+    } catch (error) {
+      console.error('Error listing assets:', error);
+      assets = { keys: [] };
+    }
     
     // Remove leading slash for KV lookup
     const key = path.replace(/^\//, '');
@@ -140,6 +147,12 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
     return new Response(getIndexHtmlTemplate(), {
       headers: { 'Content-Type': 'text/html' }
     });
+    } catch (error) {
+      console.error('Error in static content serving:', error);
+      return new Response(getIndexHtmlTemplate(), {
+        headers: { 'Content-Type': 'text/html' }
+      });
+    }
   } else if (env.ASSETS) {
     // Fallback to ASSETS binding if available
     return env.ASSETS.fetch(request);
@@ -158,9 +171,14 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
 async function findAsset(
   key: string, 
   path: string, 
-  assets: { keys: { name: string }[] }, 
+  assets: { keys: { name: string }[] } | undefined, 
   kv: KVNamespace
 ): Promise<string | null> {
+  // If assets is undefined, initialize with empty keys array
+  if (!assets) {
+    console.warn('Assets list is undefined, using empty list');
+    assets = { keys: [] };
+  }
   let asset = null;
   
   // First, try to find the exact asset by key
@@ -169,7 +187,13 @@ async function findAsset(
     const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
     if (indexFile) {
       console.log(`Found index file: ${indexFile.name}`);
-      asset = await kv.get(indexFile.name);
+      try {
+        asset = await kv.get(indexFile.name);
+      } catch (error) {
+        console.error(`Error fetching index file ${indexFile.name}:`, error);
+      }
+    } else {
+      console.log('No index.html file found in assets');
     }
   } else if (path.startsWith('/assets/')) {
     // For assets in the /assets/ directory, they might be hashed
@@ -187,12 +211,22 @@ async function findAsset(
       
       if (matchingAsset) {
         console.log(`Found matching hashed asset: ${matchingAsset.name}`);
-        asset = await kv.get(matchingAsset.name);
+        try {
+          asset = await kv.get(matchingAsset.name);
+        } catch (error) {
+          console.error(`Error fetching asset ${matchingAsset.name}:`, error);
+        }
+      } else {
+        console.log(`No matching asset found for ${path}`);
       }
     }
   } else {
     // Try direct lookup for other files
-    asset = await kv.get(key);
+    try {
+      asset = await kv.get(key);
+    } catch (error) {
+      console.error(`Error fetching asset ${key}:`, error);
+    }
   }
   
   // If still not found, try index.html as a fallback for SPA routing
@@ -204,7 +238,13 @@ async function findAsset(
     
     if (indexFile) {
       console.log(`Using index file as fallback: ${indexFile.name}`);
-      asset = await kv.get(indexFile.name);
+      try {
+        asset = await kv.get(indexFile.name);
+      } catch (error) {
+        console.error(`Error fetching index file ${indexFile.name} as fallback:`, error);
+      }
+    } else {
+      console.log('No index.html file found for fallback');
     }
   }
   
