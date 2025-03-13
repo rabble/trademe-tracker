@@ -102,8 +102,8 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
   const url = new URL(request.url);
   console.log(`Handling request for: ${url.pathname}`);
   
-  // When deployed with wrangler, the __STATIC_CONTENT binding is available
-  if (env.__STATIC_CONTENT) {
+  // When deployed with wrangler, the ASSETS binding is available
+  if (env.ASSETS) {
     try {
       let path = url.pathname;
       
@@ -135,8 +135,18 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
     // Remove leading slash for KV lookup
     const key = path.replace(/^\//, '');
     
-    // Try to get the asset from KV
-    const asset = await findAsset(key, path, assets, env.__STATIC_CONTENT);
+    // Try to get the asset from ASSETS
+    const response = await env.ASSETS.fetch(request);
+    
+    // If asset not found, serve index.html for SPA routing
+    if (response.status === 404) {
+      console.log('Asset not found, serving index.html');
+      return new Response(getIndexHtmlTemplate(), {
+        headers: { 'Content-Type': 'text/html' }
+      });
+    }
+    
+    return response;
     
     if (asset !== null) {
       // Set appropriate content type
