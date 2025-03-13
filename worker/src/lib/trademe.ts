@@ -1,6 +1,6 @@
 import { Property, PropertyImage, PropertyStatus, TradeMeWatchlistResponse, TradeMeWatchlistItem } from '../types';
 import { generateDirectOAuthHeader } from '../utils/oauthUtils';
-import { TRADEME_SANDBOX_API_URL, TRADEME_API_URL, CONSUMER_KEY, CONSUMER_SECRET } from '../config/trademeConfig';
+import { TRADEME_SANDBOX_API_URL, TRADEME_API_URL, getCredentials } from '../config/trademeConfig';
 
 interface TradeMeOptions {
   apiUrl?: string;
@@ -11,6 +11,7 @@ interface TradeMeOptions {
   maxRetries?: number;
   timeout?: number;
   isSandbox?: boolean;
+  env?: any; // Environment variables
 }
 
 export class TradeMe {
@@ -26,8 +27,12 @@ export class TradeMe {
   constructor(options: TradeMeOptions) {
     this.isSandbox = options.isSandbox || false;
     this.apiUrl = this.isSandbox ? TRADEME_SANDBOX_API_URL : (options.apiUrl || TRADEME_API_URL);
-    this.consumerKey = options.consumerKey || CONSUMER_KEY;
-    this.consumerSecret = options.consumerSecret || CONSUMER_SECRET;
+    
+    // Get credentials, potentially from environment
+    const credentials = getCredentials(options.env);
+    this.consumerKey = options.consumerKey || credentials.consumerKey;
+    this.consumerSecret = options.consumerSecret || credentials.consumerSecret;
+    
     this.oauthToken = options.oauthToken || '';
     this.oauthTokenSecret = options.oauthTokenSecret || '';
     this.maxRetries = options.maxRetries || 3;
