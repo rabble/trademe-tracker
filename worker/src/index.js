@@ -5,6 +5,8 @@ function getIndexHtml() {
   <head>
     <meta charset="UTF-8" />
     <title>TradeMe Property Tracker</title>
+    <script type="module" crossorigin src="./assets/index-DZ-J4Eak.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CVok2Bc6.css">
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -96,10 +98,26 @@ export default {
         // Check if we have the ASSETS binding
         if (env.ASSETS) {
           console.log('Using ASSETS binding to serve static content');
-          return env.ASSETS.fetch(request);
+          try {
+            const response = await env.ASSETS.fetch(request);
+          
+            // If asset not found, serve index.html for SPA routing
+            if (response.status === 404) {
+              console.log('Asset not found, serving index.html');
+              return new Response(getIndexHtml(), {
+                headers: { 'Content-Type': 'text/html' }
+              });
+            }
+          
+            return response;
+          } catch (error) {
+            console.error('Error fetching asset:', error);
+            return new Response(getIndexHtml(), {
+              headers: { 'Content-Type': 'text/html' }
+            });
+          }
         } else {
           console.log('ASSETS binding not available, serving fallback HTML');
-          // Serve a simple HTML page as fallback
           return new Response(getIndexHtml(), {
             headers: { 'Content-Type': 'text/html' }
           });
