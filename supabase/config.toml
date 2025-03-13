@@ -1,0 +1,48 @@
+# This file configures Supabase CLI
+# Reference: https://supabase.com/docs/reference/cli/config
+
+[project]
+# Project reference ID
+# id = ""
+
+[api]
+# Port to use for the API URL
+port = 54321
+# Schemas to expose in your API
+schemas = ["public", "storage"]
+# Extra schemas to add to the search_path of every request
+extra_search_path = ["extensions"]
+# Max rows to return from a view, table, or stored procedure
+max_rows = 1000
+
+[db]
+# Port to use for the local database URL
+port = 54322
+# Database major version
+major_version = 15
+
+[studio]
+# Port to use for Supabase Studio
+port = 54323
+
+[inbucket]
+# Port to use for the email testing server web interface
+port = 54324
+# Port to use for the SMTP server
+smtp_port = 54325
+
+[storage]
+# Port to use for the storage service
+port = 54326
+
+[auth]
+# Port to use for the auth service
+port = 54327
+
+[realtime]
+# Port to use for the realtime service
+port = 54328
+
+[functions]
+# Port to use for the functions service
+port = 54329
