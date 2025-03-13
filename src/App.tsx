@@ -22,9 +22,9 @@ function App() {
             <Route path="/properties" element={<PropertiesPage />} />
             <Route path="/properties/:id" element={<PropertyDetailsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/debug" element={<DebugPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
+          <Route path="/debug" element={<DebugPage />} />
           <Route path="/oauth-callback" element={<OAuthCallback />} />
         </Routes>
       </Router>
