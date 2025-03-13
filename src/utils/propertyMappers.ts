@@ -196,15 +196,9 @@ export function mapListingToProperty(item: any): Property {
  * @returns Mapped Property object
  */
 export function mapWatchlistItemToProperty(item: any, userId: string = 'anonymous'): Property {
-  const property = mapListingToProperty(item);
-  
-  // Add watchlist-specific properties
-  // Note: Only add properties that exist in the Property type
-  return {
-    ...property,
-    // Only add properties that are defined in the Property type
-    source: 'trademe'
-  };
+  // Simply return the mapped property without adding any additional properties
+  // that aren't defined in the Property type
+  return mapListingToProperty(item);
 }
 
 /**
