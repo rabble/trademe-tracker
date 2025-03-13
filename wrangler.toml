@@ -9,6 +9,8 @@ kv_namespaces = [
 ]
 
 # Define static assets
-[build.upload]
-format = "service-worker"
-dir = "dist"
+[site]
+bucket = "./dist"
+entry-point = "worker/src"
+include = ["dist/**/*"]
+exclude = ["node_modules"]

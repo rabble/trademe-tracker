@@ -135,18 +135,27 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
     // Remove leading slash for KV lookup
     const key = path.replace(/^\//, '');
     
-    // Try to get the asset from ASSETS
-    const response = await env.ASSETS.fetch(request);
+    // Try to get the asset from KV
+    const asset = await findAsset(key, path, assets, env.__STATIC_CONTENT);
     
-    // If asset not found, serve index.html for SPA routing
-    if (response.status === 404) {
-      console.log('Asset not found, serving index.html');
-      return new Response(getIndexHtmlTemplate(), {
-        headers: { 'Content-Type': 'text/html' }
+    if (asset !== null) {
+      // Set appropriate content type
+      const contentType = getContentType(path);
+      
+      console.log(`Serving asset with content type: ${contentType}`);
+      return new Response(asset, {
+        headers: {
+          'Content-Type': contentType,
+          'Cache-Control': 'public, max-age=3600'
+        }
       });
     }
     
-    return response;
+    // If asset is null, serve the fallback index.html
+    console.log('No matching assets found, serving embedded index.html');
+    return new Response(getIndexHtmlTemplate(), {
+      headers: { 'Content-Type': 'text/html' }
+    });
     
     if (asset !== null) {
       // Set appropriate content type
