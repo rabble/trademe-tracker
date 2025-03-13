@@ -5,5 +5,3 @@ compatibility_flags = ["nodejs_compat"]
 
 [site]
 bucket = "./dist"
-site_include = ["**/*"]
-entry-point = "worker/src/index.js"
