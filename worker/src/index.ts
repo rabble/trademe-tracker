@@ -77,6 +77,7 @@ function getContentType(path: string): string {
     case 'css':
       return 'text/css';
     case 'js':
+    case 'mjs':
       return 'application/javascript';
     case 'json':
       return 'application/json';
@@ -207,15 +208,20 @@ async function findAsset(
     // For assets in the /assets/ directory, they might be hashed
     const baseName = path.split('/').pop();
     if (baseName) {
-      const fileNameParts = baseName.split('.');
-      const extension = fileNameParts.pop();
-      const nameWithoutExt = fileNameParts.join('.');
-      
-      // Try to find a matching asset with a hash
-      const matchingAsset = assets.keys.find(k => 
-        k.name.startsWith(`assets/${nameWithoutExt}`) && 
-        k.name.endsWith(`.${extension}`)
-      );
+      // Try to find exact match first
+      let matchingAsset = assets.keys.find(k => k.name === `assets/${baseName}`);
+        
+      // If no exact match, try to find hashed version
+      if (!matchingAsset) {
+        const fileNameParts = baseName.split('.');
+        const extension = fileNameParts.pop();
+        const nameWithoutExt = fileNameParts.join('.');
+          
+        matchingAsset = assets.keys.find(k => 
+          k.name.startsWith(`assets/${nameWithoutExt}`) && 
+          k.name.endsWith(`.${extension}`)
+        );
+      }
       
       if (matchingAsset) {
         console.log(`Found matching hashed asset: ${matchingAsset.name}`);
