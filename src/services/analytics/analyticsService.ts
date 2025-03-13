@@ -39,6 +39,16 @@ export interface PropertyInsight {
 }
 
 /**
+ * Type for property status counts
+ */
+interface StatusCounts {
+  active: number;
+  under_offer: number;
+  sold: number;
+  total: number;
+}
+
+/**
  * Service for analytics related to properties
  */
 export const AnalyticsService = {
@@ -49,59 +59,18 @@ export const AnalyticsService = {
    */
   async fetchSummary(): Promise<PortfolioSummary> {
     try {
-      // Get counts by status using Supabase's built-in count aggregation
-      const { data: statusCounts, error: statusError } = await supabase
-        .from('properties')
-        .select('status, count')
-        .neq('status', 'archived');
-
-      if (statusError) {
-        throw statusError;
-      }
-
-      // Get average price
-      const { data: priceData, error: priceError } = await supabase
-        .from('properties')
-        .select('price')
-        .neq('status', 'archived');
-
-      if (priceError) {
-        throw priceError;
-      }
-
-      // Get average days on market
-      const { data: domData, error: domError } = await supabase
-        .from('properties')
-        .select('days_on_market')
-        .neq('status', 'archived');
-
-      if (domError) {
-        throw domError;
-      }
-
-      // Calculate averages
-      const prices = priceData.map(item => item.price);
-      const daysOnMarket = domData.map(item => item.days_on_market);
-      
-      const averagePrice = prices.length > 0 
-        ? prices.reduce((sum, price) => sum + price, 0) / prices.length 
-        : 0;
-        
-      const averageDaysOnMarket = daysOnMarket.length > 0 
-        ? daysOnMarket.reduce((sum, days) => sum + days, 0) / daysOnMarket.length 
-        : 0;
-
-      // Count properties by status
-      const activeCount = statusCounts.find((item: {status: string; count: number}) => item.status === 'active')?.count || 0;
-      const underOfferCount = statusCounts.find((item: {status: string; count: number}) => item.status === 'under_offer')?.count || 0;
-      const soldCount = statusCounts.find((item: {status: string; count: number}) => item.status === 'sold')?.count || 0;
-      const totalCount = activeCount + underOfferCount + soldCount;
+      // Fetch all required data in parallel
+      const [statusCounts, averagePrice, averageDaysOnMarket] = await Promise.all([
+        this.fetchStatusCounts(),
+        this.calculateAveragePrice(),
+        this.calculateAverageDaysOnMarket()
+      ]);
 
       return {
-        totalProperties: totalCount,
-        activeProperties: activeCount,
-        underOfferProperties: underOfferCount,
-        soldProperties: soldCount,
+        totalProperties: statusCounts.total,
+        activeProperties: statusCounts.active,
+        underOfferProperties: statusCounts.under_offer,
+        soldProperties: statusCounts.sold,
         averagePrice,
         averageDaysOnMarket
       };
@@ -109,6 +78,96 @@ export const AnalyticsService = {
       console.error('Error fetching portfolio summary:', error);
       throw error;
     }
+  },
+
+  /**
+   * Fetch counts of properties by status
+   * 
+   * @returns Promise with status counts
+   */
+  async fetchStatusCounts(): Promise<StatusCounts> {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('status, count')
+      .neq('status', 'archived');
+
+    if (error) {
+      console.error('Error fetching status counts:', error);
+      throw error;
+    }
+
+    const activeCount = this.extractCountForStatus(data, 'active');
+    const underOfferCount = this.extractCountForStatus(data, 'under_offer');
+    const soldCount = this.extractCountForStatus(data, 'sold');
+    const totalCount = activeCount + underOfferCount + soldCount;
+
+    return {
+      active: activeCount,
+      under_offer: underOfferCount,
+      sold: soldCount,
+      total: totalCount
+    };
+  },
+
+  /**
+   * Extract count for a specific status from status counts data
+   * 
+   * @param data - Status counts data from database
+   * @param status - Status to extract count for
+   * @returns Count for the specified status
+   */
+  extractCountForStatus(data: Array<{status: string; count: number}>, status: string): number {
+    return data.find(item => item.status === status)?.count || 0;
+  },
+
+  /**
+   * Calculate average price of properties
+   * 
+   * @returns Promise with average price
+   */
+  async calculateAveragePrice(): Promise<number> {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('price')
+      .neq('status', 'archived');
+
+    if (error) {
+      console.error('Error fetching price data:', error);
+      throw error;
+    }
+
+    return this.calculateAverage(data.map(item => item.price));
+  },
+
+  /**
+   * Calculate average days on market
+   * 
+   * @returns Promise with average days on market
+   */
+  async calculateAverageDaysOnMarket(): Promise<number> {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('days_on_market')
+      .neq('status', 'archived');
+
+    if (error) {
+      console.error('Error fetching days on market data:', error);
+      throw error;
+    }
+
+    return this.calculateAverage(data.map(item => item.days_on_market));
+  },
+
+  /**
+   * Calculate average of numeric values
+   * 
+   * @param values - Array of numeric values
+   * @returns Average value or 0 if array is empty
+   */
+  calculateAverage(values: number[]): number {
+    if (values.length === 0) return 0;
+    const sum = values.reduce((total, value) => total + value, 0);
+    return sum / values.length;
   },
 
   /**
@@ -126,18 +185,28 @@ export const AnalyticsService = {
         .limit(limit);
 
       if (error) {
+        console.error('Error fetching recent changes:', error);
         throw error;
       }
 
-      // Transform the data to include property title
-      return data.map(change => ({
-        ...change,
-        property_title: change.properties.title,
-      })) as PropertyChange[];
+      return this.transformPropertyChanges(data);
     } catch (error) {
-      console.error('Error fetching recent changes:', error);
+      console.error('Error in fetchRecentChanges:', error);
       throw error;
     }
+  },
+
+  /**
+   * Transform property changes data to include property title
+   * 
+   * @param data - Raw property changes data from database
+   * @returns Transformed property changes
+   */
+  transformPropertyChanges(data: any[]): PropertyChange[] {
+    return data.map(change => ({
+      ...change,
+      property_title: change.properties.title,
+    })) as PropertyChange[];
   },
 
   /**
@@ -149,29 +218,52 @@ export const AnalyticsService = {
    */
   async fetchInsights(propertyId?: string, limit: number = 10): Promise<PropertyInsight[]> {
     try {
-      let query = supabase
-        .from('property_insights')
-        .select('*, properties(title)')
-        .order('created_at', { ascending: false });
-
-      if (propertyId) {
-        query = query.eq('property_id', propertyId);
-      }
-
-      const { data, error } = await query.limit(limit);
+      const query = this.buildInsightsQuery(propertyId, limit);
+      const { data, error } = await query;
 
       if (error) {
+        console.error('Error fetching property insights:', error);
         throw error;
       }
 
-      // Transform the data to include property title
-      return data.map(insight => ({
-        ...insight,
-        property_title: insight.properties.title,
-      })) as PropertyInsight[];
+      return this.transformPropertyInsights(data);
     } catch (error) {
-      console.error('Error fetching property insights:', error);
+      console.error('Error in fetchInsights:', error);
       throw error;
     }
+  },
+
+  /**
+   * Build query for fetching property insights
+   * 
+   * @param propertyId - Optional property ID to filter insights
+   * @param limit - Limit for the number of insights to fetch
+   * @returns Supabase query
+   */
+  buildInsightsQuery(propertyId?: string, limit: number = 10) {
+    let query = supabase
+      .from('property_insights')
+      .select('*, properties(title)')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (propertyId) {
+      query = query.eq('property_id', propertyId);
+    }
+
+    return query;
+  },
+
+  /**
+   * Transform property insights data to include property title
+   * 
+   * @param data - Raw property insights data from database
+   * @returns Transformed property insights
+   */
+  transformPropertyInsights(data: any[]): PropertyInsight[] {
+    return data.map(insight => ({
+      ...insight,
+      property_title: insight.properties.title,
+    })) as PropertyInsight[];
   }
 };
