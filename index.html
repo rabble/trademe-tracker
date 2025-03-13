@@ -9,5 +9,20 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Debug information
+      console.log('Environment:', {
+        location: window.location.toString(),
+        href: window.location.href,
+        origin: window.location.origin,
+        pathname: window.location.pathname,
+        host: window.location.host
+      });
+      
+      // Check for network errors
+      window.addEventListener('error', function(e) {
+        console.error('Resource error:', e.target.src || e.target.href, e);
+      }, true);
+    </script>
   </body>
 </html>

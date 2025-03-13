@@ -10,7 +10,28 @@ export function getIndexHtmlTemplate(): string {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TradeMe Property Tracker</title>
-    <script type="module" crossorigin src="/src/main.tsx"></script>
+    <!-- In production, this should be the built JS file -->
+    <script type="module" crossorigin src="/assets/index-DZ-J4Eak.js"></script>
+    <link rel="stylesheet" href="/assets/index-CVok2Bc6.css">
+    
+    <!-- Fallback for development -->
+    <script>
+      // Check if the main script failed to load
+      window.addEventListener('error', function(e) {
+        if (e.target && e.target.src && e.target.src.includes('index-DZ-J4Eak.js')) {
+          console.log('Production script failed to load, trying development path');
+          
+          // Create and append development script
+          const script = document.createElement('script');
+          script.type = 'module';
+          script.src = '/src/main.tsx';
+          document.head.appendChild(script);
+          
+          // Prevent the error from showing in console
+          e.preventDefault();
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root">
@@ -31,12 +52,27 @@ export function getIndexHtmlTemplate(): string {
             document.querySelector('p').textContent = 'API is available. Application is loading...';
           } else {
             document.querySelector('p').textContent = 'API is not responding. Please try again later.';
+            console.error('API health check failed with status:', response.status);
           }
         })
         .catch(error => {
           document.querySelector('p').textContent = 'Cannot connect to API. Please try again later.';
           console.error('API health check failed:', error);
         });
+      
+      // Debug information
+      console.log('Environment:', {
+        location: window.location.toString(),
+        href: window.location.href,
+        origin: window.location.origin,
+        pathname: window.location.pathname,
+        host: window.location.host
+      });
+      
+      // Check for network errors
+      window.addEventListener('error', function(e) {
+        console.error('Resource error:', e.target.src || e.target.href, e);
+      }, true);
     </script>
     <style>
       body {
