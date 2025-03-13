@@ -14,9 +14,33 @@ export function getIndexHtmlTemplate(): string {
     <link rel="stylesheet" crossorigin href="/assets/index-CVok2Bc6.css">
   </head>
   <body>
-    <div id="root"></div>
-  </body>
-</html>`;
+    <div id="root">
+      <div class="container">
+        <h1>TradeMe Property Tracker</h1>
+        <p>Loading application...</p>
+        <div class="loading"></div>
+        <noscript>
+          <p>You need to enable JavaScript to run this app.</p>
+        </noscript>
+      </div>
+    </div>
+    <script>
+      // Check if the API is available
+      fetch('/api/health')
+        .then(response => {
+          if (response.ok) {
+            document.querySelector('p').textContent = 'API is available. Application is loading...';
+          } else {
+            document.querySelector('p').textContent = 'API is not responding. Please try again later.';
+          }
+        })
+        .catch(error => {
+          document.querySelector('p').textContent = 'Cannot connect to API. Please try again later.';
+          console.error('API health check failed:', error);
+        });
+    </script>
+    <style>
+      body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         margin: 0;
         padding: 0;
@@ -72,32 +96,6 @@ export function getIndexHtmlTemplate(): string {
         }
       }
     </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>TradeMe Property Tracker</h1>
-      <p>Loading application...</p>
-      <div class="loading"></div>
-      <div id="root"></div>
-      <noscript>
-        <p>You need to enable JavaScript to run this app.</p>
-      </noscript>
-    </div>
-    <script>
-      // Check if the API is available
-      fetch('/api/health')
-        .then(response => {
-          if (response.ok) {
-            document.querySelector('p').textContent = 'API is available. Application is loading...';
-          } else {
-            document.querySelector('p').textContent = 'API is not responding. Please try again later.';
-          }
-        })
-        .catch(error => {
-          document.querySelector('p').textContent = 'Cannot connect to API. Please try again later.';
-          console.error('API health check failed:', error);
-        });
-    </script>
   </body>
 </html>`;
 }
