@@ -73,6 +73,37 @@ export function getIndexHtmlTemplate(): string {
       window.addEventListener('error', function(e) {
         console.error('Resource error:', e.target.src || e.target.href, e);
       }, true);
+      
+      // Add a global error handler to catch database errors
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('Unhandled promise rejection:', event.reason);
+        
+        // Check for specific database errors
+        if (event.reason && event.reason.message) {
+          const errorMsg = event.reason.message;
+          
+          if (errorMsg.includes('relation "public.properties" does not exist') || 
+              errorMsg.includes('Could not find a relationship between')) {
+            document.querySelector('p').innerHTML = 'Database setup issue: Tables are missing.<br>Please check Supabase configuration.';
+            
+            // Add more detailed error information
+            const errorDetails = document.createElement('div');
+            errorDetails.className = 'error-details';
+            errorDetails.innerHTML = `
+              <h3>Database Error</h3>
+              <p>${errorMsg}</p>
+              <p>The application requires the following tables in Supabase:</p>
+              <ul>
+                <li>properties</li>
+                <li>property_insights</li>
+                <li>property_changes</li>
+              </ul>
+              <p>Please check your Supabase setup or contact the administrator.</p>
+            `;
+            document.querySelector('.container').appendChild(errorDetails);
+          }
+        }
+      });
     </script>
     <style>
       body {
@@ -114,6 +145,23 @@ export function getIndexHtmlTemplate(): string {
       @keyframes spin {
         to { transform: rotate(360deg); }
       }
+      .error-details {
+        margin-top: 2rem;
+        padding: 1rem;
+        background-color: #fff8f8;
+        border: 1px solid #ffcdd2;
+        border-radius: 4px;
+        text-align: left;
+      }
+      .error-details h3 {
+        color: #d32f2f;
+        margin-top: 0;
+      }
+      .error-details ul {
+        text-align: left;
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+      }
       @media (prefers-color-scheme: dark) {
         body {
           background-color: #1a1a1a;
@@ -128,6 +176,13 @@ export function getIndexHtmlTemplate(): string {
         .loading {
           border: 3px solid rgba(77, 159, 255, 0.3);
           border-top-color: #4d9fff;
+        }
+        .error-details {
+          background-color: #3a2a2a;
+          border-color: #5a3a3a;
+        }
+        .error-details h3 {
+          color: #ff6b6b;
         }
       }
     </style>
