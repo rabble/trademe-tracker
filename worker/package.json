@@ -10,7 +10,6 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@cloudflare/kv-asset-handler": "^0.3.4",
     "itty-router": "^3.0.12"
   },
   "devDependencies": {
