@@ -104,9 +104,17 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
   // When deployed with wrangler, the __STATIC_CONTENT binding is available
   if (env.__STATIC_CONTENT) {
     try {
-    let path = url.pathname;
-    
-    // Default to index.html for the root path
+      let path = url.pathname;
+      
+      // Handle debug route specifically
+      if (path === '/debug') {
+        const debugHtml = await getIndexHtmlTemplate();
+        return new Response(debugHtml, {
+          headers: { 'Content-Type': 'text/html' }
+        });
+      }
+      
+      // Default to index.html for the root path
     if (path === '/' || path === '') {
       path = '/index.html';
     }

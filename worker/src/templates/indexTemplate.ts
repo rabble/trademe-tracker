@@ -10,8 +10,13 @@ export function getIndexHtmlTemplate(): string {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TradeMe Property Tracker</title>
-    <style>
-      body {
+    <script type="module" crossorigin src="/assets/index-DZ-J4Eak.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CVok2Bc6.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         margin: 0;
         padding: 0;
