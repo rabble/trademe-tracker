@@ -12,7 +12,8 @@
     "worker:deploy": "cd worker && wrangler deploy",
     "worker:test": "cd worker && npm test",
     "scrape": "cd worker && npm run scrape",
-    "scrape:debug": "cd worker && npm run scrape:debug"
+    "scrape:debug": "cd worker && npm run scrape:debug",
+    "deploy": "npm run build && wrangler deploy"
   },
   "overrides": {
     "amqplib": {
