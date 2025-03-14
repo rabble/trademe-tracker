@@ -23,12 +23,16 @@ export function PropertyDetailsPage() {
         console.log('Loading notes for property:', id);
         console.log('Property ID type:', typeof id);
         
-        // Check if id is a valid UUID
+        // Check if id is a valid format (UUID or numeric)
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (!uuidRegex.test(id)) {
-          console.warn('Invalid UUID format for property ID:', id);
+        const numericRegex = /^\d+$/;
+        
+        if (!uuidRegex.test(id) && !numericRegex.test(id)) {
+          console.warn('Invalid property ID format:', id);
           return;
         }
+        
+        console.log('Property ID format is valid, proceeding with query');
         
         const { data, error } = await supabase
           .from('properties')
@@ -222,13 +226,17 @@ export function PropertyDetailsPage() {
                   console.log('Property ID:', id);
                   console.log('Property ID type:', typeof id);
                   
-                  // Check if id is a valid UUID
+                  // Check if id is a valid format (UUID or numeric)
                   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-                  if (!uuidRegex.test(id || '')) {
-                    console.error('Invalid UUID format for property ID:', id);
+                  const numericRegex = /^\d+$/;
+                  
+                  if (!uuidRegex.test(id || '') && !numericRegex.test(id || '')) {
+                    console.error('Invalid property ID format:', id);
                     alert('Cannot save notes: Invalid property ID format');
                     return;
                   }
+                  
+                  console.log('Property ID format is valid, proceeding with save');
                   
                   setIsSavingNotes(true);
                   

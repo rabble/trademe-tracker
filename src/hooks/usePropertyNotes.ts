@@ -16,16 +16,20 @@ export function usePropertyNotes(propertyId: string | undefined) {
     async function fetchNotes() {
       if (!propertyId) return;
       
-      // Check if propertyId is a valid UUID
+      // Check if propertyId is a valid format (UUID or numeric)
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(propertyId)) {
-        console.warn('Invalid UUID format for property ID:', propertyId);
+      const numericRegex = /^\d+$/;
+      
+      if (!uuidRegex.test(propertyId) && !numericRegex.test(propertyId)) {
+        console.warn('Invalid property ID format:', propertyId);
         if (isMounted) {
           setError(new Error('Invalid property ID format'));
           setIsLoading(false);
         }
         return;
       }
+      
+      console.log('Property ID format is valid, proceeding with fetch');
       
       try {
         setIsLoading(true);
@@ -67,13 +71,17 @@ export function usePropertyNotes(propertyId: string | undefined) {
       return;
     }
     
-    // Check if propertyId is a valid UUID
+    // Check if propertyId is a valid format (UUID or numeric)
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(propertyId)) {
-      console.error('[usePropertyNotes] Invalid UUID format for property ID:', propertyId);
+    const numericRegex = /^\d+$/;
+    
+    if (!uuidRegex.test(propertyId) && !numericRegex.test(propertyId)) {
+      console.error('[usePropertyNotes] Invalid property ID format:', propertyId);
       setSaveError(new Error('Invalid property ID format'));
       return;
     }
+    
+    console.log('[usePropertyNotes] Property ID format is valid, proceeding with save');
     
     console.log(`[usePropertyNotes] ==================== START SAVE NOTES ====================`);
     console.log(`[usePropertyNotes] Saving notes for property ${propertyId}:`, newNotes);

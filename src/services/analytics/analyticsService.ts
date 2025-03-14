@@ -383,6 +383,17 @@ export const AnalyticsService = {
       console.log(`[AnalyticsService] Notes length:`, notes.length);
       console.log(`[AnalyticsService] Supabase URL:`, supabase.supabaseUrl);
       
+      // Validate property ID format (UUID or numeric)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const numericRegex = /^\d+$/;
+      
+      if (!uuidRegex.test(propertyId) && !numericRegex.test(propertyId)) {
+        console.error('[AnalyticsService] Invalid property ID format:', propertyId);
+        throw new Error('Invalid property ID format');
+      }
+      
+      console.log(`[AnalyticsService] Property ID format is valid`);
+      
       // First check if the property exists
       console.log(`[AnalyticsService] Checking if property exists...`);
       const { data: property, error: propertyError, status: propertyStatus } = await supabase
