@@ -1,6 +1,5 @@
 import { supabase } from '../../lib/supabase'
 import { Property } from '../../types'
-import { sampleProperties } from '../../data/sampleProperties'
 import { TradeMeService } from '../trademe/trademeService'
 
 /**
@@ -40,8 +39,6 @@ export const PropertyService = {
     useTrademe: boolean = false
   ): Promise<{ data: Property[]; count: number }> {
     try {
-      let filteredProperties: Property[] = [];
-      
       // If useTrademe is true, fetch properties from TradeMe API
       if (useTrademe) {
         try {
@@ -70,71 +67,81 @@ export const PropertyService = {
           
           // Fetch properties from TradeMe
           const trademeProperties = await TradeMeService.searchProperties(searchParams);
-          filteredProperties = trademeProperties;
+          
+          // Apply pagination
+          const page = pagination?.page || 1;
+          const limit = pagination?.limit || 10;
+          const startIndex = (page - 1) * limit;
+          const data = trademeProperties.slice(startIndex, startIndex + limit);
+          
+          return {
+            data: data as Property[],
+            count: trademeProperties.length || 0,
+          };
         } catch (error) {
-          console.error('Error fetching from TradeMe, falling back to sample data:', error);
-          filteredProperties = [...sampleProperties];
+          console.error('Error fetching from TradeMe, falling back to database:', error);
+          // Fall through to database query
         }
-      } else {
-        // Use sample data instead of Supabase query
-        filteredProperties = [...sampleProperties];
       }
-
+      
+      // Use Supabase database query
+      let query = supabase
+        .from('properties')
+        .select('*, property_images(*)', { count: 'exact' });
+      
       // Apply filters if provided
       if (filters) {
         if (filters.status) {
-          filteredProperties = filteredProperties.filter(p => p.status === filters.status);
+          query = query.eq('status', filters.status);
         } else {
           // By default, don't show archived properties
-          filteredProperties = filteredProperties.filter(p => p.status !== 'archived');
+          query = query.neq('status', 'archived');
         }
-
+        
         if (filters.minPrice !== undefined) {
-          const minPrice = filters.minPrice;
-          filteredProperties = filteredProperties.filter(p => p.price >= minPrice);
+          query = query.gte('price', filters.minPrice);
         }
-
+        
         if (filters.maxPrice !== undefined) {
-          const maxPrice = filters.maxPrice;
-          filteredProperties = filteredProperties.filter(p => p.price <= maxPrice);
+          query = query.lte('price', filters.maxPrice);
         }
-
+        
         if (filters.bedrooms) {
-          filteredProperties = filteredProperties.filter(p => p.bedrooms === filters.bedrooms);
+          query = query.eq('bedrooms', filters.bedrooms);
         }
-
+        
         if (filters.bathrooms) {
-          filteredProperties = filteredProperties.filter(p => p.bathrooms === filters.bathrooms);
+          query = query.eq('bathrooms', filters.bathrooms);
         }
-
+        
         if (filters.searchQuery) {
-          const query = filters.searchQuery.toLowerCase();
-          filteredProperties = filteredProperties.filter(p => 
-            p.title.toLowerCase().includes(query) || 
-            p.address.toLowerCase().includes(query)
-          );
+          const searchTerm = `%${filters.searchQuery}%`;
+          query = query.or(`title.ilike.${searchTerm},address.ilike.${searchTerm}`);
         }
       } else {
         // By default, don't show archived properties
-        filteredProperties = filteredProperties.filter(p => p.status !== 'archived');
+        query = query.neq('status', 'archived');
       }
-
-      // Sort by created_at descending
-      filteredProperties.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-
-      // Get total count before pagination
-      const count = filteredProperties.length;
+      
+      // Apply sorting
+      query = query.order('created_at', { ascending: false });
       
       // Apply pagination
       const page = pagination?.page || 1;
       const limit = pagination?.limit || 10;
       const startIndex = (page - 1) * limit;
-      const data = filteredProperties.slice(startIndex, startIndex + limit);
-
+      query = query.range(startIndex, startIndex + limit - 1);
+      
+      // Execute the query
+      const { data, error, count } = await query;
+      
+      if (error) {
+        console.error('Error fetching properties from database:', error);
+        throw error;
+      }
+      
       return {
-        data: data as Property[],
+        data: data as unknown as Property[],
         count: count || 0,
       };
     } catch (error) {
@@ -151,13 +158,27 @@ export const PropertyService = {
    */
   async fetchPropertyById(id: string): Promise<Property> {
     try {
-      const property = sampleProperties.find(p => p.id === id);
+      const { data, error } = await supabase
+        .from('properties')
+        .select(`
+          *,
+          property_images(*),
+          property_changes(*),
+          property_insights(*)
+        `)
+        .eq('id', id)
+        .single();
       
-      if (!property) {
+      if (error) {
+        console.error(`Error fetching property with ID ${id}:`, error);
+        throw error;
+      }
+      
+      if (!data) {
         throw new Error(`Property with ID ${id} not found`);
       }
 
-      return property;
+      return data as unknown as Property;
     } catch (error) {
       console.error(`Error fetching property with ID ${id}:`, error);
       throw error;
@@ -173,22 +194,24 @@ export const PropertyService = {
    */
   async updateProperty(id: string, data: Partial<Property>): Promise<Property> {
     try {
-      // Find the property in our sample data
-      const propertyIndex = sampleProperties.findIndex(p => p.id === id);
+      // Update the property in the database
+      const { data: updatedData, error } = await supabase
+        .from('properties')
+        .update({ ...data, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
       
-      if (propertyIndex === -1) {
+      if (error) {
+        console.error(`Error updating property with ID ${id}:`, error);
+        throw error;
+      }
+      
+      if (!updatedData) {
         throw new Error(`Property with ID ${id} not found`);
       }
       
-      // Update the property (in a real app, this would persist to the database)
-      const updatedProperty = {
-        ...sampleProperties[propertyIndex],
-        ...data
-      };
-      
-      // In a real app, we would save this back to the database
-      // For now, just return the updated property
-      return updatedProperty;
+      return updatedData as unknown as Property;
     } catch (error) {
       console.error(`Error updating property with ID ${id}:`, error);
       throw error;
@@ -203,22 +226,27 @@ export const PropertyService = {
    */
   async archiveProperty(id: string): Promise<Property> {
     try {
-      // Find the property in our sample data
-      const propertyIndex = sampleProperties.findIndex(p => p.id === id);
+      // Update the property status to archived in the database
+      const { data: archivedProperty, error } = await supabase
+        .from('properties')
+        .update({ 
+          status: 'archived',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
       
-      if (propertyIndex === -1) {
+      if (error) {
+        console.error(`Error archiving property with ID ${id}:`, error);
+        throw error;
+      }
+      
+      if (!archivedProperty) {
         throw new Error(`Property with ID ${id} not found`);
       }
       
-      // Update the property status to archived
-      const archivedProperty = {
-        ...sampleProperties[propertyIndex],
-        status: 'archived' as const
-      };
-      
-      // In a real app, we would save this back to the database
-      // For now, just return the archived property
-      return archivedProperty;
+      return archivedProperty as unknown as Property;
     } catch (error) {
       console.error(`Error archiving property with ID ${id}:`, error);
       throw error;
