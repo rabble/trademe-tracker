@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { logErrorDetails, logEnvironmentInfo } from './debugUtils'
+import type { Database } from './supabase/schema'
 
 // Log environment information on initialization
 logEnvironmentInfo()
@@ -24,7 +25,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
 // Test Supabase connection
 ;(async () => {

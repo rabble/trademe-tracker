@@ -14,12 +14,10 @@
     "scrape": "cd worker && npm run scrape",
     "scrape:debug": "cd worker && npm run scrape:debug",
     "deploy": "npm run build && wrangler deploy",
-    "supabase:start": "supabase start",
-    "supabase:stop": "supabase stop",
-    "supabase:reset": "supabase db reset",
     "supabase:migration:new": "supabase migration new",
-    "supabase:migration:up": "supabase db push",
-    "supabase:types": "supabase gen types typescript --local > src/lib/supabase/schema.ts"
+    "supabase:migration:apply": "node scripts/apply-migration.js",
+    "supabase:db:reset": "node scripts/reset-database.js",
+    "supabase:types": "supabase gen types typescript > src/lib/supabase/schema.ts"
   },
   "overrides": {
     "amqplib": {

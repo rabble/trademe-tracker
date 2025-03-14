@@ -55,13 +55,13 @@ export function DebugPage() {
             data
           });
           
-          // Check database schema
+          // Check database schema using information_schema
           console.log('Checking database schema...');
           try {
             const { data: tablesData, error: tablesError } = await supabase
-              .from('pg_tables')
-              .select('*')
-              .eq('schemaname', 'public');
+              .from('information_schema.tables')
+              .select('table_name')
+              .eq('table_schema', 'public');
               
             if (tablesError) {
               console.error('Error fetching tables:', tablesError);
@@ -69,7 +69,7 @@ export function DebugPage() {
               console.log('Available tables:', tablesData);
               setEnvInfo(prev => ({ 
                 ...prev, 
-                availableTables: tablesData?.map(t => t.tablename).join(', ') || 'None found' 
+                availableTables: tablesData?.map((t: any) => t.table_name).join(', ') || 'None found' 
               }));
             }
           } catch (schemaError) {

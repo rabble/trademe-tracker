@@ -1,12 +1,12 @@
 /**
  * Utility functions for managing database migrations
- * This is used for development and testing purposes
+ * This is used for development and testing purposes with a remote Supabase instance
  */
 
 import { supabase } from '../supabase';
 
 /**
- * Run a SQL migration script
+ * Run a SQL migration script on the remote Supabase instance
  * @param sql The SQL script to execute
  * @returns Promise that resolves when the migration is complete
  */
@@ -18,14 +18,30 @@ export async function runMigration(sql: string): Promise<void> {
       return;
     }
 
-    console.log('Running migration...');
+    console.log('Running migration on remote Supabase instance...');
     
-    // Execute the SQL script
-    const { error } = await supabase.rpc('exec_sql', { sql });
+    // Split the SQL into individual statements for better error handling
+    const statements = sql
+      .replace(/--.*$/gm, '') // Remove comments
+      .split(';')
+      .filter(statement => statement.trim().length > 0);
     
-    if (error) {
-      console.error('Migration failed:', error);
-      throw error;
+    console.log(`Executing ${statements.length} SQL statements...`);
+    
+    // Execute each statement separately
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i].trim();
+      console.log(`Executing statement ${i + 1}/${statements.length}...`);
+      
+      const { error } = await supabase.rpc('exec_sql', { 
+        sql: statement + ';' 
+      });
+      
+      if (error) {
+        console.error(`Error executing statement ${i + 1}:`, error);
+        console.error('Statement:', statement);
+        throw error;
+      }
     }
     
     console.log('Migration completed successfully');
@@ -37,7 +53,7 @@ export async function runMigration(sql: string): Promise<void> {
 
 /**
  * Reset the database (for development only)
- * This will drop all tables and recreate them
+ * This will drop all tables and recreate them on the remote Supabase instance
  */
 export async function resetDatabase(): Promise<void> {
   try {
@@ -47,7 +63,7 @@ export async function resetDatabase(): Promise<void> {
       return;
     }
 
-    console.log('Resetting database...');
+    console.log('Resetting database on remote Supabase instance...');
     
     // Drop all tables
     const dropTablesSQL = `
@@ -58,6 +74,7 @@ export async function resetDatabase(): Promise<void> {
       DROP TABLE IF EXISTS public.properties CASCADE;
     `;
     
+    console.log('Dropping existing tables...');
     const { error: dropError } = await supabase.rpc('exec_sql', { sql: dropTablesSQL });
     
     if (dropError) {
@@ -65,7 +82,7 @@ export async function resetDatabase(): Promise<void> {
       throw dropError;
     }
     
-    console.log('Database reset completed successfully');
+    console.log('Tables dropped successfully. You should now apply the initial migration.');
   } catch (error) {
     console.error('Error resetting database:', error);
     throw error;
