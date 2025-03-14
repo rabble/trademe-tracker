@@ -16,6 +16,17 @@ export function usePropertyNotes(propertyId: string | undefined) {
     async function fetchNotes() {
       if (!propertyId) return;
       
+      // Check if propertyId is a valid UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(propertyId)) {
+        console.warn('Invalid UUID format for property ID:', propertyId);
+        if (isMounted) {
+          setError(new Error('Invalid property ID format'));
+          setIsLoading(false);
+        }
+        return;
+      }
+      
       try {
         setIsLoading(true);
         setError(null);
@@ -53,6 +64,14 @@ export function usePropertyNotes(propertyId: string | undefined) {
   const saveNotes = async (newNotes: string) => {
     if (!propertyId) {
       console.error('[usePropertyNotes] Cannot save notes: propertyId is undefined');
+      return;
+    }
+    
+    // Check if propertyId is a valid UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(propertyId)) {
+      console.error('[usePropertyNotes] Invalid UUID format for property ID:', propertyId);
+      setSaveError(new Error('Invalid property ID format'));
       return;
     }
     

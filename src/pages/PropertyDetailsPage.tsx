@@ -21,6 +21,15 @@ export function PropertyDetailsPage() {
       
       try {
         console.log('Loading notes for property:', id);
+        console.log('Property ID type:', typeof id);
+        
+        // Check if id is a valid UUID
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(id)) {
+          console.warn('Invalid UUID format for property ID:', id);
+          return;
+        }
+        
         const { data, error } = await supabase
           .from('properties')
           .select('user_notes')
@@ -210,6 +219,19 @@ export function PropertyDetailsPage() {
               onClick={async () => {
                 try {
                   console.log('Saving notes to database:', notes);
+                  console.log('Property ID:', id);
+                  console.log('Property ID type:', typeof id);
+                  
+                  // Check if id is a valid UUID
+                  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+                  if (!uuidRegex.test(id || '')) {
+                    console.error('Invalid UUID format for property ID:', id);
+                    alert('Cannot save notes: Invalid property ID format');
+                    return;
+                  }
+                  
+                  setIsSavingNotes(true);
+                  
                   // Direct Supabase update
                   const { data, error } = await supabase
                     .from('properties')
@@ -227,8 +249,11 @@ export function PropertyDetailsPage() {
                 } catch (err) {
                   console.error('Exception saving notes:', err);
                   alert('An error occurred while saving notes');
+                } finally {
+                  setIsSavingNotes(false);
                 }
               }}
+              disabled={isSavingNotes}
             >
               Save Notes
             </button>
