@@ -5,24 +5,99 @@
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TradeMe Property Tracker</title>
+    <style>
+      /* Basic error styles */
+      .error-container {
+        display: none;
+        margin: 2rem auto;
+        max-width: 800px;
+        padding: 2rem;
+        border: 1px solid #f56565;
+        border-radius: 0.5rem;
+        background-color: #fff5f5;
+        color: #c53030;
+      }
+      .error-details {
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #f7fafc;
+        border-radius: 0.25rem;
+        font-family: monospace;
+        white-space: pre-wrap;
+        overflow-x: auto;
+      }
+      /* Only show error container when there's an error */
+      body.has-error .error-container {
+        display: block;
+      }
+      body.has-error #root {
+        display: none;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- Error display container -->
+    <div class="error-container">
+      <h2>Application Error</h2>
+      <p>There was a problem loading the application. Technical details below:</p>
+      <div class="error-details" id="error-details">No specific error details available.</div>
+      <div style="margin-top: 1rem;">
+        <button onclick="location.reload()">Reload Page</button>
+        <button onclick="localStorage.clear(); sessionStorage.clear(); location.reload()">Clear Storage & Reload</button>
+      </div>
+    </div>
+    
     <script type="module" src="./src/main.tsx"></script>
     <script>
-      // Debug information
+      // Enhanced debug information
       console.log('Environment:', {
         location: window.location.toString(),
         href: window.location.href,
         origin: window.location.origin,
         pathname: window.location.pathname,
-        host: window.location.host
+        host: window.location.host,
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        cookiesEnabled: navigator.cookieEnabled
       });
       
       // Check for network errors
       window.addEventListener('error', function(e) {
         console.error('Resource error:', e.target.src || e.target.href, e);
+        
+        // Display error in the UI
+        document.body.classList.add('has-error');
+        const errorDetails = document.getElementById('error-details');
+        errorDetails.textContent = 'Resource Error: ' + 
+          (e.target.src || e.target.href || 'unknown resource') + 
+          '\nError: ' + e.message + 
+          '\nTimestamp: ' + new Date().toISOString();
       }, true);
+      
+      // Handle unhandled promise rejections
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled Promise Rejection:', e.reason);
+        
+        // Display error in the UI
+        document.body.classList.add('has-error');
+        const errorDetails = document.getElementById('error-details');
+        errorDetails.textContent = 'Unhandled Promise Rejection: ' + 
+          (e.reason ? (e.reason.stack || e.reason.message || JSON.stringify(e.reason)) : 'Unknown error') +
+          '\nTimestamp: ' + new Date().toISOString();
+      });
+      
+      // Check if the page loaded correctly
+      window.addEventListener('load', function() {
+        // If the root element is empty after load, something might be wrong
+        setTimeout(function() {
+          const rootElement = document.getElementById('root');
+          if (rootElement && (!rootElement.children || rootElement.children.length === 0)) {
+            console.warn('Application may not have loaded correctly - root element is empty');
+          }
+        }, 2000); // Check after 2 seconds
+      });
     </script>
   </body>
 </html>
