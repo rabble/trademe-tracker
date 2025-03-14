@@ -11,7 +11,7 @@ export function getIndexHtmlTemplate(): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TradeMe Property Tracker</title>
     <!-- In production, this should be the built JS file -->
-    <script type="module" crossorigin src="/assets/index-DZ-J4Eak.js"></script>
+    <script type="module" crossorigin src="/assets/index-DZ-J4Eak.js"><\/script>
     <link rel="stylesheet" href="/assets/index-CVok2Bc6.css">
     
     <!-- Fallback for development -->
@@ -31,7 +31,7 @@ export function getIndexHtmlTemplate(): string {
           e.preventDefault();
         }
       }, true);
-    </script>
+    <\/script>
   </head>
   <body>
     <div id="root">
@@ -89,22 +89,22 @@ export function getIndexHtmlTemplate(): string {
             // Add more detailed error information
             const errorDetails = document.createElement('div');
             errorDetails.className = 'error-details';
-            errorDetails.innerHTML = `
-              <h3>Database Error</h3>
-              <p>${errorMsg}</p>
-              <p>The application requires the following tables in Supabase:</p>
+            errorDetails.innerHTML = \`
+              <h3>Database Error<\/h3>
+              <p>\${errorMsg}<\/p>
+              <p>The application requires the following tables in Supabase:<\/p>
               <ul>
-                <li>properties</li>
-                <li>property_insights</li>
-                <li>property_changes</li>
-              </ul>
-              <p>Please check your Supabase setup or contact the administrator.</p>
-            `;
+                <li>properties<\/li>
+                <li>property_insights<\/li>
+                <li>property_changes<\/li>
+              <\/ul>
+              <p>Please check your Supabase setup or contact the administrator.<\/p>
+            \`;
             document.querySelector('.container').appendChild(errorDetails);
           }
         }
       });
-    </script>
+    <\/script>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
