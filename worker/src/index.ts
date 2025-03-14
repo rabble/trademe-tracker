@@ -164,6 +164,14 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
     if (env.__STATIC_CONTENT) {
       console.log('Using __STATIC_CONTENT to serve static assets');
         
+      // Debug environment bindings
+      console.log('Environment bindings:', {
+        hasAssets: !!env.ASSETS,
+        hasStaticContent: !!env.__STATIC_CONTENT,
+        hasStaticContentManifest: !!env.__STATIC_CONTENT_MANIFEST,
+        availableBindings: Object.keys(env)
+      });
+        
       try {
         // Remove leading slash for KV lookup
         const key = path.replace(/^\//, '');
@@ -240,7 +248,7 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
         if (!path.includes('.')) {
           console.log('Path is a route, serving index.html for SPA routing');
           try {
-            const indexAsset = await env.__STATIC_CONTENT.get('index.html', { type: 'stream' });
+            const indexAsset = await env.__STATIC_CONTENT.get('index.html', { type: 'arrayBuffer' });
             if (indexAsset) {
               return new Response(indexAsset, {
                 headers: {
@@ -260,8 +268,9 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
     
     // If we get here, we couldn't find the asset in any of the bindings
     // Serve the fallback HTML template
-    console.log('No static content found, serving fallback HTML template');
-    return new Response(getIndexHtmlTemplate(), {
+    console.log('No static content bindings available or all attempts failed, serving fallback HTML');
+    const fallbackHtml = getIndexHtmlTemplate();
+    return new Response(fallbackHtml, {
       headers: { 'Content-Type': 'text/html' }
     });
   } catch (error) {

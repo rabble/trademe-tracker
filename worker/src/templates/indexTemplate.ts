@@ -14,14 +14,14 @@ export function getIndexHtmlTemplate(): string {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TradeMe Property Tracker</title>
     <!-- In production, this should be the built JS file -->
-    <script type="module" crossorigin src="/assets/index-DZ-J4Eak.js"><\/script>
-    <link rel="stylesheet" href="/assets/index-CVok2Bc6.css">
+    <script type="module" crossorigin src="/assets/main-ZE2AqzNy.js"><\/script>
+    <link rel="stylesheet" href="/assets/main-B7OYuCRH.css">
     
     <!-- Fallback for development -->
     <script>
       // Check if the main script failed to load
       window.addEventListener('error', function(e) {
-        if (e.target && e.target.src && e.target.src.includes('index-DZ-J4Eak.js')) {
+        if (e.target && e.target.src && e.target.src.includes('main-ZE2AqzNy.js')) {
           console.log('Production script failed to load, trying development path');
           
           // Create and append development script
