@@ -50,39 +50,76 @@ async function applyMigration() {
     // Read the migration file
     const sql = readFileSync(migrationPath, 'utf8');
     
-    // Execute the entire SQL script at once
-    console.log('Executing SQL migration...');
+    // Split the SQL into individual statements
+    const statements = sql
+      .replace(/--.*$/gm, '') // Remove comments
+      .split(';')
+      .filter(statement => statement.trim().length > 0);
     
-    const { error } = await supabase.from('_migrations')
-      .insert({
-        name: migrationFile,
-        executed_at: new Date().toISOString(),
-        hash: 'manual-migration'
+    console.log(`Found ${statements.length} SQL statements to execute`);
+    
+    // Create a _migrations table if it doesn't exist
+    try {
+      await supabase.rpc('pg_execute', { 
+        query: `
+          CREATE TABLE IF NOT EXISTS public._migrations (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            executed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            hash TEXT
+          )
+        `
       });
-    
-    if (error && error.code !== '42P01') { // Ignore error if _migrations table doesn't exist yet
-      console.error('Error recording migration:', error);
+    } catch (err) {
+      console.log('Note: Could not create _migrations table:', err.message);
       // Continue anyway
     }
     
-    // Use the REST API to execute the SQL directly
-    const response = await fetch(`${supabaseUrl}/rest/v1/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify({
-        query: sql
-      })
-    });
+    // Execute each statement separately using pg_execute RPC
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i].trim();
+      console.log(`Executing statement ${i + 1}/${statements.length}...`);
+      
+      try {
+        const { error } = await supabase.rpc('pg_execute', { query: statement });
+        
+        if (error) {
+          console.error(`Error executing statement ${i + 1}:`, error);
+          console.error('Statement:', statement);
+          throw error;
+        }
+      } catch (err) {
+        // If pg_execute doesn't exist, we'll get an error
+        if (err.message && err.message.includes('pg_execute')) {
+          console.error('The pg_execute function does not exist in your Supabase instance.');
+          console.error('Please run this SQL in the Supabase SQL Editor to create it:');
+          console.error(`
+CREATE OR REPLACE FUNCTION pg_execute(query text)
+RETURNS VOID AS $$
+BEGIN
+  EXECUTE query;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+          `);
+          throw new Error('Missing pg_execute function. See instructions above.');
+        } else {
+          throw err;
+        }
+      }
+    }
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error executing SQL:', errorData);
-      throw new Error(`Failed to execute SQL: ${response.status} ${response.statusText}`);
+    // Record the migration
+    try {
+      await supabase.rpc('pg_execute', { 
+        query: `
+          INSERT INTO public._migrations (name, hash)
+          VALUES ('${migrationFile}', 'manual-migration')
+        `
+      });
+      console.log('Migration recorded in _migrations table');
+    } catch (err) {
+      console.log('Note: Could not record migration:', err.message);
+      // Continue anyway
     }
     
     console.log('Migration applied successfully');
