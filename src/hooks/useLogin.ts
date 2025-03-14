@@ -12,12 +12,18 @@ export function useLogin() {
       
       const { error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       })
-
-      if (error) throw error
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during login')
+      
+      if (error) {
+        throw error
+      }
+      
+      return { success: true }
+    } catch (err: any) {
+      console.error('Login error:', err)
+      setError(err.message || 'Failed to log in')
+      return { success: false }
     } finally {
       setLoading(false)
     }

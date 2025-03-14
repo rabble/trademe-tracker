@@ -12,12 +12,18 @@ export function useRegister() {
       
       const { error } = await supabase.auth.signUp({
         email,
-        password,
+        password
       })
-
-      if (error) throw error
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during registration')
+      
+      if (error) {
+        throw error
+      }
+      
+      return { success: true }
+    } catch (err: any) {
+      console.error('Registration error:', err)
+      setError(err.message || 'Failed to register')
+      return { success: false }
     } finally {
       setLoading(false)
     }

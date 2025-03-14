@@ -11,9 +11,16 @@ export function useLogout() {
       setError(null)
       
       const { error } = await supabase.auth.signOut()
-      if (error) throw error
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred during logout')
+      
+      if (error) {
+        throw error
+      }
+      
+      return { success: true }
+    } catch (err: any) {
+      console.error('Logout error:', err)
+      setError(err.message || 'Failed to log out')
+      return { success: false }
     } finally {
       setLoading(false)
     }

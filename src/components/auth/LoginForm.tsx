@@ -9,7 +9,10 @@ export function LoginForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    await login(email, password)
+    const result = await login(email, password)
+    if (result?.success) {
+      // Redirect will happen automatically via auth state change
+    }
   }
 
   return (

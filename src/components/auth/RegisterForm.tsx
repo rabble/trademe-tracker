@@ -27,7 +27,10 @@ export function RegisterForm() {
       return
     }
     
-    await register(email, password)
+    const result = await register(email, password)
+    if (result?.success) {
+      // Redirect will happen automatically via auth state change
+    }
   }
 
   return (
