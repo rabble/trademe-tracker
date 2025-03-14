@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { runNetworkDiagnostics } from '../utils/networkDiagnostics';
 import { logEnvironmentInfo } from '../lib/debugUtils';
 import { supabase } from '../lib/supabase';
+import { SupabaseTest } from '../components/debug/SupabaseTest';
 
 export function DebugPage() {
   const [diagnostics, setDiagnostics] = useState<Record<string, any> | null>(null);
@@ -288,6 +289,11 @@ export function DebugPage() {
             List All Tables
           </button>
         </div>
+      </div>
+      
+      {/* Supabase Integration Test Component */}
+      <div className="mt-6">
+        <SupabaseTest />
       </div>
     </div>
   );
