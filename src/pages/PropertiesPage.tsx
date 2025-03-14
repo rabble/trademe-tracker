@@ -7,6 +7,7 @@ import { useProperties } from '../hooks/property/useProperties'
 import { PropertyFilters as ServicePropertyFilters } from '../services/property/propertyService'
 import { Property, PropertyFilters } from '../types'
 import { SearchBar, FilterPanel, ActiveFilters, SavedFilters } from '../components/filter'
+import { PropertyCategoryFilter } from '../components/filter/components/PropertyCategoryFilter'
 import { MapView } from '../components/map/MapView'
 
 export function PropertiesPage() {
@@ -128,41 +129,10 @@ export function PropertiesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
             {/* Property Category Toggle */}
-            <div className="inline-flex rounded-md shadow-sm">
-              <button
-                type="button"
-                onClick={() => setFilters(prev => ({ ...prev, propertyCategory: 'all' }))}
-                className={`relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
-                  filters.propertyCategory === 'all' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                All
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilters(prev => ({ ...prev, propertyCategory: 'for_sale' }))}
-                className={`relative inline-flex items-center px-4 py-2 border-t border-b border-r border-gray-300 text-sm font-medium ${
-                  filters.propertyCategory === 'for_sale' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                For Sale
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilters(prev => ({ ...prev, propertyCategory: 'rental' }))}
-                className={`relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
-                  filters.propertyCategory === 'rental' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Rentals
-              </button>
-            </div>
+            <PropertyCategoryFilter 
+              value={filters.propertyCategory as 'all' | 'for_sale' | 'rental'} 
+              onChange={(value) => setFilters(prev => ({ ...prev, propertyCategory: value }))}
+            />
             
             <SearchBar 
               value={filters.searchQuery || ''} 
