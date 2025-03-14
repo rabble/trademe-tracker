@@ -180,7 +180,7 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
         // Direct lookup first - ensure we're getting a ReadableStream
         let assetBody = null;
         try {
-          const asset = await env.__STATIC_CONTENT.get(key, { type: 'stream' });
+          const asset = await env.__STATIC_CONTENT.get(key, { type: 'arrayBuffer' });
           if (asset) {
             assetBody = asset;
             console.log(`Found asset directly: ${key}`);
@@ -212,7 +212,7 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
               
             if (matchingAsset) {
               console.log(`Found matching hashed asset: ${matchingAsset.name}`);
-              assetBody = await env.__STATIC_CONTENT.get(matchingAsset.name, { type: 'stream' });
+              assetBody = await env.__STATIC_CONTENT.get(matchingAsset.name, { type: 'arrayBuffer' });
             }
           } catch (hashError) {
             console.error('Error finding hashed asset:', hashError);
