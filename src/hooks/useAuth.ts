@@ -1,15 +1,28 @@
-import { useState } from 'react'
-
-// Mock user data
-const mockUser = {
-  id: 'mock-user-id',
-  email: 'user@example.com'
-}
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabase'
 
 export function useAuth() {
-  // Always return a mock user and not loading
-  const [user] = useState(mockUser)
-  const [loading] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function getCurrentUser() {
+      const { data } = await supabase.auth.getUser()
+      setUser(data?.user ?? null)
+      setLoading(false)
+    }
+
+    getCurrentUser()
+
+    const { data: authSubscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    return () => {
+      authSubscription.subscription.unsubscribe()
+    }
+  }, [])
 
   return { user, loading }
 }
