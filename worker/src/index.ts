@@ -189,27 +189,31 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
           console.error(`Error getting asset ${key}:`, getError);
         }
           
-        // If not found and it's an asset path, try to find with hash
-        if (!assetBody && path.includes('/assets/')) {
+        // If not found, try to find a hashed version for any path with a dot extension
+        if (!assetBody && path.includes('.')) {
           console.log(`Asset not found directly, trying to find hashed version for: ${key}`);
-            
           try {
-            const assetPath = path.split('/assets/')[1];
-            const parts = assetPath.split('.');
+            // Remove leading slash from path, then split by dots
+            const cleanPath = path.replace(/^\/+/, '');
+            const parts = cleanPath.split('.');
             const extension = parts.pop();
             const baseName = parts.join('.');
-              
+            
             console.log(`Looking for asset with basename: ${baseName} and extension: ${extension}`);
-              
-            // List all assets to find the hashed version
-            const assets = await env.__STATIC_CONTENT.list({ prefix: 'assets/' });
-              
-            // Find matching asset with hash
+            
+            // List assets, searching by the first segment as prefix if applicable
+            let prefix = '';
+            if (baseName.includes('/')) {
+              prefix = baseName.slice(0, baseName.indexOf('/')) + '/';
+            }
+            const assets = await env.__STATIC_CONTENT.list({ prefix });
+            
+            // Find a hashed asset matching baseName + hashed + .extension
             const matchingAsset = assets?.keys?.find(k => {
               const name = k.name;
-              return name.startsWith(`assets/${baseName}`) && name.endsWith(`.${extension}`);
+              return name.startsWith(baseName) && name.endsWith(`.${extension}`);
             });
-              
+            
             if (matchingAsset) {
               console.log(`Found matching hashed asset: ${matchingAsset.name}`);
               assetBody = await env.__STATIC_CONTENT.get(matchingAsset.name, { type: 'arrayBuffer' });
