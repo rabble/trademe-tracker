@@ -168,6 +168,10 @@ export function mapListingToProperty(item: any): Property {
   // Calculate days on market
   const daysOnMarket = calculateDaysOnMarket(item.StartDate);
   
+  // Determine listing type based on category
+  const isRental = item.CategoryPath && item.CategoryPath.includes('5779');
+  const listing_type: 'for_sale' | 'rental' = isRental ? 'rental' : 'for_sale';
+
   return {
     id,
     title: item.Title || 'Untitled Property',
@@ -184,7 +188,8 @@ export function mapListingToProperty(item: any): Property {
     updated_at: new Date().toISOString(),
     image_urls: item.PictureHref ? [item.PictureHref] : [],
     trademe_listing_id: id,
-    url: `https://www.trademe.co.nz/a/property/residential/sale/listing/${id}`
+    listing_type,
+    url: `https://www.trademe.co.nz/a/property/residential/${listing_type === 'rental' ? 'rent' : 'sale'}/listing/${id}`
   };
 }
 
