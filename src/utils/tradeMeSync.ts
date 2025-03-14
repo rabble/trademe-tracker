@@ -26,7 +26,7 @@ export async function syncTradeMeProperties(tradeMeProperties: Property[]): Prom
         const { data: existingProperties } = await supabase
           .from('properties')
           .select('*')
-          .eq('trademe_listing_id', tradeMeProperty.trademe_listing_id)
+          .eq('trademe_listing_id', tradeMeProperty.trademe_listing_id || '')
           .limit(1);
         
         const existingProperty = existingProperties?.[0];
