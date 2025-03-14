@@ -154,57 +154,57 @@ INSERT INTO public.property_images (
 ) VALUES
 (
     (SELECT id FROM public.properties WHERE title = 'Stunning Waterfront Villa' LIMIT 1),
-    'https://images.unsplash.com/photo-1580587771525-78b9dba3b914',
+    'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=60',
     true
 ),
 (
     (SELECT id FROM public.properties WHERE title = 'Stunning Waterfront Villa' LIMIT 1),
-    'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83',
+    'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&w=800&q=60',
     false
 ),
 (
     (SELECT id FROM public.properties WHERE title = 'Modern City Apartment' LIMIT 1),
-    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267',
+    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=60',
     true
 ),
 (
     (SELECT id FROM public.properties WHERE title = 'Charming Suburban Home' LIMIT 1),
-    'https://images.unsplash.com/photo-1568605114967-8130f3a36994',
+    'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=60',
     true
 ),
 (
     (SELECT id FROM public.properties WHERE title = 'Luxury Penthouse' LIMIT 1),
-    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750',
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=60',
     true
 ),
 (
     (SELECT id FROM public.properties WHERE title = 'Cozy Cottage' LIMIT 1),
-    'https://images.unsplash.com/photo-1510798831971-661eb04b3739',
+    'https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=800&q=60',
     true
 ),
 (
     (SELECT id FROM public.properties WHERE title = 'Beachfront Condo' LIMIT 1),
-    'https://images.unsplash.com/photo-1523217582562-09d0def993a6',
+    'https://images.unsplash.com/photo-1523217582562-09d0def993a6?auto=format&fit=crop&w=800&q=60',
     true
 ),
 (
     (SELECT id FROM public.properties WHERE title = 'Rural Lifestyle Property' LIMIT 1),
-    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6',
+    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=60',
     true
 ),
 (
     (SELECT id FROM public.properties WHERE title = 'Historic Villa' LIMIT 1),
-    'https://images.unsplash.com/photo-1577495508048-b635879837f1',
+    'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=60',
     true
 ),
 (
     (SELECT id FROM public.properties WHERE title = 'Mountain View Retreat' LIMIT 1),
-    'https://images.unsplash.com/photo-1513584684374-8bab748fbf90',
+    'https://images.unsplash.com/photo-1513584684374-8bab748fbf90?auto=format&fit=crop&w=800&q=60',
     true
 ),
 (
     (SELECT id FROM public.properties WHERE title = 'Urban Townhouse' LIMIT 1),
-    'https://images.unsplash.com/photo-1494526585095-c41746248156',
+    'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=800&q=60',
     true
 );
 

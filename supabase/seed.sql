@@ -104,17 +104,17 @@ INSERT INTO public.property_images (
 ) VALUES
 (
     (SELECT id FROM public.properties WHERE address = '123 Main Street, Wellington' LIMIT 1),
-    'https://example.com/images/123-main-st-1.jpg',
+    'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=800&q=60',
     true
 ),
 (
     (SELECT id FROM public.properties WHERE address = '123 Main Street, Wellington' LIMIT 1),
-    'https://example.com/images/123-main-st-2.jpg',
+    'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=800&q=60',
     false
 ),
 (
     (SELECT id FROM public.properties WHERE address = '45 Harbor Road, Auckland' LIMIT 1),
-    'https://example.com/images/45-harbor-rd-1.jpg',
+    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=60',
     true
 );
 

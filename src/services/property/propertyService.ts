@@ -140,8 +140,28 @@ export const PropertyService = {
         throw error;
       }
       
+      // Process the data to ensure all properties have valid image URLs
+      const processedData = data?.map(property => {
+        // Add a default primary image if none exists
+        if (!property.property_images || property.property_images.length === 0) {
+          return {
+            ...property,
+            primary_image_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=60'
+          };
+        }
+        
+        // Find the primary image
+        const primaryImage = property.property_images.find(img => img.is_primary);
+        
+        return {
+          ...property,
+          primary_image_url: primaryImage?.url || property.property_images[0]?.url || 
+            'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=60'
+        };
+      });
+      
       return {
-        data: data as unknown as Property[],
+        data: processedData as unknown as Property[],
         count: count || 0,
       };
     } catch (error) {
@@ -177,8 +197,17 @@ export const PropertyService = {
       if (!data) {
         throw new Error(`Property with ID ${id} not found`);
       }
+      
+      // Process the data to ensure the property has valid image URLs
+      const processedData = {
+        ...data,
+        primary_image_url: data.primary_image_url || 
+          (data.property_images && data.property_images.length > 0 ? 
+            data.property_images.find(img => img.is_primary)?.url || data.property_images[0]?.url : 
+            'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=60')
+      };
 
-      return data as unknown as Property;
+      return processedData as unknown as Property;
     } catch (error) {
       console.error(`Error fetching property with ID ${id}:`, error);
       throw error;
