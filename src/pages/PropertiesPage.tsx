@@ -12,7 +12,7 @@ import { MapView } from '../components/map/MapView'
 export function PropertiesPage() {
   // State for filters, pagination, and view mode
   const [filters, setFilters] = useState<PropertyFilters>({
-    propertyCategory: 'for_sale' // Default to 'for_sale'
+    propertyCategory: 'all' // Default to 'all'
   })
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -27,29 +27,7 @@ export function PropertiesPage() {
     setPage(1)
   }, [filters])
   
-  // Check if user has any properties and set default category
-  useEffect(() => {
-    async function checkUserProperties() {
-      try {
-        // Check for sale properties
-        const forSaleResult = await PropertyService.fetchProperties({ propertyCategory: 'for_sale' }, { limit: 1 });
-        
-        // If no for sale properties, check rentals
-        if (forSaleResult.count === 0) {
-          const rentalResult = await PropertyService.fetchProperties({ propertyCategory: 'rental' }, { limit: 1 });
-          
-          // If user has rental properties but no for sale properties, default to rentals
-          if (rentalResult.count > 0) {
-            setFilters(prev => ({ ...prev, propertyCategory: 'rental' }));
-          }
-        }
-      } catch (error) {
-        console.error('Error checking user properties:', error);
-      }
-    }
-    
-    checkUserProperties();
-  }, []);
+  // This effect is no longer needed since we default to 'all'
 
   // Convert our app filters to service filters
   const serviceFilters: ServicePropertyFilters = {
@@ -153,8 +131,19 @@ export function PropertiesPage() {
             <div className="inline-flex rounded-md shadow-sm">
               <button
                 type="button"
-                onClick={() => setFilters(prev => ({ ...prev, propertyCategory: 'for_sale' }))}
+                onClick={() => setFilters(prev => ({ ...prev, propertyCategory: 'all' }))}
                 className={`relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
+                  filters.propertyCategory === 'all' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilters(prev => ({ ...prev, propertyCategory: 'for_sale' }))}
+                className={`relative inline-flex items-center px-4 py-2 border-t border-b border-r border-gray-300 text-sm font-medium ${
                   filters.propertyCategory === 'for_sale' 
                     ? 'bg-indigo-600 text-white' 
                     : 'bg-white text-gray-700 hover:bg-gray-50'

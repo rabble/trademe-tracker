@@ -49,7 +49,7 @@ export const PropertyService = {
           const searchParams: Record<string, string> = {};
           
           if (filters) {
-            if (filters.propertyCategory) {
+            if (filters.propertyCategory && filters.propertyCategory !== 'all') {
               // Set the appropriate TradeMe category based on property category
               searchParams.category = filters.propertyCategory === 'for_sale' 
                 ? '5748' // TradeMe category for residential property for sale
@@ -106,7 +106,7 @@ export const PropertyService = {
           query = query.neq('status', 'archived');
         }
         
-        if (filters.propertyCategory) {
+        if (filters.propertyCategory && filters.propertyCategory !== 'all') {
           // Make sure we're using the right column name in the database
           query = query.eq('listing_type', filters.propertyCategory);
           console.log(`Filtering by property category: ${filters.propertyCategory}`);

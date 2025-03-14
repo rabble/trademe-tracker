@@ -63,7 +63,7 @@ export interface PropertyFilters {
   status?: Array<'active' | 'under_offer' | 'sold' | 'archived'>;
   daysOnMarket?: [number | undefined, number | undefined];
   listingType?: Array<'auction' | 'price_by_negotiation' | 'asking_price' | 'tender' | 'enquiries_over'>;
-  propertyCategory?: 'for_sale' | 'rental';
+  propertyCategory?: 'for_sale' | 'rental' | 'all';
 }
 
 export interface SavedFilter {
