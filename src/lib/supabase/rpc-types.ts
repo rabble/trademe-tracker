@@ -11,7 +11,8 @@ export const __ENSURE_IMPORT = true;
 
 // Extend the SupabaseClient type to include our custom RPC functions
 declare module '@supabase/supabase-js' {
-  interface SupabaseClient<Database = any, SchemaName extends string & keyof Database = 'public' extends string & keyof Database ? 'public' : string & keyof Database, Schema = Database[SchemaName]> {
+  // Use a simpler type declaration that's compatible with the original
+  interface SupabaseClient {
     rpc<R extends Record<string, unknown> = Record<string, unknown>>(
       fn: 'exec_sql',
       params: { sql: string }
