@@ -219,7 +219,11 @@ export function PropertyDetailsPage() {
               rows={4}
             />
             <button
-              className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+              className={`mt-3 px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors ${
+                isSavingNotes 
+                  ? 'bg-indigo-400 cursor-not-allowed' 
+                  : 'bg-indigo-600 hover:bg-indigo-700'
+              }`}
               onClick={async () => {
                 try {
                   console.log('Saving notes to database:', notes);
@@ -249,10 +253,28 @@ export function PropertyDetailsPage() {
                   
                   if (error) {
                     console.error('Error saving notes:', error);
-                    alert('Failed to save notes: ' + error.message);
+                    // Show error in UI instead of alert
+                    const errorElement = document.createElement('div');
+                    errorElement.className = 'text-red-600 mt-2';
+                    errorElement.textContent = 'Failed to save notes: ' + error.message;
+                    
+                    const button = document.activeElement;
+                    if (button && button.parentNode) {
+                      button.parentNode.appendChild(errorElement);
+                      setTimeout(() => errorElement.remove(), 5000);
+                    }
                   } else {
                     console.log('Notes saved successfully:', data);
-                    alert('Notes saved successfully!');
+                    // Show success message in UI instead of alert
+                    const successElement = document.createElement('div');
+                    successElement.className = 'text-green-600 mt-2';
+                    successElement.textContent = 'Notes saved successfully!';
+                    
+                    const button = document.activeElement;
+                    if (button && button.parentNode) {
+                      button.parentNode.appendChild(successElement);
+                      setTimeout(() => successElement.remove(), 3000);
+                    }
                   }
                 } catch (err) {
                   console.error('Exception saving notes:', err);
@@ -263,7 +285,7 @@ export function PropertyDetailsPage() {
               }}
               disabled={isSavingNotes}
             >
-              Save Notes
+              {isSavingNotes ? 'Saving...' : 'Save Notes'}
             </button>
           </div>
         </div>
