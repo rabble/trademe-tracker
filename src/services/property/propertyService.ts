@@ -12,7 +12,7 @@ export interface PropertyFilters {
   bedrooms?: number;
   bathrooms?: number;
   searchQuery?: string;
-  propertyCategory?: 'for_sale' | 'rental';
+  propertyCategory?: 'for_sale' | 'rental' | 'all';
 }
 
 /**
