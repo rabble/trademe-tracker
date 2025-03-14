@@ -109,21 +109,27 @@ export const AnalyticsService = {
    */
   async fetchStatusCounts(): Promise<StatusCounts> {
     try {
-      // Use proper GROUP BY clause
+      // Fetch all properties and count statuses on the client side
       const { data, error } = await supabase
         .from('properties')
-        .select('status, count')
-        .not('status', 'is', null)
-        .group('status');
+        .select('status');
 
       if (error) {
-        console.error('Error fetching status counts:', error);
+        console.error('Error fetching status data:', error);
         throw error;
       }
 
-      const activeCount = this.extractCountForStatus(data, 'active');
-      const underOfferCount = this.extractCountForStatus(data, 'under_offer');
-      const soldCount = this.extractCountForStatus(data, 'sold');
+      // Count properties by status
+      let activeCount = 0;
+      let underOfferCount = 0;
+      let soldCount = 0;
+
+      data?.forEach(property => {
+        if (property.status === 'active') activeCount++;
+        else if (property.status === 'under_offer') underOfferCount++;
+        else if (property.status === 'sold') soldCount++;
+      });
+
       const totalCount = activeCount + underOfferCount + soldCount;
 
       return {
