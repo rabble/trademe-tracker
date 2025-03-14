@@ -6,7 +6,12 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
+// Debug environment variables
+console.log('Environment variables:');
+console.log('VITE_SUPABASE_URL:', process.env.VITE_SUPABASE_URL);
+console.log('VITE_SUPABASE_SERVICE_ROLE_KEY available:', !!process.env.VITE_SUPABASE_SERVICE_ROLE_KEY);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
