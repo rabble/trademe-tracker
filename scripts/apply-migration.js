@@ -50,26 +50,39 @@ async function applyMigration() {
     // Read the migration file
     const sql = readFileSync(migrationPath, 'utf8');
     
-    // Split the SQL into individual statements
-    const statements = sql
-      .replace(/--.*$/gm, '') // Remove comments
-      .split(';')
-      .filter(statement => statement.trim().length > 0);
+    // Execute the entire SQL script at once
+    console.log('Executing SQL migration...');
     
-    console.log(`Found ${statements.length} SQL statements to execute`);
+    const { error } = await supabase.from('_migrations')
+      .insert({
+        name: migrationFile,
+        executed_at: new Date().toISOString(),
+        hash: 'manual-migration'
+      });
     
-    // Execute each statement separately
-    for (let i = 0; i < statements.length; i++) {
-      const statement = statements[i].trim();
-      console.log(`Executing statement ${i + 1}/${statements.length}...`);
-      
-      const { error } = await supabase.rpc('exec_sql', { sql: statement + ';' });
-      
-      if (error) {
-        console.error(`Error executing statement ${i + 1}:`, error);
-        console.error('Statement:', statement);
-        throw error;
-      }
+    if (error && error.code !== '42P01') { // Ignore error if _migrations table doesn't exist yet
+      console.error('Error recording migration:', error);
+      // Continue anyway
+    }
+    
+    // Use the REST API to execute the SQL directly
+    const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        query: sql
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Error executing SQL:', errorData);
+      throw new Error(`Failed to execute SQL: ${response.status} ${response.statusText}`);
     }
     
     console.log('Migration applied successfully');
