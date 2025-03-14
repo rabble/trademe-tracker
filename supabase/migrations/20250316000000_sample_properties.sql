@@ -3,7 +3,6 @@
 
 -- Create sample properties
 INSERT INTO public.properties (
-    id,
     title, 
     address, 
     price, 
@@ -17,7 +16,6 @@ INSERT INTO public.properties (
     user_id
 ) VALUES 
 (
-    '1',
     'Stunning Waterfront Villa',
     '123 Ocean Drive, Auckland',
     1250000,
@@ -31,7 +29,6 @@ INSERT INTO public.properties (
     (SELECT id FROM auth.users LIMIT 1)
 ),
 (
-    '2',
     'Modern City Apartment',
     '45 Queen Street, Auckland',
     650000,
@@ -45,7 +42,6 @@ INSERT INTO public.properties (
     (SELECT id FROM auth.users LIMIT 1)
 ),
 (
-    '3',
     'Charming Suburban Home',
     '78 Maple Avenue, Wellington',
     820000,
@@ -59,7 +55,6 @@ INSERT INTO public.properties (
     (SELECT id FROM auth.users LIMIT 1)
 ),
 (
-    '4',
     'Luxury Penthouse',
     '100 Harbour View Road, Auckland',
     1800000,
@@ -73,7 +68,6 @@ INSERT INTO public.properties (
     (SELECT id FROM auth.users LIMIT 1)
 ),
 (
-    '5',
     'Cozy Cottage',
     '22 Garden Lane, Christchurch',
     450000,
@@ -87,7 +81,6 @@ INSERT INTO public.properties (
     (SELECT id FROM auth.users LIMIT 1)
 ),
 (
-    '6',
     'Beachfront Condo',
     '8 Seaside Boulevard, Mount Maunganui',
     950000,
@@ -101,7 +94,6 @@ INSERT INTO public.properties (
     (SELECT id FROM auth.users LIMIT 1)
 ),
 (
-    '7',
     'Rural Lifestyle Property',
     '156 Country Road, Hamilton',
     1100000,
@@ -115,7 +107,6 @@ INSERT INTO public.properties (
     (SELECT id FROM auth.users LIMIT 1)
 ),
 (
-    '8',
     'Historic Villa',
     '45 Heritage Street, Dunedin',
     780000,
@@ -129,7 +120,6 @@ INSERT INTO public.properties (
     (SELECT id FROM auth.users LIMIT 1)
 ),
 (
-    '9',
     'Mountain View Retreat',
     '72 Alpine Way, Queenstown',
     1450000,
@@ -143,7 +133,6 @@ INSERT INTO public.properties (
     (SELECT id FROM auth.users LIMIT 1)
 ),
 (
-    '10',
     'Urban Townhouse',
     '33 City Centre, Wellington',
     720000,
@@ -164,57 +153,57 @@ INSERT INTO public.property_images (
     is_primary
 ) VALUES
 (
-    '1',
+    (SELECT id FROM public.properties WHERE title = 'Stunning Waterfront Villa' LIMIT 1),
     'https://images.unsplash.com/photo-1580587771525-78b9dba3b914',
     true
 ),
 (
-    '1',
+    (SELECT id FROM public.properties WHERE title = 'Stunning Waterfront Villa' LIMIT 1),
     'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83',
     false
 ),
 (
-    '2',
+    (SELECT id FROM public.properties WHERE title = 'Modern City Apartment' LIMIT 1),
     'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267',
     true
 ),
 (
-    '3',
+    (SELECT id FROM public.properties WHERE title = 'Charming Suburban Home' LIMIT 1),
     'https://images.unsplash.com/photo-1568605114967-8130f3a36994',
     true
 ),
 (
-    '4',
+    (SELECT id FROM public.properties WHERE title = 'Luxury Penthouse' LIMIT 1),
     'https://images.unsplash.com/photo-1512917774080-9991f1c4c750',
     true
 ),
 (
-    '5',
+    (SELECT id FROM public.properties WHERE title = 'Cozy Cottage' LIMIT 1),
     'https://images.unsplash.com/photo-1510798831971-661eb04b3739',
     true
 ),
 (
-    '6',
+    (SELECT id FROM public.properties WHERE title = 'Beachfront Condo' LIMIT 1),
     'https://images.unsplash.com/photo-1523217582562-09d0def993a6',
     true
 ),
 (
-    '7',
+    (SELECT id FROM public.properties WHERE title = 'Rural Lifestyle Property' LIMIT 1),
     'https://images.unsplash.com/photo-1564013799919-ab600027ffc6',
     true
 ),
 (
-    '8',
+    (SELECT id FROM public.properties WHERE title = 'Historic Villa' LIMIT 1),
     'https://images.unsplash.com/photo-1577495508048-b635879837f1',
     true
 ),
 (
-    '9',
+    (SELECT id FROM public.properties WHERE title = 'Mountain View Retreat' LIMIT 1),
     'https://images.unsplash.com/photo-1513584684374-8bab748fbf90',
     true
 ),
 (
-    '10',
+    (SELECT id FROM public.properties WHERE title = 'Urban Townhouse' LIMIT 1),
     'https://images.unsplash.com/photo-1494526585095-c41746248156',
     true
 );
@@ -229,7 +218,7 @@ INSERT INTO public.property_changes (
     description
 ) VALUES
 (
-    '3',
+    (SELECT id FROM public.properties WHERE title = 'Charming Suburban Home' LIMIT 1),
     'status',
     'active',
     'under_offer',
@@ -237,7 +226,7 @@ INSERT INTO public.property_changes (
     'Property received an offer after 14 days on market'
 ),
 (
-    '5',
+    (SELECT id FROM public.properties WHERE title = 'Cozy Cottage' LIMIT 1),
     'status',
     'active',
     'sold',
@@ -245,7 +234,7 @@ INSERT INTO public.property_changes (
     'Property sold after 30 days on market'
 ),
 (
-    '5',
+    (SELECT id FROM public.properties WHERE title = 'Cozy Cottage' LIMIT 1),
     'price',
     '475000',
     '450000',
@@ -253,7 +242,7 @@ INSERT INTO public.property_changes (
     'Price reduced by $25,000 to attract more buyers'
 ),
 (
-    '8',
+    (SELECT id FROM public.properties WHERE title = 'Historic Villa' LIMIT 1),
     'status',
     'active',
     'under_offer',
@@ -261,7 +250,7 @@ INSERT INTO public.property_changes (
     'Property received an offer after 25 days on market'
 ),
 (
-    '7',
+    (SELECT id FROM public.properties WHERE title = 'Rural Lifestyle Property' LIMIT 1),
     'price',
     '1200000',
     '1100000',
@@ -277,43 +266,43 @@ INSERT INTO public.property_insights (
     created_at
 ) VALUES
 (
-    '1',
+    (SELECT id FROM public.properties WHERE title = 'Stunning Waterfront Villa' LIMIT 1),
     'market_comparison',
     'This property is priced 5% above similar properties in the area.',
     NOW() - INTERVAL '7 days'
 ),
 (
-    '2',
+    (SELECT id FROM public.properties WHERE title = 'Modern City Apartment' LIMIT 1),
     'price_trend',
     'Apartment prices in this area have increased by 8% in the last 12 months.',
     NOW() - INTERVAL '5 days'
 ),
 (
-    '3',
+    (SELECT id FROM public.properties WHERE title = 'Charming Suburban Home' LIMIT 1),
     'recommendation',
     'Consider accepting the current offer as it is within 3% of the asking price.',
     NOW() - INTERVAL '2 days'
 ),
 (
-    '4',
+    (SELECT id FROM public.properties WHERE title = 'Luxury Penthouse' LIMIT 1),
     'market_comparison',
     'Luxury properties in this area typically sell within 45 days.',
     NOW() - INTERVAL '15 days'
 ),
 (
-    '5',
+    (SELECT id FROM public.properties WHERE title = 'Cozy Cottage' LIMIT 1),
     'price_trend',
     'Properties in this neighborhood have seen a 6% increase in value over the past year.',
     NOW() - INTERVAL '20 days'
 ),
 (
-    '7',
+    (SELECT id FROM public.properties WHERE title = 'Rural Lifestyle Property' LIMIT 1),
     'recommendation',
     'Consider another price reduction if no offers are received in the next 15 days.',
     NOW() - INTERVAL '10 days'
 ),
 (
-    '9',
+    (SELECT id FROM public.properties WHERE title = 'Mountain View Retreat' LIMIT 1),
     'market_comparison',
     'This property is priced competitively compared to similar mountain properties.',
     NOW() - INTERVAL '8 days'
