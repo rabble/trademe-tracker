@@ -26,11 +26,11 @@ export function SupabaseTest() {
           console.log('RPC function not found, using direct fetch');
           
           // Use fetch directly with the REST API
-          const response = await fetch(`${supabase.supabaseUrl}/rest/v1/`, {
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/`, {
             headers: {
               'Content-Type': 'application/json',
-              'apikey': supabase.supabaseKey,
-              'Authorization': `Bearer ${supabase.supabaseKey}`
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
             }
           });
           
