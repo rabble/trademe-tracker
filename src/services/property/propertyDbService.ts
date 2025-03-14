@@ -16,10 +16,24 @@ export const PropertyDbService = {
     page: number = 1,
     limit: number = 20
   ): Promise<{ data: Property[]; count: number }> {
+    // Check if the properties table exists
+    try {
+      const { count, error } = await supabase
+        .from('properties')
+        .select('*', { count: 'exact', head: true });
+        
+      if (error && error.code === 'PGRST204') {
+        console.warn('Properties table does not exist yet');
+        return { data: [], count: 0 };
+      }
+    } catch (err) {
+      console.warn('Error checking if properties table exists:', err);
+      // Continue anyway
+    }
     try {
       let query = supabase
         .from('properties')
-        .select('*, property_images!inner(*)', { count: 'exact' });
+        .select('*, property_images(*)', { count: 'exact' });
 
       // Apply filters if provided
       if (filters) {

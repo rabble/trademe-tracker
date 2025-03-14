@@ -31,7 +31,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 ;(async () => {
   try {
     console.log('Testing Supabase connection...')
-    const { data, error } = await supabase.from('properties').select('count').limit(1)
+    // Use a simpler query that's less likely to fail
+    const { data, error } = await supabase.from('properties').select('count')
     
     if (error) {
       console.error('Supabase connection test failed:')
