@@ -24,12 +24,12 @@ export function useProperties(
         // Check if tables exist before querying
         try {
           const { data: tableCheck } = await supabase
-            .from('information_schema.tables')
-            .select('table_name')
-            .eq('table_schema', 'public')
-            .eq('table_name', 'properties');
+            .rpc('get_public_tables');
             
-          if (!tableCheck || tableCheck.length === 0) {
+          // Filter for the properties table
+          const propertiesTable = tableCheck?.find((t: any) => t.table_name === 'properties');
+            
+          if (!tableCheck || !propertiesTable) {
             console.warn('Properties table does not exist yet');
             if (isMounted) {
               setProperties([]);
