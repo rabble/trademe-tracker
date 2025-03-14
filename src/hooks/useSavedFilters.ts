@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { SavedFilter, PropertyFilters } from '../types';
+import type { Json } from '../lib/supabase/schema';
 
 export function useSavedFilters() {
   const [filters, setFilters] = useState<SavedFilter[]>([]);
@@ -51,12 +52,23 @@ export function useSavedFilters() {
 
   const saveFilter = async (name: string, filterConfig: PropertyFilters): Promise<SavedFilter> => {
     try {
+      // Get the user ID first
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+      
+      // Convert PropertyFilters to a JSON-compatible object
+      const filtersJson = JSON.parse(JSON.stringify(filterConfig));
+      
       const { data, error: saveError } = await supabase
         .from('saved_filters')
         .insert({
-          name,
-          filters: filterConfig,
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          name: name,
+          filters: filtersJson,
+          user_id: userId
         })
         .select()
         .single();
@@ -80,11 +92,14 @@ export function useSavedFilters() {
 
   const updateFilter = async (id: string, name: string, filterConfig: PropertyFilters): Promise<SavedFilter> => {
     try {
+      // Convert PropertyFilters to a JSON-compatible object
+      const filtersJson = JSON.parse(JSON.stringify(filterConfig));
+      
       const { data, error: updateError } = await supabase
         .from('saved_filters')
         .update({
-          name,
-          filters: filterConfig
+          name: name,
+          filters: filtersJson
         })
         .eq('id', id)
         .select()
