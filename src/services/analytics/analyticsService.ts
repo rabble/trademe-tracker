@@ -375,19 +375,24 @@ export const AnalyticsService = {
    */
   async savePropertyNotes(propertyId: string, notes: string): Promise<void> {
     try {
-      console.log(`Saving notes for property ${propertyId}`);
+      console.log(`[AnalyticsService] Saving notes for property ${propertyId}`);
+      console.log(`[AnalyticsService] Property ID type:`, typeof propertyId);
+      console.log(`[AnalyticsService] Notes:`, notes);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('properties')
         .update({ user_notes: notes })
-        .eq('id', propertyId);
+        .eq('id', propertyId)
+        .select();
+      
+      console.log(`[AnalyticsService] Update result:`, { data, error });
       
       if (error) {
-        console.error('Error saving property notes:', error);
+        console.error('[AnalyticsService] Error saving property notes:', error);
         throw error;
       }
       
-      console.log('Property notes saved successfully');
+      console.log('[AnalyticsService] Property notes saved successfully');
     } catch (error) {
       console.error('Error in savePropertyNotes:', error);
       throw error;

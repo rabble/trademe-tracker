@@ -9,32 +9,40 @@ export const PropertyNotesService = {
    */
   async saveNotes(propertyId: string, notes: string): Promise<void> {
     try {
-      console.log(`Saving notes for property ${propertyId}:`, notes);
+      console.log(`[PropertyNotesService] Saving notes for property ${propertyId}:`, notes);
+      console.log(`[PropertyNotesService] Property ID type:`, typeof propertyId);
       
       // Check if the property exists
+      console.log(`[PropertyNotesService] Checking if property exists...`);
       const { data: property, error: propertyError } = await supabase
         .from('properties')
         .select('id, user_notes')
         .eq('id', propertyId)
         .single();
       
+      console.log(`[PropertyNotesService] Property check result:`, { property, error: propertyError });
+      
       if (propertyError) {
-        console.error('Error fetching property for notes update:', propertyError);
+        console.error('[PropertyNotesService] Error fetching property for notes update:', propertyError);
         throw propertyError;
       }
       
       // Update the property with the new notes
-      const { error: updateError } = await supabase
+      console.log(`[PropertyNotesService] Updating property with new notes...`);
+      const { data: updateData, error: updateError } = await supabase
         .from('properties')
         .update({ user_notes: notes })
-        .eq('id', propertyId);
+        .eq('id', propertyId)
+        .select();
+      
+      console.log(`[PropertyNotesService] Update result:`, { data: updateData, error: updateError });
       
       if (updateError) {
-        console.error('Error updating property notes:', updateError);
+        console.error('[PropertyNotesService] Error updating property notes:', updateError);
         throw updateError;
       }
       
-      console.log(`Notes saved successfully for property ${propertyId}`);
+      console.log(`[PropertyNotesService] Notes saved successfully for property ${propertyId}`);
     } catch (error) {
       console.error('Error in saveNotes:', error);
       throw error;
