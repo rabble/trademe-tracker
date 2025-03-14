@@ -1,3 +1,6 @@
+// Import debug utilities
+import { logDebugInfo, listAvailableAssets } from './debug.js';
+
 // Function to generate a simple HTML page
 function getIndexHtml() {
   return `<!DOCTYPE html>
@@ -5,8 +8,8 @@ function getIndexHtml() {
   <head>
     <meta charset="UTF-8" />
     <title>TradeMe Property Tracker</title>
-    <script type="module" crossorigin src="./assets/index-DZ-J4Eak.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-CVok2Bc6.css">
+    <script type="module" crossorigin src="./assets/main-ZE2AqzNy.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/main-B7OYuCRH.css">
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -87,6 +90,14 @@ export default {
     try {
       const url = new URL(request.url);
       
+      // Debug environment bindings
+      console.log('Environment bindings:', {
+        hasAssets: !!env.ASSETS,
+        hasStaticContent: !!env.__STATIC_CONTENT,
+        hasStaticContentManifest: !!env.__STATIC_CONTENT_MANIFEST,
+        availableBindings: Object.keys(env)
+      });
+      
       // Handle API requests
       if (url.pathname.startsWith('/api/')) {
         return new Response(JSON.stringify({ status: 'ok' }), {
@@ -94,28 +105,64 @@ export default {
         });
       }
       
-      // For all other requests, use the SPA routing handler
+      // For all other requests, try to serve static assets
       try {
         console.log(`Handling request for: ${url.pathname}`);
         
-        // Use the SPA routing handler if ASSETS binding is available
-        if (env.ASSETS) {
-          console.log('Using SPA routing handler');
-          const spaResponse = await handleSpaRouting(request, env, ctx);
-          if (spaResponse) {
-            return spaResponse;
+        // Try to serve static assets directly from __STATIC_CONTENT if available
+        if (env.__STATIC_CONTENT) {
+          console.log('Using __STATIC_CONTENT to serve static assets');
+          
+          // Get the path without leading slash
+          let path = url.pathname.replace(/^\//, '');
+          
+          // Default to index.html for root path
+          if (path === '' || path === '/') {
+            path = 'index.html';
+          }
+          
+          try {
+            // Try to get the asset from KV
+            const asset = await env.__STATIC_CONTENT.get(path, { type: 'text' });
+            
+            if (asset) {
+              console.log(`Found asset: ${path}`);
+              
+              // Determine content type
+              let contentType = 'text/plain';
+              if (path.endsWith('.html')) contentType = 'text/html';
+              if (path.endsWith('.css')) contentType = 'text/css';
+              if (path.endsWith('.js')) contentType = 'application/javascript';
+              if (path.endsWith('.json')) contentType = 'application/json';
+              if (path.endsWith('.svg')) contentType = 'image/svg+xml';
+              
+              return new Response(asset, {
+                headers: { 'Content-Type': contentType }
+              });
+            }
+            
+            // If the asset is not found and it's not index.html, try serving index.html for SPA routing
+            if (path !== 'index.html') {
+              console.log(`Asset not found: ${path}, trying index.html for SPA routing`);
+              const indexHtml = await env.__STATIC_CONTENT.get('index.html', { type: 'text' });
+              
+              if (indexHtml) {
+                return new Response(indexHtml, {
+                  headers: { 'Content-Type': 'text/html' }
+                });
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching from __STATIC_CONTENT: ${error.message}`);
           }
         }
         
-        // Fallback to the old method if SPA routing fails
-        console.log('SPA routing failed, using fallback method');
-        
-        // Check if we have the ASSETS binding
+        // Try ASSETS binding if __STATIC_CONTENT failed
         if (env.ASSETS) {
           console.log('Using ASSETS binding to serve static content');
           try {
             const response = await env.ASSETS.fetch(request);
-          
+            
             // If asset not found, serve index.html for SPA routing
             if (response.status === 404) {
               console.log('Asset not found, serving index.html');
@@ -127,28 +174,25 @@ export default {
               if (indexResponse.status === 200) {
                 return indexResponse;
               }
-              
-              // Otherwise, fall back to the embedded HTML
-              return new Response(getIndexHtml(), {
-                headers: { 'Content-Type': 'text/html' }
-              });
+            } else {
+              return response;
             }
-          
-            return response;
           } catch (error) {
-            console.error('Error fetching asset:', error);
-            return new Response(getIndexHtml(), {
-              headers: { 'Content-Type': 'text/html' }
-            });
+            console.error(`Error fetching from ASSETS: ${error.message}`);
           }
-        } else {
-          console.log('ASSETS binding not available, serving fallback HTML');
-          return new Response(getIndexHtml(), {
-            headers: { 'Content-Type': 'text/html' }
-          });
         }
+        
+        // If we get here, fall back to the embedded HTML
+        console.log('No static content bindings available or all attempts failed, serving fallback HTML');
       } catch (error) {
         console.error("Error serving static content:", error);
+        
+        // Add detailed error information
+        console.error({
+          errorName: error.name,
+          errorMessage: error.message,
+          errorStack: error.stack
+        });
         
         // Serve fallback HTML
         return new Response(getIndexHtml(), {
@@ -157,7 +201,20 @@ export default {
       }
     } catch (error) {
       console.error('Error handling request:', error);
+      console.error({
+        errorName: error.name,
+        errorMessage: error.message,
+        errorStack: error.stack
+      });
       return new Response('Internal Server Error', { status: 500 });
     }
   },
+  
+  // Add a fetch event handler for debugging
+  async scheduled(event, env, ctx) {
+    console.log('Scheduled event triggered');
+    
+    // List available assets for debugging
+    await listAvailableAssets(env);
+  }
 };

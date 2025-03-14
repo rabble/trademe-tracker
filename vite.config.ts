@@ -14,8 +14,16 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html'
+      },
+      output: {
+        // Use a predictable naming pattern for assets
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       }
-    }
+    },
+    // Increase the chunk size warning limit
+    chunkSizeWarningLimit: 1000
   },
   base: './', // Change from '/' to './' for relative paths
   publicDir: 'public'

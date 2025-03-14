@@ -47,8 +47,9 @@ preview_id = "633473f72f9c444ca81d0413d340d3c0"
 bucket = "../dist"
 include = ["**/*"]
 exclude = []
-entry-point = "../dist"
 
 # Build configuration
 [build]
 command = "cd .. && npm run build"
+[build.upload]
+format = "service-worker"
