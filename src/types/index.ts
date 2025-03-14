@@ -24,6 +24,7 @@ export interface Property {
   land_area?: number;
   floor_area?: number;
   property_type?: 'house' | 'apartment' | 'townhouse' | 'section' | 'other';
+  listing_type: 'for_sale' | 'rental';
   primary_image_url?: string;
   latitude?: number;
   longitude?: number;
@@ -62,6 +63,7 @@ export interface PropertyFilters {
   status?: Array<'active' | 'under_offer' | 'sold' | 'archived'>;
   daysOnMarket?: [number | undefined, number | undefined];
   listingType?: Array<'auction' | 'price_by_negotiation' | 'asking_price' | 'tender' | 'enquiries_over'>;
+  propertyCategory?: 'for_sale' | 'rental';
 }
 
 export interface SavedFilter {

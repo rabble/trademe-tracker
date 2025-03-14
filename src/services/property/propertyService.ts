@@ -12,6 +12,7 @@ export interface PropertyFilters {
   bedrooms?: number;
   bathrooms?: number;
   searchQuery?: string;
+  propertyCategory?: 'for_sale' | 'rental';
 }
 
 /**
@@ -48,6 +49,13 @@ export const PropertyService = {
           const searchParams: Record<string, string> = {};
           
           if (filters) {
+            if (filters.propertyCategory) {
+              // Set the appropriate TradeMe category based on property category
+              searchParams.category = filters.propertyCategory === 'for_sale' 
+                ? '5748' // TradeMe category for residential property for sale
+                : '5779'; // TradeMe category for residential property to rent
+            }
+            
             if (filters.minPrice !== undefined) {
               searchParams.price_min = filters.minPrice.toString();
             }
@@ -96,6 +104,10 @@ export const PropertyService = {
         } else {
           // By default, don't show archived properties
           query = query.neq('status', 'archived');
+        }
+        
+        if (filters.propertyCategory) {
+          query = query.eq('listing_type', filters.propertyCategory);
         }
         
         if (filters.minPrice !== undefined) {
