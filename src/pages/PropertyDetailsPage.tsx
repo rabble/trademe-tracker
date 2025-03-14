@@ -6,6 +6,13 @@ import { formatCurrency, formatDate } from '../utils/formatters'
 import { MapView } from '../components/map/MapView'
 import { supabase } from '../lib/supabase'
 
+// Add TypeScript declaration for window.saveNotesTimeout
+declare global {
+  interface Window {
+    saveNotesTimeout?: NodeJS.Timeout;
+  }
+}
+
 export function PropertyDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -13,6 +20,60 @@ export function PropertyDetailsPage() {
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'similar'>('details')
   const [notes, setNotes] = useState('')
   const [isSavingNotes, setIsSavingNotes] = useState(false)
+  
+  // Function to save notes
+  const saveNotes = async (notesText: string) => {
+    try {
+      // Check if id is a valid format (UUID or numeric)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const numericRegex = /^\d+$/;
+      
+      if (!id || (!uuidRegex.test(id) && !numericRegex.test(id))) {
+        console.error('Invalid property ID format:', id);
+        showStatusMessage('Cannot save notes: Invalid property ID format', 'error');
+        return;
+      }
+      
+      setIsSavingNotes(true);
+      
+      // Direct Supabase update
+      const { data, error } = await supabase
+        .from('properties')
+        .update({ user_notes: notesText })
+        .eq('id', id)
+        .select();
+      
+      if (error) {
+        console.error('Error saving notes:', error);
+        showStatusMessage('Failed to save notes: ' + error.message, 'error');
+      } else {
+        console.log('Notes saved successfully:', data);
+        showStatusMessage('Notes saved', 'success');
+      }
+    } catch (err) {
+      console.error('Exception saving notes:', err);
+      showStatusMessage('An error occurred while saving notes', 'error');
+    } finally {
+      setIsSavingNotes(false);
+    }
+  };
+  
+  // Function to show status messages
+  const showStatusMessage = (message: string, type: 'success' | 'error') => {
+    const statusElement = document.getElementById('notes-status-message');
+    if (statusElement) {
+      statusElement.textContent = message;
+      statusElement.className = type === 'success' 
+        ? 'text-green-600 text-sm mt-2' 
+        : 'text-red-600 text-sm mt-2';
+      
+      // Clear the message after a few seconds
+      setTimeout(() => {
+        statusElement.textContent = '';
+        statusElement.className = 'mt-2 h-6';
+      }, 3000);
+    }
+  };
   
   // Load existing notes when component mounts
   useEffect(() => {
@@ -209,84 +270,34 @@ export function PropertyDetailsPage() {
               <p className="text-gray-600">Similar properties will be shown here.</p>
             </div>
           )}
-          <div className="mt-6">
+          <div className="mt-6 relative">
             <h2 className="text-xl font-bold mb-2">Your Notes</h2>
             <textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => {
+                setNotes(e.target.value);
+                // Debounce the save operation to avoid too many requests
+                if (window.saveNotesTimeout) {
+                  clearTimeout(window.saveNotesTimeout);
+                }
+                window.saveNotesTimeout = setTimeout(() => {
+                  saveNotes(e.target.value);
+                }, 1000); // Save after 1 second of inactivity
+              }}
               placeholder="Add your notes about this property..."
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
               rows={4}
             />
-            <button
-              className={`mt-3 px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors ${
-                isSavingNotes 
-                  ? 'bg-indigo-400 cursor-not-allowed' 
-                  : 'bg-indigo-600 hover:bg-indigo-700'
-              }`}
-              onClick={async () => {
-                try {
-                  console.log('Saving notes to database:', notes);
-                  console.log('Property ID:', id);
-                  console.log('Property ID type:', typeof id);
-                  
-                  // Check if id is a valid format (UUID or numeric)
-                  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-                  const numericRegex = /^\d+$/;
-                  
-                  if (!uuidRegex.test(id || '') && !numericRegex.test(id || '')) {
-                    console.error('Invalid property ID format:', id);
-                    alert('Cannot save notes: Invalid property ID format');
-                    return;
-                  }
-                  
-                  console.log('Property ID format is valid, proceeding with save');
-                  
-                  setIsSavingNotes(true);
-                  
-                  // Direct Supabase update
-                  const { data, error } = await supabase
-                    .from('properties')
-                    .update({ user_notes: notes })
-                    .eq('id', id)
-                    .select();
-                  
-                  if (error) {
-                    console.error('Error saving notes:', error);
-                    // Show error in UI instead of alert
-                    const errorElement = document.createElement('div');
-                    errorElement.className = 'text-red-600 mt-2';
-                    errorElement.textContent = 'Failed to save notes: ' + error.message;
-                    
-                    const button = document.activeElement;
-                    if (button && button.parentNode) {
-                      button.parentNode.appendChild(errorElement);
-                      setTimeout(() => errorElement.remove(), 5000);
-                    }
-                  } else {
-                    console.log('Notes saved successfully:', data);
-                    // Show success message in UI instead of alert
-                    const successElement = document.createElement('div');
-                    successElement.className = 'text-green-600 mt-2';
-                    successElement.textContent = 'Notes saved successfully!';
-                    
-                    const button = document.activeElement;
-                    if (button && button.parentNode) {
-                      button.parentNode.appendChild(successElement);
-                      setTimeout(() => successElement.remove(), 3000);
-                    }
-                  }
-                } catch (err) {
-                  console.error('Exception saving notes:', err);
-                  alert('An error occurred while saving notes');
-                } finally {
-                  setIsSavingNotes(false);
-                }
-              }}
-              disabled={isSavingNotes}
-            >
-              {isSavingNotes ? 'Saving...' : 'Save Notes'}
-            </button>
+            {isSavingNotes && (
+              <div className="absolute bottom-2 right-2 text-xs text-gray-500 flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving...
+              </div>
+            )}
+            <div id="notes-status-message" className="mt-2 h-6"></div>
           </div>
         </div>
       </div>
