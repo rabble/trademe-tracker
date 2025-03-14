@@ -364,5 +364,33 @@ export const AnalyticsService = {
       ...insight,
       property_title: insight.properties?.title || 'Unknown Property',
     })) as PropertyInsight[];
+  },
+
+  /**
+   * Save user notes for a property
+   * 
+   * @param propertyId - ID of the property
+   * @param notes - Notes to save
+   * @returns Promise that resolves when notes are saved
+   */
+  async savePropertyNotes(propertyId: string, notes: string): Promise<void> {
+    try {
+      console.log(`Saving notes for property ${propertyId}`);
+      
+      const { error } = await supabase
+        .from('properties')
+        .update({ user_notes: notes })
+        .eq('id', propertyId);
+      
+      if (error) {
+        console.error('Error saving property notes:', error);
+        throw error;
+      }
+      
+      console.log('Property notes saved successfully');
+    } catch (error) {
+      console.error('Error in savePropertyNotes:', error);
+      throw error;
+    }
   }
 };
