@@ -127,7 +127,8 @@ export function ActiveFilters({ filters, onChange, className = '' }: ActiveFilte
       floorArea: 'Floor Area',
       status: 'Status',
       daysOnMarket: 'Days on Market',
-      listingType: 'Listing Type'
+      listingType: 'Listing Type',
+      propertyCategory: 'Category'
     };
     return names[key] || key.toString();
   };
