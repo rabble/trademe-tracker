@@ -61,7 +61,7 @@ export function useSavedFilters() {
       }
       
       // Convert PropertyFilters to a JSON-compatible object
-      const filtersJson = JSON.parse(JSON.stringify(filterConfig));
+      const filtersJson = JSON.parse(JSON.stringify(filterConfig)) as Json;
       
       const { data, error: saveError } = await supabase
         .from('saved_filters')
@@ -93,7 +93,7 @@ export function useSavedFilters() {
   const updateFilter = async (id: string, name: string, filterConfig: PropertyFilters): Promise<SavedFilter> => {
     try {
       // Convert PropertyFilters to a JSON-compatible object
-      const filtersJson = JSON.parse(JSON.stringify(filterConfig));
+      const filtersJson = JSON.parse(JSON.stringify(filterConfig)) as Json;
       
       const { data, error: updateError } = await supabase
         .from('saved_filters')
