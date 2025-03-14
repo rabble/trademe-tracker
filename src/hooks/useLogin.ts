@@ -10,16 +10,23 @@ export function useLogin() {
       setLoading(true)
       setError(null)
       
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting to sign in with Supabase:', { email })
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
+      
+      console.log('Supabase auth response:', { data, error })
       
       if (error) {
         throw error
       }
       
-      return { success: true }
+      if (!data.user) {
+        throw new Error('No user returned from authentication')
+      }
+      
+      return { success: true, user: data.user }
     } catch (err: any) {
       console.error('Login error:', err)
       setError(err.message || 'Failed to log in')

@@ -69,9 +69,9 @@ export function MainLayout() {
         <div className="w-full md:w-64 bg-white shadow-sm md:min-h-[calc(100vh-4rem)] md:fixed">
           <nav className="flex md:flex-col overflow-x-auto md:overflow-x-hidden py-3 md:py-5 px-4">
             <Link
-              to="/"
+              to="/dashboard"
               className={`px-3 py-2 text-sm font-medium rounded-md ${
-                isActive('/') 
+                isActive('/dashboard') 
                   ? 'bg-indigo-50 text-indigo-700' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               } md:w-full md:mb-1`}

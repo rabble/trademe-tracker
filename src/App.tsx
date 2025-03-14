@@ -19,6 +19,8 @@ import './styles/app-background.css'
 function AuthWrapper() {
   const { user, loading } = useAuth()
   
+  console.log('AuthWrapper state:', { user, loading })
+  
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
@@ -27,9 +29,11 @@ function AuthWrapper() {
   
   // If user is logged in, redirect to dashboard
   if (user) {
+    console.log('User is logged in, redirecting to dashboard')
     return <Navigate to="/dashboard" replace />
   }
   
+  console.log('No user found, showing landing page')
   // Otherwise show landing page
   return <LandingPage />
 }

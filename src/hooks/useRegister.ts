@@ -10,16 +10,32 @@ export function useRegister() {
       setLoading(true)
       setError(null)
       
-      const { error } = await supabase.auth.signUp({
+      console.log('Attempting to register with Supabase:', { email })
+      const { data, error } = await supabase.auth.signUp({
         email,
         password
       })
+      
+      console.log('Supabase registration response:', { data, error })
       
       if (error) {
         throw error
       }
       
-      return { success: true }
+      if (!data.user) {
+        throw new Error('No user returned from registration')
+      }
+      
+      // Check if email confirmation is required
+      if (data.user.identities?.length === 0) {
+        return { 
+          success: true, 
+          user: data.user,
+          message: 'Please check your email for a confirmation link'
+        }
+      }
+      
+      return { success: true, user: data.user }
     } catch (err: any) {
       console.error('Registration error:', err)
       setError(err.message || 'Failed to register')

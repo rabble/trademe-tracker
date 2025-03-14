@@ -9,9 +9,13 @@ export function LoginForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
+    console.log('Login attempt with:', { email })
     const result = await login(email, password)
+    console.log('Login result:', result)
     if (result?.success) {
-      // Redirect will happen automatically via auth state change
+      console.log('Login successful, redirecting to dashboard')
+      // Force navigation to dashboard
+      window.location.href = '/dashboard'
     }
   }
 

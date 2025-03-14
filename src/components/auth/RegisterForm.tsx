@@ -27,9 +27,14 @@ export function RegisterForm() {
       return
     }
     
+    console.log('Registration attempt with:', { email })
     const result = await register(email, password)
+    console.log('Registration result:', result)
+    
     if (result?.success) {
-      // Redirect will happen automatically via auth state change
+      console.log('Registration successful, redirecting to dashboard')
+      // Force navigation to dashboard
+      window.location.href = '/dashboard'
     }
   }
 
