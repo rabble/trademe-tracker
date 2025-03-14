@@ -34,7 +34,7 @@ export default {
     try {
       const url = new URL(request.url);
       
-      // Debug endpoint to help diagnose issues
+      // Debug endpoints to help diagnose issues
       if (url.pathname === '/debug') {
         return new Response(JSON.stringify({
           bindings: Object.keys(env),
@@ -43,10 +43,41 @@ export default {
           hasAssets: !!env.ASSETS,
           url: request.url,
           method: request.method,
+          headers: Object.fromEntries([...request.headers]),
           timestamp: new Date().toISOString()
         }, null, 2), {
           headers: { 'Content-Type': 'application/json' }
         });
+      }
+      
+      // Debug endpoint to list all static content
+      if (url.pathname === '/debug/static-content') {
+        try {
+          if (!env.__STATIC_CONTENT) {
+            return new Response(JSON.stringify({ error: 'No __STATIC_CONTENT binding available' }), {
+              status: 404,
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+          
+          const assets = await env.__STATIC_CONTENT.list();
+          return new Response(JSON.stringify({
+            assets: assets.keys.map(k => k.name),
+            count: assets.keys.length,
+            timestamp: new Date().toISOString()
+          }, null, 2), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        } catch (error) {
+          return new Response(JSON.stringify({
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            timestamp: new Date().toISOString()
+          }, null, 2), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
       }
       
       // Handle API requests
@@ -132,62 +163,94 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
     // Then try __STATIC_CONTENT (Workers Sites integration)
     if (env.__STATIC_CONTENT) {
       console.log('Using __STATIC_CONTENT to serve static assets');
-      
-      // Remove leading slash for KV lookup
-      const key = path.replace(/^\//, '');
-      
-      try {
-        // Direct lookup first
-        let asset = await env.__STATIC_CONTENT.get(key);
         
+      try {
+        // Remove leading slash for KV lookup
+        const key = path.replace(/^\//, '');
+        console.log(`Looking for key in __STATIC_CONTENT: "${key}"`);
+          
+        // For debugging, list all available keys
+        try {
+          const allKeys = await env.__STATIC_CONTENT.list();
+          console.log('Available keys in __STATIC_CONTENT:', allKeys.keys.map(k => k.name));
+        } catch (listError) {
+          console.error('Error listing keys:', listError);
+        }
+          
+        // Direct lookup first - ensure we're getting a ReadableStream
+        let assetBody = null;
+        try {
+          const asset = await env.__STATIC_CONTENT.get(key, { type: 'stream' });
+          if (asset) {
+            assetBody = asset;
+            console.log(`Found asset directly: ${key}`);
+          }
+        } catch (getError) {
+          console.error(`Error getting asset ${key}:`, getError);
+        }
+          
         // If not found and it's an asset path, try to find with hash
-        if (!asset && path.includes('/assets/')) {
-          const assetPath = path.split('/assets/')[1];
-          const extension = assetPath.split('.').pop();
-          const baseName = assetPath.split('.')[0];
-          
-          // List all assets to find the hashed version
-          const assets = await env.__STATIC_CONTENT.list({ prefix: 'assets/' });
-          console.log('Available assets:', assets?.keys?.map(k => k.name) || 'No assets found');
-          
-          // Find matching asset with hash
-          const matchingAsset = assets?.keys?.find(k => 
-            k.name.startsWith(`assets/${baseName}`) && 
-            k.name.endsWith(`.${extension}`)
-          );
-          
-          if (matchingAsset) {
-            console.log(`Found matching hashed asset: ${matchingAsset.name}`);
-            asset = await env.__STATIC_CONTENT.get(matchingAsset.name);
+        if (!assetBody && path.includes('/assets/')) {
+          console.log(`Asset not found directly, trying to find hashed version for: ${key}`);
+            
+          try {
+            const assetPath = path.split('/assets/')[1];
+            const parts = assetPath.split('.');
+            const extension = parts.pop();
+            const baseName = parts.join('.');
+              
+            console.log(`Looking for asset with basename: ${baseName} and extension: ${extension}`);
+              
+            // List all assets to find the hashed version
+            const assets = await env.__STATIC_CONTENT.list({ prefix: 'assets/' });
+              
+            // Find matching asset with hash
+            const matchingAsset = assets?.keys?.find(k => {
+              const name = k.name;
+              return name.startsWith(`assets/${baseName}`) && name.endsWith(`.${extension}`);
+            });
+              
+            if (matchingAsset) {
+              console.log(`Found matching hashed asset: ${matchingAsset.name}`);
+              assetBody = await env.__STATIC_CONTENT.get(matchingAsset.name, { type: 'stream' });
+            }
+          } catch (hashError) {
+            console.error('Error finding hashed asset:', hashError);
           }
         }
-        
-        if (asset) {
+          
+        // If we found an asset, return it
+        if (assetBody) {
           const contentType = getContentType(path);
           console.log(`Serving asset with content type: ${contentType}`);
-          return new Response(asset, {
+            
+          return new Response(assetBody, {
             headers: {
               'Content-Type': contentType,
               'Cache-Control': 'public, max-age=3600'
             }
           });
         }
-        
+          
         // For SPA routing, serve index.html for non-asset paths
         if (!path.includes('.')) {
           console.log('Path is a route, serving index.html for SPA routing');
-          const indexAsset = await env.__STATIC_CONTENT.get('index.html');
-          if (indexAsset) {
-            return new Response(indexAsset, {
-              headers: {
-                'Content-Type': 'text/html',
-                'Cache-Control': 'public, max-age=60'
-              }
-            });
+          try {
+            const indexAsset = await env.__STATIC_CONTENT.get('index.html', { type: 'stream' });
+            if (indexAsset) {
+              return new Response(indexAsset, {
+                headers: {
+                  'Content-Type': 'text/html',
+                  'Cache-Control': 'public, max-age=60'
+                }
+              });
+            }
+          } catch (indexError) {
+            console.error('Error getting index.html:', indexError);
           }
         }
       } catch (error) {
-        console.error(`Error fetching from __STATIC_CONTENT:`, error);
+        console.error(`Error in __STATIC_CONTENT handling:`, error);
       }
     }
     
@@ -224,6 +287,11 @@ export interface Env {
   // Static assets
   ASSETS?: { fetch: (request: Request) => Promise<Response> };
   // Workers Sites KV namespace
-  __STATIC_CONTENT?: KVNamespace;
+  __STATIC_CONTENT?: {
+    get: (key: string, options?: { type: 'stream' | 'text' | 'json' | 'arrayBuffer' }) => Promise<any>;
+    put: (key: string, value: string | ReadableStream | ArrayBuffer | FormData) => Promise<void>;
+    delete: (key: string) => Promise<void>;
+    list: (options?: { prefix?: string; limit?: number; cursor?: string }) => Promise<{ keys: { name: string; expiration?: number; metadata?: any }[] }>;
+  };
   __STATIC_CONTENT_MANIFEST?: string;
 }

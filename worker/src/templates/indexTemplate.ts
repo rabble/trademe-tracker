@@ -1,6 +1,9 @@
 /**
  * Returns an embedded version of index.html as a fallback
  * when the file cannot be found in KV storage
+ * 
+ * This is a last resort and should only be used when all other methods
+ * of serving static content have failed.
  */
 export function getIndexHtmlTemplate(): string {
   return `<!DOCTYPE html>
@@ -66,8 +69,21 @@ export function getIndexHtmlTemplate(): string {
         href: window.location.href,
         origin: window.location.origin,
         pathname: window.location.pathname,
-        host: window.location.host
+        host: window.location.host,
+        timestamp: new Date().toISOString()
       });
+      
+      // Add links to debug endpoints
+      const debugLinks = document.createElement('div');
+      debugLinks.className = 'debug-links';
+      debugLinks.innerHTML = \`
+        <h3>Debug Links<\/h3>
+        <ul>
+          <li><a href="/debug" target="_blank">Worker Debug Info<\/a><\/li>
+          <li><a href="/debug/static-content" target="_blank">List Static Content<\/a><\/li>
+        <\/ul>
+      \`;
+      document.querySelector('.container').appendChild(debugLinks);
       
       // Check for network errors
       window.addEventListener('error', function(e) {
