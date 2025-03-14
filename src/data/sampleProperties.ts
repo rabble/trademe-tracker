@@ -15,6 +15,7 @@ export const sampleProperties: Property[] = [
     days_on_market: 14,
     created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'for_sale',
     primary_image_url: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1074&q=80',
     last_price_change: {
       old_price: 1300000,
@@ -33,6 +34,7 @@ export const sampleProperties: Property[] = [
     days_on_market: 28,
     created_at: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'for_sale',
     primary_image_url: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
   },
   {
@@ -46,6 +48,7 @@ export const sampleProperties: Property[] = [
     days_on_market: 45,
     created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'for_sale',
     primary_image_url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
   },
   {
@@ -59,6 +62,7 @@ export const sampleProperties: Property[] = [
     days_on_market: 7,
     created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'for_sale',
     primary_image_url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1175&q=80',
     last_price_change: {
       old_price: 1200000,
@@ -77,6 +81,7 @@ export const sampleProperties: Property[] = [
     days_on_market: 60,
     created_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'for_sale',
     primary_image_url: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
   },
   {
@@ -90,6 +95,7 @@ export const sampleProperties: Property[] = [
     days_on_market: 21,
     created_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'for_sale',
     primary_image_url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1080&q=80'
   },
   {
@@ -103,6 +109,7 @@ export const sampleProperties: Property[] = [
     days_on_market: 5,
     created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'for_sale',
     primary_image_url: 'https://images.unsplash.com/photo-1572120360610-d971b9d7767c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
   },
   {
@@ -116,6 +123,7 @@ export const sampleProperties: Property[] = [
     days_on_market: 35,
     created_at: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'for_sale',
     primary_image_url: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1171&q=80',
     last_price_change: {
       old_price: 2400000,
@@ -134,6 +142,7 @@ export const sampleProperties: Property[] = [
     days_on_market: 12,
     created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'for_sale',
     primary_image_url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
   },
   {
@@ -147,7 +156,50 @@ export const sampleProperties: Property[] = [
     days_on_market: 2,
     created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'for_sale',
     primary_image_url: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
+  },
+  {
+    id: '11',
+    title: 'Modern 2 Bedroom Apartment for Rent',
+    address: '505/10 Queen Street, Auckland Central',
+    price: 650,
+    bedrooms: 2,
+    bathrooms: 1,
+    status: 'active',
+    days_on_market: 7,
+    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'rental',
+    primary_image_url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
+  },
+  {
+    id: '12',
+    title: 'Spacious 3 Bedroom House for Rent',
+    address: '45 Valley Road, Mt Eden, Auckland',
+    price: 850,
+    bedrooms: 3,
+    bathrooms: 2,
+    status: 'active',
+    days_on_market: 14,
+    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'rental',
+    primary_image_url: 'https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
+  },
+  {
+    id: '13',
+    title: 'Cozy 1 Bedroom Apartment in Ponsonby',
+    address: '12/45 Ponsonby Road, Ponsonby, Auckland',
+    price: 450,
+    bedrooms: 1,
+    bathrooms: 1,
+    status: 'active',
+    days_on_market: 5,
+    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    listing_type: 'rental',
+    primary_image_url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'
   }
 ]
 
