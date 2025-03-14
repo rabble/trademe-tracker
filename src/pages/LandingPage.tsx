@@ -18,6 +18,10 @@ export function LandingPage() {
           <p className="mt-6 text-xl text-indigo-100 max-w-3xl">
             Track property listings from TradeMe, monitor price changes, and get insights into the New Zealand property market.
           </p>
+          <p className="mt-4 text-lg text-indigo-200 max-w-3xl">
+            <strong>Note:</strong> This is an unofficial third-party application to help you find and track properties on TradeMe. 
+            We are not affiliated with TradeMe Ltd in any way.
+          </p>
           <div className="mt-10 flex space-x-4">
             <Link
               to="/login"
@@ -149,7 +153,7 @@ export function LandingPage() {
               </a>
             </div>
             <p className="mt-8 text-base text-gray-400 md:mt-0 md:order-1">
-              &copy; 2025 TradeMe Property Tracker. All rights reserved.
+              &copy; 2025 TradeMe Property Tracker. All rights reserved. This is an unofficial third-party application not affiliated with TradeMe Ltd.
             </p>
           </div>
         </div>

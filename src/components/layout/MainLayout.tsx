@@ -20,6 +20,7 @@ export function MainLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             TradeMe Property Tracker
+            <span className="block text-xs text-gray-500 font-normal">Unofficial third-party app</span>
           </h1>
           <div className="flex items-center">
             <div className="relative">
