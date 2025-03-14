@@ -34,22 +34,30 @@ export default {
     try {
       const url = new URL(request.url);
       
+      // Debug endpoint to help diagnose issues
+      if (url.pathname === '/debug') {
+        return new Response(JSON.stringify({
+          bindings: Object.keys(env),
+          hasStaticContent: !!env.__STATIC_CONTENT,
+          hasStaticContentManifest: !!env.__STATIC_CONTENT_MANIFEST,
+          hasAssets: !!env.ASSETS,
+          url: request.url,
+          method: request.method,
+          timestamp: new Date().toISOString()
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      
       // Handle API requests
       if (url.pathname.startsWith('/api/')) {
         return router.handle(request, env, ctx).catch(errorHandler);
       }
       
       // For all other requests, serve static assets from the site
-      try {
-        return await serveStaticContent(request, env);
-      } catch (error) {
-        console.error("Error serving static content:", error);
-        // Serve the embedded index.html as a last resort
-        return new Response(getIndexHtmlTemplate(), { 
-          headers: { "Content-Type": "text/html" }
-        });
-      }
+      return await serveStaticContent(request, env);
     } catch (error) {
+      console.error("Unhandled error in fetch handler:", error);
       return errorHandler(error);
     }
   },
@@ -102,186 +110,100 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
   const url = new URL(request.url);
   console.log(`Handling request for: ${url.pathname}`);
   
-  // When deployed with wrangler, the ASSETS binding is available
-  if (env.ASSETS) {
-    try {
-      let path = url.pathname;
-      
-      // Handle debug route specifically
-      if (path === '/debug') {
-        const debugHtml = await getIndexHtmlTemplate();
-        return new Response(debugHtml, {
-          headers: { 'Content-Type': 'text/html' }
-        });
-      }
-      
-      // Default to index.html for the root path
+  try {
+    // Default to index.html for the root path
+    let path = url.pathname;
     if (path === '/' || path === '') {
       path = '/index.html';
     }
     
     console.log(`Looking for asset: ${path}`);
     
-    // List all available assets for debugging
-    let assets;
-    try {
-      assets = await env.__STATIC_CONTENT.list();
-      console.log('Available assets:', assets?.keys?.map(k => k.name) || 'No assets found');
-    } catch (error) {
-      console.error('Error listing assets:', error);
-      assets = { keys: [] };
-    }
-    
-    // Remove leading slash for KV lookup
-    const key = path.replace(/^\//, '');
-    
-    // Try to get the asset from KV
-    const asset = await findAsset(key, path, assets, env.__STATIC_CONTENT);
-    
-    if (asset !== null) {
-      // Set appropriate content type
-      const contentType = getContentType(path);
-      
-      console.log(`Serving asset with content type: ${contentType}`);
-      return new Response(asset, {
-        headers: {
-          'Content-Type': contentType,
-          'Cache-Control': 'public, max-age=3600'
-        }
-      });
-    }
-    
-    // If asset is null, serve the fallback index.html
-    console.log('No matching assets found, serving embedded index.html');
-    return new Response(getIndexHtmlTemplate(), {
-      headers: { 'Content-Type': 'text/html' }
-    });
-    
-    if (asset !== null) {
-      // Set appropriate content type
-      const contentType = getContentType(path);
-      
-      console.log(`Serving asset with content type: ${contentType}`);
-      return new Response(asset, {
-        headers: {
-          'Content-Type': contentType,
-          'Cache-Control': 'public, max-age=3600'
-        }
-      });
-    }
-    
-    // If asset is null, serve the fallback index.html
-    console.log('No matching assets found, serving embedded index.html');
-    return new Response(getIndexHtmlTemplate(), {
-      headers: { 'Content-Type': 'text/html' }
-    });
-    } catch (error) {
-      console.error('Error in static content serving:', error);
-      return new Response(getIndexHtmlTemplate(), {
-        headers: { 'Content-Type': 'text/html' }
-      });
-    }
-  } else if (env.ASSETS) {
-    // Fallback to ASSETS binding if available
-    return env.ASSETS.fetch(request);
-  } else {
-    // Fallback for when no static content bindings are available
-    console.log('No static content bindings available, serving embedded index.html');
-    return new Response(getIndexHtmlTemplate(), {
-      headers: { "Content-Type": "text/html" }
-    });
-  }
-}
-
-/**
- * Finds an asset in KV storage, handling various cases like hashed filenames
- */
-async function findAsset(
-  key: string, 
-  path: string, 
-  assets: { keys: { name: string }[] } | undefined, 
-  kv: KVNamespace
-): Promise<string | null> {
-  // If assets is undefined, initialize with empty keys array
-  if (!assets) {
-    console.warn('Assets list is undefined, using empty list');
-    assets = { keys: [] };
-  }
-  let asset = null;
-  
-  // First, try to find the exact asset by key
-  if (key === 'index.html') {
-    // For index.html, find the hashed version
-    const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
-    if (indexFile) {
-      console.log(`Found index file: ${indexFile.name}`);
+    // First try ASSETS binding (Cloudflare Pages integration)
+    if (env.ASSETS) {
       try {
-        asset = await kv.get(indexFile.name);
+        console.log('Using ASSETS binding to serve content');
+        return await env.ASSETS.fetch(request);
       } catch (error) {
-        console.error(`Error fetching index file ${indexFile.name}:`, error);
+        console.error('Error using ASSETS binding:', error);
       }
-    } else {
-      console.log('No index.html file found in assets');
     }
-  } else if (path.startsWith('/assets/')) {
-    // For assets in the /assets/ directory, they might be hashed
-    const baseName = path.split('/').pop();
-    if (baseName) {
-      // Try to find exact match first
-      let matchingAsset = assets.keys.find(k => k.name === `assets/${baseName}`);
+    
+    // Then try __STATIC_CONTENT (Workers Sites integration)
+    if (env.__STATIC_CONTENT) {
+      console.log('Using __STATIC_CONTENT to serve static assets');
+      
+      // Remove leading slash for KV lookup
+      const key = path.replace(/^\//, '');
+      
+      try {
+        // Direct lookup first
+        let asset = await env.__STATIC_CONTENT.get(key);
         
-      // If no exact match, try to find hashed version
-      if (!matchingAsset) {
-        const fileNameParts = baseName.split('.');
-        const extension = fileNameParts.pop();
-        const nameWithoutExt = fileNameParts.join('.');
+        // If not found and it's an asset path, try to find with hash
+        if (!asset && path.includes('/assets/')) {
+          const assetPath = path.split('/assets/')[1];
+          const extension = assetPath.split('.').pop();
+          const baseName = assetPath.split('.')[0];
           
-        matchingAsset = assets.keys.find(k => 
-          k.name.startsWith(`assets/${nameWithoutExt}`) && 
-          k.name.endsWith(`.${extension}`)
-        );
-      }
-      
-      if (matchingAsset) {
-        console.log(`Found matching hashed asset: ${matchingAsset.name}`);
-        try {
-          asset = await kv.get(matchingAsset.name);
-        } catch (error) {
-          console.error(`Error fetching asset ${matchingAsset.name}:`, error);
+          // List all assets to find the hashed version
+          const assets = await env.__STATIC_CONTENT.list({ prefix: 'assets/' });
+          console.log('Available assets:', assets?.keys?.map(k => k.name) || 'No assets found');
+          
+          // Find matching asset with hash
+          const matchingAsset = assets?.keys?.find(k => 
+            k.name.startsWith(`assets/${baseName}`) && 
+            k.name.endsWith(`.${extension}`)
+          );
+          
+          if (matchingAsset) {
+            console.log(`Found matching hashed asset: ${matchingAsset.name}`);
+            asset = await env.__STATIC_CONTENT.get(matchingAsset.name);
+          }
         }
-      } else {
-        console.log(`No matching asset found for ${path}`);
-      }
-    }
-  } else {
-    // Try direct lookup for other files
-    try {
-      asset = await kv.get(key);
-    } catch (error) {
-      console.error(`Error fetching asset ${key}:`, error);
-    }
-  }
-  
-  // If still not found, try index.html as a fallback for SPA routing
-  if (asset === null) {
-    console.log(`Asset not found, trying index.html as fallback for path: ${path}`);
-    
-    // Try to find the index.html file (might be hashed)
-    const indexFile = assets.keys.find(k => k.name.startsWith('index') && k.name.endsWith('.html'));
-    
-    if (indexFile) {
-      console.log(`Using index file as fallback: ${indexFile.name}`);
-      try {
-        asset = await kv.get(indexFile.name);
+        
+        if (asset) {
+          const contentType = getContentType(path);
+          console.log(`Serving asset with content type: ${contentType}`);
+          return new Response(asset, {
+            headers: {
+              'Content-Type': contentType,
+              'Cache-Control': 'public, max-age=3600'
+            }
+          });
+        }
+        
+        // For SPA routing, serve index.html for non-asset paths
+        if (!path.includes('.')) {
+          console.log('Path is a route, serving index.html for SPA routing');
+          const indexAsset = await env.__STATIC_CONTENT.get('index.html');
+          if (indexAsset) {
+            return new Response(indexAsset, {
+              headers: {
+                'Content-Type': 'text/html',
+                'Cache-Control': 'public, max-age=60'
+              }
+            });
+          }
+        }
       } catch (error) {
-        console.error(`Error fetching index file ${indexFile.name} as fallback:`, error);
+        console.error(`Error fetching from __STATIC_CONTENT:`, error);
       }
-    } else {
-      console.log('No index.html file found for fallback');
     }
+    
+    // If we get here, we couldn't find the asset in any of the bindings
+    // Serve the fallback HTML template
+    console.log('No static content found, serving fallback HTML template');
+    return new Response(getIndexHtmlTemplate(), {
+      headers: { 'Content-Type': 'text/html' }
+    });
+  } catch (error) {
+    console.error('Error in static content serving:', error);
+    return new Response(`Server Error: ${error instanceof Error ? error.message : 'Unknown error'}`, { 
+      status: 500,
+      headers: { 'Content-Type': 'text/plain' }
+    });
   }
-  
-  return asset;
 }
 
 // Environment interface
