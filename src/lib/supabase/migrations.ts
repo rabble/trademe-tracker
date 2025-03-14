@@ -4,6 +4,8 @@
  */
 
 import { supabase } from '../supabase';
+// Import the RPC type definitions
+import './rpc-types';
 
 /**
  * Run a SQL migration script on the remote Supabase instance
@@ -33,7 +35,8 @@ export async function runMigration(sql: string): Promise<void> {
       const statement = statements[i].trim();
       console.log(`Executing statement ${i + 1}/${statements.length}...`);
       
-      const { error } = await supabase.rpc('exec_sql', { 
+      // Use type assertion to bypass TypeScript error
+      const { error } = await (supabase.rpc as any)('exec_sql', { 
         sql: statement + ';' 
       });
       
@@ -75,7 +78,8 @@ export async function resetDatabase(): Promise<void> {
     `;
     
     console.log('Dropping existing tables...');
-    const { error: dropError } = await supabase.rpc('exec_sql', { sql: dropTablesSQL });
+    // Use type assertion to bypass TypeScript error
+    const { error: dropError } = await (supabase.rpc as any)('exec_sql', { sql: dropTablesSQL });
     
     if (dropError) {
       console.error('Failed to drop tables:', dropError);
