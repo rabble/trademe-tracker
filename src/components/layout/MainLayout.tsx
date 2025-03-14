@@ -5,9 +5,7 @@ import { useState } from 'react'
 
 export function MainLayout() {
   const { user } = useAuth()
-  // Simplified logout that doesn't actually call Supabase
-  const logout = () => console.log('Logout clicked')
-  const logoutLoading = false
+  const { logout, loading: logoutLoading } = useLogout()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
   
@@ -45,8 +43,12 @@ export function MainLayout() {
                     Account Settings
                   </Link>
                   <button
-                    onClick={() => {
-                      logout()
+                    onClick={async () => {
+                      const result = await logout()
+                      if (result?.success) {
+                        // Auth state change will handle redirect
+                        console.log('Logout successful')
+                      }
                       setUserMenuOpen(false)
                     }}
                     disabled={logoutLoading}
