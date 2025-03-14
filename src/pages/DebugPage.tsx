@@ -3,6 +3,8 @@ import { runNetworkDiagnostics } from '../utils/networkDiagnostics';
 import { logEnvironmentInfo } from '../lib/debugUtils';
 import { supabase } from '../lib/supabase';
 import { SupabaseTest } from '../components/debug/SupabaseTest';
+// Import RPC type definitions
+import '../lib/supabase/rpc-types';
 
 export function DebugPage() {
   const [diagnostics, setDiagnostics] = useState<Record<string, any> | null>(null);
@@ -56,13 +58,11 @@ export function DebugPage() {
             data
           });
           
-          // Check database schema using information_schema
+          // Check database schema using RPC function
           console.log('Checking database schema...');
           try {
             const { data: tablesData, error: tablesError } = await supabase
-              .from('information_schema.tables')
-              .select('table_name')
-              .eq('table_schema', 'public');
+              .rpc('get_public_tables');
               
             if (tablesError) {
               console.error('Error fetching tables:', tablesError);
@@ -119,10 +119,8 @@ export function DebugPage() {
             data
           });
           
-          // Check database schema
-          Promise.resolve(supabase.from('information_schema.tables')
-            .select('table_name')
-            .eq('table_schema', 'public'))
+          // Check database schema using RPC function
+          Promise.resolve(supabase.rpc('get_public_tables'))
             .then(({ data: schemaData, error: schemaError }) => {
               if (schemaError) {
                 console.error('Error fetching schema:', schemaError);
@@ -279,9 +277,7 @@ export function DebugPage() {
             onClick={async () => {
               console.log('Listing all tables in public schema...');
               const { data, error } = await supabase
-                .from('information_schema.tables')
-                .select('table_name')
-                .eq('table_schema', 'public');
+                .rpc('get_public_tables');
               console.log('Available tables:', { data, error });
             }}
             className="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200"

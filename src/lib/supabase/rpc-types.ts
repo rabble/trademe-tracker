@@ -5,6 +5,10 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Database } from './schema';
 
+// Make sure this file is imported somewhere to apply the type extensions
+// This is a no-op export to ensure the file is included in the build
+export const __ENSURE_IMPORT = true;
+
 // Extend the SupabaseClient type to include our custom RPC functions
 declare module '@supabase/supabase-js' {
   interface SupabaseClient<T extends Database = any> {
