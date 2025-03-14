@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useProperty } from '../hooks/property/useProperty'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { formatCurrency, formatDate } from '../utils/formatters'
 import { MapView } from '../components/map/MapView'
+import { supabase } from '../lib/supabase'
 
 export function PropertyDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -11,6 +12,34 @@ export function PropertyDetailsPage() {
   const { data: property, isLoading, error } = useProperty(id || '')
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'similar'>('details')
   const [notes, setNotes] = useState('')
+  const [isSavingNotes, setIsSavingNotes] = useState(false)
+  
+  // Load existing notes when component mounts
+  useEffect(() => {
+    async function loadNotes() {
+      if (!id) return;
+      
+      try {
+        console.log('Loading notes for property:', id);
+        const { data, error } = await supabase
+          .from('properties')
+          .select('user_notes')
+          .eq('id', id)
+          .single();
+        
+        if (error) {
+          console.error('Error loading notes:', error);
+        } else {
+          console.log('Loaded notes:', data?.user_notes);
+          setNotes(data?.user_notes || '');
+        }
+      } catch (err) {
+        console.error('Exception loading notes:', err);
+      }
+    }
+    
+    loadNotes();
+  }, [id]);
 
   // Dummy price history data for chart (using property.created_at and last_price_change if available)
   const priceHistory = property ? (() => {
@@ -178,7 +207,28 @@ export function PropertyDetailsPage() {
             />
             <button
               className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
-              onClick={() => console.log('Save notes:', notes)}
+              onClick={async () => {
+                try {
+                  console.log('Saving notes to database:', notes);
+                  // Direct Supabase update
+                  const { data, error } = await supabase
+                    .from('properties')
+                    .update({ user_notes: notes })
+                    .eq('id', id)
+                    .select();
+                  
+                  if (error) {
+                    console.error('Error saving notes:', error);
+                    alert('Failed to save notes: ' + error.message);
+                  } else {
+                    console.log('Notes saved successfully:', data);
+                    alert('Notes saved successfully!');
+                  }
+                } catch (err) {
+                  console.error('Exception saving notes:', err);
+                  alert('An error occurred while saving notes');
+                }
+              }}
             >
               Save Notes
             </button>
