@@ -171,35 +171,6 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
       // Direct lookup first
       let asset = await env.__STATIC_CONTENT.get(key, { type: 'arrayBuffer' });
       
-      // If not found and it's a file with extension, try to find hashed version
-      if (!asset && path.includes('.')) {
-        console.log(`Asset not found directly, trying to find hashed version for: ${key}`);
-        
-        // Extract file extension and base name
-        const cleanPath = path.replace(/^\/+/, '');
-        const lastDotIndex = cleanPath.lastIndexOf('.');
-        if (lastDotIndex !== -1) {
-          const extension = cleanPath.substring(lastDotIndex + 1);
-          const baseName = cleanPath.substring(0, lastDotIndex);
-          
-          console.log(`Looking for asset with basename: ${baseName} and extension: ${extension}`);
-          
-          // Get all assets with the same extension
-          const assets = await env.__STATIC_CONTENT.list();
-          
-          // Find matching asset with hash
-          const matchingAsset = assets.keys.find(k => {
-            const name = k.name;
-            // Check if it starts with the base name and ends with the extension
-            return name.startsWith(baseName) && name.endsWith(`.${extension}`);
-          });
-          
-          if (matchingAsset) {
-            console.log(`Found matching hashed asset: ${matchingAsset.name}`);
-            asset = await env.__STATIC_CONTENT.get(matchingAsset.name, { type: 'arrayBuffer' });
-          }
-        }
-      }
       
       // If we found an asset, return it
       if (asset) {
