@@ -14,7 +14,7 @@ export const PropertyNotesService = {
       console.log(`[PropertyNotesService] Property ID type:`, typeof propertyId);
       console.log(`[PropertyNotesService] Property ID length:`, propertyId.length);
       console.log(`[PropertyNotesService] Notes length:`, notes.length);
-      console.log(`[PropertyNotesService] Supabase URL:`, supabase.supabaseUrl);
+      console.log(`[PropertyNotesService] Supabase URL:`, import.meta.env.VITE_SUPABASE_URL);
       
       // Validate property ID format (UUID or numeric)
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -60,7 +60,7 @@ export const PropertyNotesService = {
         .eq('id', propertyId)
         .select();
         
-      console.log(`[PropertyNotesService] Update query:`, updateQuery.url);
+      console.log(`[PropertyNotesService] Update query:`, 'Preparing to update property notes');
       
       const { data: updateData, error: updateError, status: updateStatus } = await updateQuery;
       

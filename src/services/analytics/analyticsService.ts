@@ -381,7 +381,7 @@ export const AnalyticsService = {
       console.log(`[AnalyticsService] Property ID length:`, propertyId.length);
       console.log(`[AnalyticsService] Notes:`, notes);
       console.log(`[AnalyticsService] Notes length:`, notes.length);
-      console.log(`[AnalyticsService] Supabase URL:`, supabase.supabaseUrl);
+      console.log(`[AnalyticsService] Supabase URL:`, import.meta.env.VITE_SUPABASE_URL);
       
       // Validate property ID format (UUID or numeric)
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -423,7 +423,7 @@ export const AnalyticsService = {
         .eq('id', propertyId)
         .select();
         
-      console.log(`[AnalyticsService] Update query:`, updateQuery.url);
+      console.log(`[AnalyticsService] Update query:`, 'Preparing to update property notes');
       
       const { data, error, status } = await updateQuery;
       
