@@ -15,6 +15,52 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      historical_images: {
+        Row: {
+          id: string
+          property_id: string
+          url: string
+          is_primary: boolean
+          created_at: string
+          captured_at: string
+          hash: string | null
+          size: number | null
+          width: number | null
+          height: number | null
+        }
+        Insert: {
+          id?: string
+          property_id: string
+          url: string
+          is_primary?: boolean
+          created_at?: string
+          captured_at: string
+          hash?: string | null
+          size?: number | null
+          width?: number | null
+          height?: number | null
+        }
+        Update: {
+          id?: string
+          property_id?: string
+          url?: string
+          is_primary?: boolean
+          created_at?: string
+          captured_at?: string
+          hash?: string | null
+          size?: number | null
+          width?: number | null
+          height?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historical_images_property_id_fkey"
+            columns: ["property_id"]
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       properties: {
         Row: {
           id: string

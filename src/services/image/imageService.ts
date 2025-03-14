@@ -55,6 +55,21 @@ export const ImageService = {
    */
   async fetchImageHistory(propertyId: string): Promise<HistoricalImage[]> {
     try {
+      // Check if the historical_images table exists
+      try {
+        const { count, error: checkError } = await supabase
+          .from('historical_images')
+          .select('*', { count: 'exact', head: true });
+          
+        if (checkError && checkError.code === 'PGRST204') {
+          console.warn('historical_images table does not exist yet');
+          return [];
+        }
+      } catch (err) {
+        console.warn('Error checking if historical_images table exists:', err);
+        // Continue anyway
+      }
+      
       const { data, error } = await supabase
         .from('historical_images')
         .select('*')
@@ -65,7 +80,8 @@ export const ImageService = {
         throw error;
       }
 
-      return data as HistoricalImage[];
+      // Use proper type assertion with unknown intermediate step
+      return (data as unknown) as HistoricalImage[];
     } catch (error) {
       console.error(`Error fetching image history for property ${propertyId}:`, error);
       throw error;
