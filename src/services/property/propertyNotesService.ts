@@ -9,40 +9,67 @@ export const PropertyNotesService = {
    */
   async saveNotes(propertyId: string, notes: string): Promise<void> {
     try {
+      console.log(`[PropertyNotesService] ==================== START SAVE NOTES ====================`);
       console.log(`[PropertyNotesService] Saving notes for property ${propertyId}:`, notes);
       console.log(`[PropertyNotesService] Property ID type:`, typeof propertyId);
+      console.log(`[PropertyNotesService] Property ID length:`, propertyId.length);
+      console.log(`[PropertyNotesService] Notes length:`, notes.length);
+      console.log(`[PropertyNotesService] Supabase URL:`, supabase.supabaseUrl);
       
       // Check if the property exists
       console.log(`[PropertyNotesService] Checking if property exists...`);
-      const { data: property, error: propertyError } = await supabase
+      const { data: property, error: propertyError, status: propertyStatus } = await supabase
         .from('properties')
         .select('id, user_notes')
         .eq('id', propertyId)
         .single();
       
-      console.log(`[PropertyNotesService] Property check result:`, { property, error: propertyError });
+      console.log(`[PropertyNotesService] Property check result:`, { 
+        property, 
+        error: propertyError, 
+        status: propertyStatus,
+        propertyExists: !!property,
+        errorCode: propertyError?.code,
+        errorMessage: propertyError?.message
+      });
       
       if (propertyError) {
         console.error('[PropertyNotesService] Error fetching property for notes update:', propertyError);
+        console.error('[PropertyNotesService] Full error details:', JSON.stringify(propertyError));
         throw propertyError;
       }
       
       // Update the property with the new notes
       console.log(`[PropertyNotesService] Updating property with new notes...`);
-      const { data: updateData, error: updateError } = await supabase
+      console.log(`[PropertyNotesService] Current notes in DB:`, property?.user_notes);
+      
+      const updateQuery = supabase
         .from('properties')
         .update({ user_notes: notes })
         .eq('id', propertyId)
         .select();
+        
+      console.log(`[PropertyNotesService] Update query:`, updateQuery.url);
       
-      console.log(`[PropertyNotesService] Update result:`, { data: updateData, error: updateError });
+      const { data: updateData, error: updateError, status: updateStatus } = await updateQuery;
+      
+      console.log(`[PropertyNotesService] Update result:`, { 
+        data: updateData, 
+        error: updateError, 
+        status: updateStatus,
+        updateSuccessful: !!updateData && updateData.length > 0,
+        errorCode: updateError?.code,
+        errorMessage: updateError?.message
+      });
       
       if (updateError) {
         console.error('[PropertyNotesService] Error updating property notes:', updateError);
+        console.error('[PropertyNotesService] Full error details:', JSON.stringify(updateError));
         throw updateError;
       }
       
       console.log(`[PropertyNotesService] Notes saved successfully for property ${propertyId}`);
+      console.log(`[PropertyNotesService] ==================== END SAVE NOTES ====================`);
     } catch (error) {
       console.error('Error in saveNotes:', error);
       throw error;

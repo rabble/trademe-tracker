@@ -375,24 +375,65 @@ export const AnalyticsService = {
    */
   async savePropertyNotes(propertyId: string, notes: string): Promise<void> {
     try {
+      console.log(`[AnalyticsService] ==================== START SAVE NOTES ====================`);
       console.log(`[AnalyticsService] Saving notes for property ${propertyId}`);
       console.log(`[AnalyticsService] Property ID type:`, typeof propertyId);
+      console.log(`[AnalyticsService] Property ID length:`, propertyId.length);
       console.log(`[AnalyticsService] Notes:`, notes);
+      console.log(`[AnalyticsService] Notes length:`, notes.length);
+      console.log(`[AnalyticsService] Supabase URL:`, supabase.supabaseUrl);
       
-      const { data, error } = await supabase
+      // First check if the property exists
+      console.log(`[AnalyticsService] Checking if property exists...`);
+      const { data: property, error: propertyError, status: propertyStatus } = await supabase
+        .from('properties')
+        .select('id')
+        .eq('id', propertyId)
+        .single();
+        
+      console.log(`[AnalyticsService] Property check result:`, { 
+        property, 
+        error: propertyError, 
+        status: propertyStatus,
+        propertyExists: !!property,
+        errorCode: propertyError?.code,
+        errorMessage: propertyError?.message
+      });
+      
+      if (propertyError) {
+        console.error('[AnalyticsService] Property does not exist or error fetching:', propertyError);
+        console.error('[AnalyticsService] Full error details:', JSON.stringify(propertyError));
+      }
+      
+      // Attempt update anyway
+      const updateQuery = supabase
         .from('properties')
         .update({ user_notes: notes })
         .eq('id', propertyId)
         .select();
+        
+      console.log(`[AnalyticsService] Update query:`, updateQuery.url);
       
-      console.log(`[AnalyticsService] Update result:`, { data, error });
+      const { data, error, status } = await updateQuery;
+      
+      console.log(`[AnalyticsService] Update result:`, { 
+        data, 
+        error, 
+        status,
+        updateSuccessful: !!data && data.length > 0,
+        errorCode: error?.code,
+        errorMessage: error?.message,
+        fullResponse: JSON.stringify(data)
+      });
       
       if (error) {
         console.error('[AnalyticsService] Error saving property notes:', error);
+        console.error('[AnalyticsService] Full error details:', JSON.stringify(error));
         throw error;
       }
       
       console.log('[AnalyticsService] Property notes saved successfully');
+      console.log(`[AnalyticsService] ==================== END SAVE NOTES ====================`);
     } catch (error) {
       console.error('Error in savePropertyNotes:', error);
       throw error;
