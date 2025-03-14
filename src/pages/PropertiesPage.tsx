@@ -137,50 +137,50 @@ export function PropertiesPage() {
   return (
     <div className="container-wrapper space-y-6">
       <div className="mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Properties</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Manage and track your saved properties
-            </p>
-          </div>
-          
-          {/* Property Category Toggle */}
-          <div className="inline-flex rounded-md shadow-sm">
-            <button
-              type="button"
-              onClick={() => setFilters(prev => ({ ...prev, propertyCategory: 'for_sale' }))}
-              className={`relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
-                filters.propertyCategory === 'for_sale' 
-                  ? 'bg-indigo-600 text-white' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              For Sale
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilters(prev => ({ ...prev, propertyCategory: 'rental' }))}
-              className={`relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
-                filters.propertyCategory === 'rental' 
-                  ? 'bg-indigo-600 text-white' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Rentals
-            </button>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Properties</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Manage and track your saved properties
+          </p>
         </div>
       </div>
 
       {/* Search and Filter Controls */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <SearchBar 
-            value={filters.searchQuery || ''} 
-            onChange={handleSearch} 
-            className="w-full sm:w-96"
-          />
+          <div className="flex items-center gap-4">
+            {/* Property Category Toggle */}
+            <div className="inline-flex rounded-md shadow-sm">
+              <button
+                type="button"
+                onClick={() => setFilters(prev => ({ ...prev, propertyCategory: 'for_sale' }))}
+                className={`relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
+                  filters.propertyCategory === 'for_sale' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                For Sale
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilters(prev => ({ ...prev, propertyCategory: 'rental' }))}
+                className={`relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${
+                  filters.propertyCategory === 'rental' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Rentals
+              </button>
+            </div>
+            
+            <SearchBar 
+              value={filters.searchQuery || ''} 
+              onChange={handleSearch} 
+              className="w-full sm:w-96"
+            />
+          </div>
           <div className="flex items-center space-x-2">
             <SavedFilters 
               currentFilters={filters}

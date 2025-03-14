@@ -107,7 +107,9 @@ export const PropertyService = {
         }
         
         if (filters.propertyCategory) {
+          // Make sure we're using the right column name in the database
           query = query.eq('listing_type', filters.propertyCategory);
+          console.log(`Filtering by property category: ${filters.propertyCategory}`);
         }
         
         if (filters.minPrice !== undefined) {

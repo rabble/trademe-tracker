@@ -11,10 +11,16 @@ import { Property } from '../../types'
  */
 export function useProperties(
   filters?: PropertyFilters,
-  pagination?: PaginationOptions
+  pagination?: PaginationOptions,
+  useTrademe: boolean = false
 ) {
+  // Log the filters being used
+  console.log('useProperties hook called with filters:', filters);
+  
   return useQuery<{ data: Property[]; count: number }>({
-    queryKey: ['properties', filters, pagination],
-    queryFn: () => PropertyService.fetchProperties(filters, pagination),
+    queryKey: ['properties', filters, pagination, useTrademe],
+    queryFn: () => PropertyService.fetchProperties(filters, pagination, useTrademe),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   })
 }
