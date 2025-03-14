@@ -160,63 +160,6 @@ async function serveStaticContent(request: Request, env: Env): Promise<Response>
       }
     }
     
-    // Then try __STATIC_CONTENT (Workers Sites integration)
-    if (env.__STATIC_CONTENT) {
-      console.log('Using __STATIC_CONTENT to serve static assets');
-      
-      // Remove leading slash for KV lookup
-      const key = path.replace(/^\//, '');
-      console.log(`Looking for key in __STATIC_CONTENT: "${key}"`);
-      
-      // Direct lookup first
-      let asset = await env.__STATIC_CONTENT.get(key, { type: 'arrayBuffer' });
-      
-      
-      // If we found an asset, return it
-      if (asset) {
-        const contentType = getContentType(path);
-        console.log(`Serving asset with content type: ${contentType}`);
-        
-        return new Response(asset, {
-          headers: {
-            'Content-Type': contentType,
-            'Cache-Control': 'public, max-age=3600'
-          }
-        });
-      }
-      
-      // For SPA routing, serve index.html for non-asset paths
-      if (!path.includes('.')) {
-        console.log('Path is a route, serving index.html for SPA routing');
-        const indexAsset = await env.__STATIC_CONTENT.get('index.html', { type: 'arrayBuffer' });
-        
-        if (indexAsset) {
-          return new Response(indexAsset, {
-            headers: {
-              'Content-Type': 'text/html',
-              'Cache-Control': 'public, max-age=60'
-            }
-          });
-        }
-      }
-      
-      // If we still don't have an asset, try index.cb5a95e864.html (hashed index)
-      console.log('Trying to find hashed index.html');
-      const hashedIndexes = (await env.__STATIC_CONTENT.list({ prefix: 'index.' })).keys;
-      if (hashedIndexes.length > 0) {
-        console.log(`Found hashed index: ${hashedIndexes[0].name}`);
-        const indexAsset = await env.__STATIC_CONTENT.get(hashedIndexes[0].name, { type: 'arrayBuffer' });
-        
-        if (indexAsset) {
-          return new Response(indexAsset, {
-            headers: {
-              'Content-Type': 'text/html',
-              'Cache-Control': 'public, max-age=60'
-            }
-          });
-        }
-      }
-    }
     
     // If we get here, we couldn't find the asset
     console.log('Asset not found, returning 404');
