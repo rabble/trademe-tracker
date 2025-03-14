@@ -59,6 +59,28 @@ export const AnalyticsService = {
    */
   async fetchSummary(): Promise<PortfolioSummary> {
     try {
+      // Check if the properties table exists
+      try {
+        const { count, error } = await supabase
+          .from('properties')
+          .select('*', { count: 'exact', head: true });
+          
+        if (error && error.code === 'PGRST204') {
+          console.warn('Properties table does not exist yet');
+          return {
+            totalProperties: 0,
+            activeProperties: 0,
+            underOfferProperties: 0,
+            soldProperties: 0,
+            averagePrice: 0,
+            averageDaysOnMarket: 0
+          };
+        }
+      } catch (err) {
+        console.warn('Error checking if properties table exists:', err);
+        // Continue anyway
+      }
+      
       // Fetch all required data in parallel
       const [statusCounts, averagePrice, averageDaysOnMarket] = await Promise.all([
         this.fetchStatusCounts(),
@@ -86,27 +108,40 @@ export const AnalyticsService = {
    * @returns Promise with status counts
    */
   async fetchStatusCounts(): Promise<StatusCounts> {
-    const { data, error } = await supabase
-      .from('properties')
-      .select('status, count')
-      .neq('status', 'archived');
+    try {
+      // Use proper GROUP BY clause
+      const { data, error } = await supabase
+        .from('properties')
+        .select('status, count')
+        .not('status', 'is', null)
+        .group('status');
 
-    if (error) {
-      console.error('Error fetching status counts:', error);
-      throw error;
+      if (error) {
+        console.error('Error fetching status counts:', error);
+        throw error;
+      }
+
+      const activeCount = this.extractCountForStatus(data, 'active');
+      const underOfferCount = this.extractCountForStatus(data, 'under_offer');
+      const soldCount = this.extractCountForStatus(data, 'sold');
+      const totalCount = activeCount + underOfferCount + soldCount;
+
+      return {
+        active: activeCount,
+        under_offer: underOfferCount,
+        sold: soldCount,
+        total: totalCount
+      };
+    } catch (error) {
+      console.error('Error in fetchStatusCounts:', error);
+      // Return empty counts on error
+      return {
+        active: 0,
+        under_offer: 0,
+        sold: 0,
+        total: 0
+      };
     }
-
-    const activeCount = this.extractCountForStatus(data, 'active');
-    const underOfferCount = this.extractCountForStatus(data, 'under_offer');
-    const soldCount = this.extractCountForStatus(data, 'sold');
-    const totalCount = activeCount + underOfferCount + soldCount;
-
-    return {
-      active: activeCount,
-      under_offer: underOfferCount,
-      sold: soldCount,
-      total: totalCount
-    };
   },
 
   /**
@@ -126,17 +161,24 @@ export const AnalyticsService = {
    * @returns Promise with average price
    */
   async calculateAveragePrice(): Promise<number> {
-    const { data, error } = await supabase
-      .from('properties')
-      .select('price')
-      .neq('status', 'archived');
+    try {
+      // Use aggregate function in SQL
+      const { data, error } = await supabase
+        .from('properties')
+        .select('avg(price)')
+        .neq('status', 'archived')
+        .single();
 
-    if (error) {
-      console.error('Error fetching price data:', error);
-      throw error;
+      if (error) {
+        console.error('Error calculating average price:', error);
+        throw error;
+      }
+
+      return data?.avg || 0;
+    } catch (error) {
+      console.error('Error in calculateAveragePrice:', error);
+      return 0;
     }
-
-    return this.calculateAverage(data.map(item => item.price));
   },
 
   /**
@@ -145,17 +187,24 @@ export const AnalyticsService = {
    * @returns Promise with average days on market
    */
   async calculateAverageDaysOnMarket(): Promise<number> {
-    const { data, error } = await supabase
-      .from('properties')
-      .select('days_on_market')
-      .neq('status', 'archived');
+    try {
+      // Use aggregate function in SQL
+      const { data, error } = await supabase
+        .from('properties')
+        .select('avg(days_on_market)')
+        .neq('status', 'archived')
+        .single();
 
-    if (error) {
-      console.error('Error fetching days on market data:', error);
-      throw error;
+      if (error) {
+        console.error('Error calculating average days on market:', error);
+        throw error;
+      }
+
+      return data?.avg || 0;
+    } catch (error) {
+      console.error('Error in calculateAverageDaysOnMarket:', error);
+      return 0;
     }
-
-    return this.calculateAverage(data.map(item => item.days_on_market));
   },
 
   /**
@@ -178,6 +227,21 @@ export const AnalyticsService = {
    */
   async fetchRecentChanges(limit: number = 10): Promise<PropertyChange[]> {
     try {
+      // Check if the property_changes table exists
+      try {
+        const { count, error } = await supabase
+          .from('property_changes')
+          .select('*', { count: 'exact', head: true });
+          
+        if (error && error.code === 'PGRST204') {
+          console.warn('property_changes table does not exist yet');
+          return [];
+        }
+      } catch (err) {
+        console.warn('Error checking if property_changes table exists:', err);
+        // Continue anyway
+      }
+      
       const { data, error } = await supabase
         .from('property_changes')
         .select('*, properties(title)')
@@ -192,7 +256,7 @@ export const AnalyticsService = {
       return this.transformPropertyChanges(data);
     } catch (error) {
       console.error('Error in fetchRecentChanges:', error);
-      throw error;
+      return [];
     }
   },
 
@@ -203,9 +267,11 @@ export const AnalyticsService = {
    * @returns Transformed property changes
    */
   transformPropertyChanges(data: any[]): PropertyChange[] {
+    if (!data || data.length === 0) return [];
+    
     return data.map(change => ({
       ...change,
-      property_title: change.properties.title,
+      property_title: change.properties?.title || 'Unknown Property',
     })) as PropertyChange[];
   },
 
@@ -218,6 +284,21 @@ export const AnalyticsService = {
    */
   async fetchInsights(propertyId?: string, limit: number = 10): Promise<PropertyInsight[]> {
     try {
+      // Check if the property_insights table exists
+      try {
+        const { count, error } = await supabase
+          .from('property_insights')
+          .select('*', { count: 'exact', head: true });
+          
+        if (error && error.code === 'PGRST204') {
+          console.warn('property_insights table does not exist yet');
+          return [];
+        }
+      } catch (err) {
+        console.warn('Error checking if property_insights table exists:', err);
+        // Continue anyway
+      }
+      
       const query = this.buildInsightsQuery(propertyId, limit);
       const { data, error } = await query;
 
@@ -229,7 +310,7 @@ export const AnalyticsService = {
       return this.transformPropertyInsights(data);
     } catch (error) {
       console.error('Error in fetchInsights:', error);
-      throw error;
+      return [];
     }
   },
 
@@ -261,9 +342,11 @@ export const AnalyticsService = {
    * @returns Transformed property insights
    */
   transformPropertyInsights(data: any[]): PropertyInsight[] {
+    if (!data || data.length === 0) return [];
+    
     return data.map(insight => ({
       ...insight,
-      property_title: insight.properties.title,
+      property_title: insight.properties?.title || 'Unknown Property',
     })) as PropertyInsight[];
   }
 };
