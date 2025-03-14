@@ -79,6 +79,9 @@ function getIndexHtml() {
 </html>`;
 }
 
+// Import the SPA routing handler
+import { handleSpaRouting } from './_routes.js';
+
 export default {
   async fetch(request, env, ctx) {
     try {
@@ -91,9 +94,21 @@ export default {
         });
       }
       
-      // For all other requests, serve static assets from the site
+      // For all other requests, use the SPA routing handler
       try {
         console.log(`Handling request for: ${url.pathname}`);
+        
+        // Use the SPA routing handler if ASSETS binding is available
+        if (env.ASSETS) {
+          console.log('Using SPA routing handler');
+          const spaResponse = await handleSpaRouting(request, env, ctx);
+          if (spaResponse) {
+            return spaResponse;
+          }
+        }
+        
+        // Fallback to the old method if SPA routing fails
+        console.log('SPA routing failed, using fallback method');
         
         // Check if we have the ASSETS binding
         if (env.ASSETS) {
@@ -104,6 +119,16 @@ export default {
             // If asset not found, serve index.html for SPA routing
             if (response.status === 404) {
               console.log('Asset not found, serving index.html');
+              // Create a new request for index.html
+              const indexRequest = new Request(`${url.origin}/index.html`, request);
+              const indexResponse = await env.ASSETS.fetch(indexRequest);
+              
+              // If index.html is found, return it
+              if (indexResponse.status === 200) {
+                return indexResponse;
+              }
+              
+              // Otherwise, fall back to the embedded HTML
               return new Response(getIndexHtml(), {
                 headers: { 'Content-Type': 'text/html' }
               });

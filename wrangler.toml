@@ -11,5 +11,5 @@ kv_namespaces = [
 # Define static assets
 [site]
 bucket = "./dist"
-include = ["dist/**/*"]
+include = ["**/*"]
 exclude = ["node_modules"]

@@ -17,6 +17,6 @@ export default defineConfig({
       }
     }
   },
-  base: '/',
+  base: './', // Change from '/' to './' for relative paths
   publicDir: 'public'
 })
