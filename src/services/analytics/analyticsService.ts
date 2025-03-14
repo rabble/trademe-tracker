@@ -162,19 +162,24 @@ export const AnalyticsService = {
    */
   async calculateAveragePrice(): Promise<number> {
     try {
-      // Use aggregate function in SQL
+      // Fetch all prices and calculate average on the client side
       const { data, error } = await supabase
         .from('properties')
-        .select('avg(price)')
-        .neq('status', 'archived')
-        .single();
+        .select('price')
+        .neq('status', 'archived');
 
       if (error) {
-        console.error('Error calculating average price:', error);
+        console.error('Error fetching price data:', error);
         throw error;
       }
 
-      return data?.avg || 0;
+      if (!data || data.length === 0) {
+        return 0;
+      }
+
+      // Calculate average manually
+      const sum = data.reduce((total, item) => total + (item.price || 0), 0);
+      return sum / data.length;
     } catch (error) {
       console.error('Error in calculateAveragePrice:', error);
       return 0;
@@ -188,19 +193,24 @@ export const AnalyticsService = {
    */
   async calculateAverageDaysOnMarket(): Promise<number> {
     try {
-      // Use aggregate function in SQL
+      // Fetch all days_on_market values and calculate average on the client side
       const { data, error } = await supabase
         .from('properties')
-        .select('avg(days_on_market)')
-        .neq('status', 'archived')
-        .single();
+        .select('days_on_market')
+        .neq('status', 'archived');
 
       if (error) {
-        console.error('Error calculating average days on market:', error);
+        console.error('Error fetching days on market data:', error);
         throw error;
       }
 
-      return data?.avg || 0;
+      if (!data || data.length === 0) {
+        return 0;
+      }
+
+      // Calculate average manually
+      const sum = data.reduce((total, item) => total + (item.days_on_market || 0), 0);
+      return sum / data.length;
     } catch (error) {
       console.error('Error in calculateAverageDaysOnMarket:', error);
       return 0;
