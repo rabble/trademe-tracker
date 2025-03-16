@@ -14,7 +14,7 @@ A web application that automatically tracks favorited properties from TradeMe, p
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/trademe-tracker.git
+git clone https://github.com/rabble/trademe-tracker.git
 cd trademe-tracker
 ```
 
@@ -24,10 +24,11 @@ npm install
 ```
 
 3. Create a `.env` file in the root directory with your Supabase credentials:
-```
+```env
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
+You can use the [.env.example](.env.example) file as a template.
 
 4. Start the development server
 ```bash
@@ -36,18 +37,18 @@ npm run dev
 
 ## Project Structure
 
-- `src/` - Frontend React application
-  - `components/` - React components
-  - `hooks/` - Custom React hooks
-  - `pages/` - Page components
-  - `utils/` - Utility functions
-  - `services/` - API services
-  - `types/` - TypeScript type definitions
-- `worker/` - Cloudflare Worker for API and scraping
-  - `src/` - Worker source code
-  - `src/middleware/` - Middleware functions
-  - `src/routes/` - API route handlers
-  - `src/services/` - Business logic and services
+- [`src/`](./src/) - Frontend React application
+  - [`components/`](./src/components/) - React components
+  - [`hooks/`](./src/hooks/) - Custom React hooks
+  - [`pages/`](./src/pages/) - Page components
+  - [`utils/`](./src/utils/) - Utility functions
+  - [`services/`](./src/services/) - API services
+  - [`types/`](./src/types/) - TypeScript type definitions
+- [`worker/`](./worker/) - Cloudflare Worker for API and scraping
+  - [`src/`](./worker/src/) - Worker source code
+  - [`src/middleware/`](./worker/src/middleware/) - Middleware functions
+  - [`src/routes/`](./worker/src/routes/) - API route handlers
+  - [`src/services/`](./worker/src/services/) - Business logic and services
 
 ## Available Scripts
 
@@ -60,14 +61,20 @@ npm run dev
 - `npm run worker:dev` - Start the worker development server
 - `npm run worker:deploy` - Deploy the worker to Cloudflare
 
+You can find all available scripts in the [`package.json`](./package.json) file.
+
 ## Tech Stack
 
-- Frontend: React with Vite
-- Styling: Tailwind CSS
-- Routing: React Router
-- Backend: Cloudflare Workers & Supabase
-- Language: TypeScript
-- Data Visualization: Recharts
+### Frontend
+- **Framework**: React with Vite
+- **Styling**: Tailwind CSS
+- **Routing**: React Router
+- **Language**: TypeScript
+- **Data Visualization**: Recharts
+
+### Backend
+- **Serverless Functions**: Cloudflare Workers
+- **Database**: Supabase
 
 ## Cloudflare Worker
 
@@ -85,7 +92,7 @@ cd worker
 npm install
 ```
 
-3. Configure your environment by updating the `wrangler.toml` file.
+3. Configure your environment by updating the [`wrangler.toml`](./wrangler.toml) file.
 
 4. Run the worker locally:
 ```bash
@@ -97,6 +104,12 @@ npm run dev
 npm run deploy
 ```
 
+For more details on the worker implementation, check the [`worker/`](./worker/) directory.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Contributing
+
+Contributions are welcome! Feel free to open an issue or submit a pull request if you have any improvements or bug fixes.
