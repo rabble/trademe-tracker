@@ -28,6 +28,9 @@ export interface Property {
   primary_image_url?: string;
   latitude?: number;
   longitude?: number;
+  user_id?: string;
+  favorite_date?: string;
+  last_updated?: string;
   last_price_change?: {
     old_price: number;
     new_price: number;

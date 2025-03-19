@@ -1,12 +1,12 @@
 # TradeMe Property Tracker - Technical Specification
 
 ## Project Overview
-A web application that automatically tracks favorited properties from TradeMe, primarily residential and land listings. The tool will scrape property data daily, track changes over time, store historical information (including images and descriptions), visualize properties on maps and in various formats, and provide AI-generated insights about the properties.
+A web application that automatically tracks favorited properties from TradeMe, primarily residential and land listings. The tool will use the TradeMe API to retrieve property data daily, track changes over time, store historical information (including images and descriptions), visualize properties on maps and in various formats, and provide AI-generated insights about the properties.
 
 ## Key Requirements
 
 ### Core Functionality
-1. Automated web scraping of favorited TradeMe property listings
+1. Automated tracking of favorited TradeMe property listings via API
 2. Persistent storage of all property data, including after listings are removed from TradeMe
 3. Change tracking for prices, listing methods, and status
 4. Multiple visualization methods (cards, table, map)
@@ -15,11 +15,11 @@ A web application that automatically tracks favorited properties from TradeMe, p
 
 ### Technical Stack
 - **Frontend**: React with Vite, deployed on Cloudflare Pages
-- **Backend**: Cloudflare Workers for API and scraping
+- **Backend**: Cloudflare Workers for API and data integration
 - **Database**: Supabase PostgreSQL
 - **Storage**: Supabase Storage for images
 - **Authentication**: Supabase Auth
-- **Web Scraping**: Playwright
+- **API Integration**: TradeMe API with OAuth
 - **Visualization**: Recharts for charts, React-Leaflet with OpenStreetMap
 - **Styling**: Tailwind CSS
 - **AI Integration**: Claude 3.7 Sonnet
@@ -57,11 +57,11 @@ The React application will use a component-based architecture with the following
    - Processes property data before sending to frontend
    - Validates incoming requests
 
-2. **Scraping Worker**
+2. **TradeMe API Worker**
    - Triggered by CRON jobs daily
-   - Uses Playwright to scrape TradeMe
+   - Integrates with TradeMe API via OAuth
    - Processes and compares data to detect changes
-   - Uploads images to Supabase Storage
+   - Downloads and uploads images to Supabase Storage
    - Updates database with new information
    - Triggers AI analysis when new data is found
 
@@ -146,37 +146,36 @@ CREATE TABLE property_views (
 );
 ```
 
-## Web Scraping Implementation
+## TradeMe API Implementation
 
-### TradeMe Scraping Process
-1. **Authentication with TradeMe**
-   - Use Playwright to log in to TradeMe
-   - Navigate to favorited properties page
-   - Handle any CAPTCHA/security challenges
+### TradeMe API Integration Process
+1. **Authentication with TradeMe API**
+   - Implement OAuth authentication flow
+   - Obtain and refresh API access tokens
+   - Handle authentication errors gracefully
 
-2. **Data Extraction**
-   - Scrape list of all favorited properties
+2. **Data Retrieval**
+   - Fetch list of all favorited properties via API
    - For each property:
-     - Extract basic listing details from favorites page
-     - Navigate to full property page
-     - Extract complete details, description, agent information
-     - Capture all images
-     - Record listing status and price details
+     - Retrieve complete property details via API
+     - Get all property images via API endpoints
+     - Fetch listing status and price details
+     - Store agent and listing information
 
 3. **Change Detection**
-   - Compare scraped data with existing database records
+   - Compare API data with existing database records
    - Identify changes in price, description, status, or listing method
    - Record all changes in the `property_listings` table with a new snapshot
 
 4. **Image Handling**
-   - Download all property images
+   - Download property images from URLs provided by the API
    - Upload to Supabase Storage with organized naming (property_id/date/image_number)
    - Store both original URL and storage path
 
 ### CRON Job Configuration
-- Schedule: Daily at 3:00 AM NZT (low traffic time for TradeMe)
+- Schedule: Daily at 3:00 AM NZT (low traffic time for TradeMe API)
 - Timeout: 15 minutes maximum execution time
-- Error handling: Notification system for scraping failures
+- Error handling: Notification system for API failures
 
 ## AI Integration
 
@@ -211,6 +210,14 @@ CREATE TABLE property_views (
 4. Token validated by Cloudflare Worker for API access
 
 ### User Interface Components
+
+#### Progressive Enhancement
+- Static HTML fallback for all critical pages
+- Non-JavaScript authentication with cookie-based sessions
+- Detailed error diagnostics and reporting
+- Demo mode with sample data and credentials (demo@example.com / password123)
+- Responsive design in both React app and HTML fallbacks
+- Graceful degradation when JavaScript fails to load
 
 #### Navigation
 - Main navigation bar with view toggles
@@ -297,12 +304,20 @@ The filtering system will include options for:
    - Use React Error Boundaries for component-level errors
    - Fallback UI for failed components
    - Error reporting to monitoring service
+   
+3. **Progressive Enhancement Error Handling**
+   - Static HTML fallback when JavaScript fails to load
+   - Detailed debug pages with comprehensive diagnostics
+   - Client-side error detection and reporting
+   - Environment validation with informative error messages
+   - Cookie-based session persistence for authentication
+   - Specific error handling for missing static assets
 
 ### Backend Error Handling
-1. **Scraping Errors**
-   - Retry mechanism for failed requests
+1. **API Errors**
+   - Retry mechanism for failed API requests
    - Circuit breaker pattern for repeatedly failing operations
-   - Logging of all scraping failures
+   - Logging of all API failures
    - Partial success handling (some properties succeeded, others failed)
 
 2. **Database Errors**
@@ -311,10 +326,17 @@ The filtering system will include options for:
    - Query timeout handling
    - Retry mechanism for transient errors
 
-3. **General Error Strategy**
+3. **Static Content Errors**
+   - Fallback content serving for missing assets
+   - Content-type detection and appropriate headers
+   - Default placeholder responses for critical assets
+   - Comprehensive debugging endpoints (/debug/static-report)
+
+4. **General Error Strategy**
    - Structured error logging
    - Centralized error tracking
    - Alert system for critical failures
+   - Detailed debugging information for troubleshooting
 
 ## Performance Considerations
 
@@ -338,9 +360,9 @@ The filtering system will include options for:
    - Connection pooling
    - Caching for frequent queries
 
-2. **Scraping Optimization**
+2. **API Optimization**
    - Parallel processing where appropriate
-   - Rate limiting to avoid TradeMe blocks
+   - Rate limiting to comply with TradeMe API limits
    - Incremental updates when possible
    - Prioritization of critical data
 
@@ -355,7 +377,7 @@ The filtering system will include options for:
 ### Data Security
 - Input validation on all API endpoints
 - Parameterized queries to prevent SQL injection
-- Sanitization of scraped content
+- Validation of API response data
 - XSS protection for user-generated content
 
 ### Infrastructure Security
@@ -393,8 +415,8 @@ The filtering system will include options for:
    - External service integration tests
    - Authentication flow tests
 
-3. **Scraper Tests**
-   - Mock TradeMe page tests
+3. **API Integration Tests**
+   - Mock TradeMe API response tests
    - Change detection tests
    - Error handling tests
 
@@ -438,11 +460,11 @@ The filtering system will include options for:
 - Set up project infrastructure
 - Implement authentication
 - Create basic database schema
-- Develop initial scraping functionality
+- Develop initial TradeMe API integration
 - Build basic UI components
 
 ### Phase 2: Core Features (3-4 weeks)
-- Complete scraping implementation
+- Complete TradeMe API integration
 - Implement change tracking
 - Develop visualization components
 - Create filtering system
@@ -472,12 +494,12 @@ The filtering system will include options for:
 8. Advanced investment analysis tools
 
 ## Technical Constraints and Considerations
-1. TradeMe may change their site structure, requiring scraper updates
-2. Web scraping may encounter rate limiting or blocking
+1. TradeMe may change their API structure, requiring integration updates
+2. API usage may encounter rate limiting or quota restrictions
 3. Claude 3.7 API costs should be monitored
 4. Cloudflare Workers have execution time limits
 5. Image storage costs will increase over time
-6. TradeMe TOS may have restrictions on scraping
+6. TradeMe API may have usage restrictions or costs
 
 ## Appendix
 
@@ -490,7 +512,7 @@ The filtering system will include options for:
 - Recharts
 - React-Leaflet
 - Supabase JS Client
-- Playwright
+- OAuth Library
 - Axios/Fetch API wrapper
 - Date-fns for date manipulation
 - Testing libraries (Jest, React Testing Library)
@@ -498,6 +520,6 @@ The filtering system will include options for:
 ### Useful Resources
 - Supabase Documentation
 - Cloudflare Workers Documentation
-- Playwright Documentation
+- TradeMe API Documentation
 - React and Vite Documentation
-- TradeMe website structure analysis (to be created)
+- OAuth 2.0 Implementation Guides

@@ -12,7 +12,9 @@ import {
   generateDirectOAuthHeader 
 } from '../../utils/oauthUtils';
 import {
-  getStoredOAuthTokens
+  getStoredOAuthTokens,
+  validateOAuthTokens,
+  getTradeMeUserId
 } from '../../utils/storageUtils';
 import {
   mapListingToProperty,
@@ -32,12 +34,15 @@ export const TradeMePropertyService = {
    */
   async searchProperties(searchParams: Record<string, string> = {}): Promise<Property[]> {
     try {
+      // Validate the OAuth tokens first
+      const tokenValidation = validateOAuthTokens();
+      
+      if (!tokenValidation.isValid) {
+        throw new Error(`TradeMe authentication error: ${tokenValidation.errorMessage || 'Unknown error'}`);
+      }
+      
       // Get stored OAuth tokens
       const { token, tokenSecret, isSandbox } = getStoredOAuthTokens();
-      
-      if (!token || !tokenSecret) {
-        throw new Error('Not authenticated with TradeMe. Please connect your account first.');
-      }
       
       // Get the appropriate API URLs
       const { apiUrl } = getApiUrls(isSandbox);
@@ -102,12 +107,15 @@ export const TradeMePropertyService = {
    */
   async getPropertyDetails(propertyId: string): Promise<Property> {
     try {
+      // Validate the OAuth tokens first
+      const tokenValidation = validateOAuthTokens();
+      
+      if (!tokenValidation.isValid) {
+        throw new Error(`TradeMe authentication error: ${tokenValidation.errorMessage || 'Unknown error'}`);
+      }
+      
       // Get stored OAuth tokens
       const { token, tokenSecret, isSandbox } = getStoredOAuthTokens();
-      
-      if (!token || !tokenSecret) {
-        throw new Error('Not authenticated with TradeMe. Please connect your account first.');
-      }
       
       // Get the appropriate API URLs
       const { apiUrl } = getApiUrls(isSandbox);
@@ -153,11 +161,24 @@ export const TradeMePropertyService = {
   /**
    * Fetch watchlist from TradeMe and store in database
    * 
-   * @returns Promise with count of synced properties
+   * @returns Promise with sync results including count of synced properties
    */
-  async syncWatchlistToDatabase(): Promise<{ count: number }> {
+  async syncWatchlistToDatabase(): Promise<{ 
+    count: number;
+    failures?: number;
+    total?: number;
+  }> {
     try {
       console.log('Starting syncWatchlistToDatabase...');
+      
+      // Validate the OAuth tokens first
+      const tokenValidation = validateOAuthTokens();
+      console.log('OAuth token validation:', tokenValidation);
+      
+      if (!tokenValidation.isValid) {
+        console.error('TradeMe authentication error:', tokenValidation.errorMessage);
+        throw new Error(`TradeMe authentication error: ${tokenValidation.errorMessage || 'Unknown error'}`);
+      }
       
       // Get stored OAuth tokens
       const { token, tokenSecret, isSandbox } = getStoredOAuthTokens();
@@ -168,11 +189,6 @@ export const TradeMePropertyService = {
         tokenSecretLength: tokenSecret?.length || 0,
         isSandbox
       });
-      
-      if (!token || !tokenSecret) {
-        console.error('Not authenticated with TradeMe. Missing tokens.');
-        throw new Error('Not authenticated with TradeMe. Please connect your account first.');
-      }
       
       // Get the appropriate API URLs
       const { apiUrl } = getApiUrls(isSandbox);
@@ -241,8 +257,31 @@ export const TradeMePropertyService = {
       
       console.log(`Found ${propertyListings.length} property listings in watchlist`);
       
+      // Get the current user ID from Supabase or use the stored TradeMe user ID
+      let userId;
+      try {
+        // Try to get the authenticated user ID from Supabase
+        const { supabase } = await import('../../lib/supabase');
+        const { data: authData } = await supabase.auth.getUser();
+        userId = authData?.user?.id;
+      } catch (error) {
+        console.warn('Failed to get Supabase user ID:', error);
+      }
+      
+      // If no Supabase user ID, try to get the stored TradeMe user ID
+      if (!userId) {
+        userId = getTradeMeUserId();
+      }
+      
+      // Fall back to anonymous if no user ID is available
+      if (!userId) {
+        console.warn('No user ID found, using anonymous user ID');
+        userId = 'anonymous';
+      }
+      
+      console.log(`Using user ID: ${userId.substring(0, 5)}... for property mapping`);
+      
       // Convert to our Property format
-      const userId = localStorage.getItem('user_id') || 'anonymous';
       const properties = propertyListings.map((item: any) => 
         mapWatchlistItemToProperty(item, userId)
       );
@@ -256,44 +295,95 @@ export const TradeMePropertyService = {
         
         // Store each property in the database
         let successCount = 0;
+        let failureCount = 0;
+        const errors: Array<{ id: string; error: any }> = [];
+        const MAX_RETRY_COUNT = 3;
         
         for (const property of properties) {
-          // Check if property already exists
-          const { data: existingProperty } = await supabase
-            .from('properties')
-            .select('id')
-            .eq('trademe_listing_id', property.trademe_listing_id)
-            .single();
+          let retryCount = 0;
+          let success = false;
           
-          if (existingProperty) {
-            // Update existing property
-            const { error } = await supabase
-              .from('properties')
-              .update(property)
-              .eq('trademe_listing_id', property.trademe_listing_id);
-            
-            if (error) {
-              console.error(`Error updating property ${property.id}:`, error);
-            } else {
-              successCount++;
-            }
-          } else {
-            // Insert new property
-            const { error } = await supabase
-              .from('properties')
-              .insert(property);
-            
-            if (error) {
-              console.error(`Error inserting property ${property.id}:`, error);
-            } else {
-              successCount++;
+          // Try up to MAX_RETRY_COUNT times for each property
+          while (retryCount < MAX_RETRY_COUNT && !success) {
+            try {
+              // Add logging for the property that's being processed
+              console.log(`Processing property ${property.trademe_listing_id} (Attempt ${retryCount + 1}/${MAX_RETRY_COUNT})`, {
+                title: property.title,
+                price: property.price,
+                userId: property.user_id
+              });
+              
+              // Check if property already exists
+              const { data: existingProperty, error: queryError } = await supabase
+                .from('properties')
+                .select('id')
+                .eq('trademe_listing_id', property.trademe_listing_id)
+                .single();
+              
+              if (queryError && queryError.code !== 'PGRST116') {
+                // PGRST116 is the "not found" error code
+                console.error(`Error checking for existing property ${property.trademe_listing_id}:`, queryError);
+                throw queryError;
+              }
+              
+              if (existingProperty) {
+                // Update existing property
+                console.log(`Updating existing property ${property.trademe_listing_id}`);
+                const { error } = await supabase
+                  .from('properties')
+                  .update(property)
+                  .eq('trademe_listing_id', property.trademe_listing_id);
+                
+                if (error) {
+                  console.error(`Error updating property ${property.trademe_listing_id}:`, error);
+                  throw error;
+                } else {
+                  successCount++;
+                  success = true;
+                  console.log(`Successfully updated property ${property.trademe_listing_id}`);
+                }
+              } else {
+                // Insert new property
+                console.log(`Inserting new property ${property.trademe_listing_id}`);
+                const { error } = await supabase
+                  .from('properties')
+                  .insert(property);
+                
+                if (error) {
+                  console.error(`Error inserting property ${property.trademe_listing_id}:`, error);
+                  throw error;
+                } else {
+                  successCount++;
+                  success = true;
+                  console.log(`Successfully inserted property ${property.trademe_listing_id}`);
+                }
+              }
+            } catch (error) {
+              retryCount++;
+              if (retryCount >= MAX_RETRY_COUNT) {
+                console.error(`Failed to process property ${property.trademe_listing_id} after ${MAX_RETRY_COUNT} attempts:`, error);
+                failureCount++;
+                errors.push({ id: property.trademe_listing_id, error });
+              } else {
+                console.warn(`Retrying property ${property.trademe_listing_id} after error:`, error);
+                // Wait a bit before retrying
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
             }
           }
         }
         
-        console.log(`Successfully stored ${successCount} out of ${properties.length} properties`);
+        console.log(`Sync results: ${successCount} properties stored successfully, ${failureCount} failures`);
         
-        return { count: successCount };
+        if (errors.length > 0) {
+          console.error('Errors during sync:', errors);
+        }
+        
+        return { 
+          count: successCount,
+          failures: failureCount,
+          total: properties.length
+        };
       } catch (dbError) {
         console.error('Error storing properties in database:', dbError);
         throw new Error(`Failed to store properties in database: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);

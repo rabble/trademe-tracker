@@ -371,12 +371,12 @@ Each chart should:
 Also create a DashboardLayout component that arranges these charts in a responsive grid.
 ```
 
-## Phase 4: Web Scraping Implementation
+## Phase 4: TradeMe API Implementation
 
 ### Step 4.1: Cloudflare Worker Setup
 
 ```
-Let's set up the Cloudflare Worker environment for our TradeMe property tracker. This will handle our API and scraping functionality.
+Let's set up the Cloudflare Worker environment for our TradeMe property tracker. This will handle our API integration and data processing functionality.
 
 Please create:
 
@@ -391,61 +391,61 @@ Please create:
    - Analytics endpoints (GET /api/analytics/summary, etc.)
    - Authentication middleware
 
-3. A scheduled trigger for the daily scraping job:
+3. A scheduled trigger for the daily TradeMe API job:
    - CRON syntax for daily execution at 3:00 AM NZT
-   - Basic scraper function skeleton (implementation to come later)
+   - Basic API integration function skeleton (implementation to come later)
 
 4. Error handling middleware:
    - Standardized error responses
    - Logging setup
    - Rate limiting protection
 
-Please don't implement the actual scraping logic yet, just the Worker framework and routing that will contain it.
+Please don't implement the actual TradeMe API integration logic yet, just the Worker framework and routing that will contain it.
 
 Include instructions for local development and testing using Miniflare or wrangler dev.
 ```
 
-### Step 4.2: Basic Scraper Implementation
+### Step 4.2: TradeMe API Integration
 
 ```
-Now let's implement the basic scraping functionality for our TradeMe property tracker. This will run on our Cloudflare Worker to extract property data from TradeMe.
+Now let's implement the TradeMe API integration for our property tracker. This will run on our Cloudflare Worker to retrieve property data from TradeMe's official API.
 
 Please create:
 
-1. A Playwright-based scraper module with:
-   - TradeMe login functionality
-   - Navigation to the favorites page
-   - Extraction of the list of favorited properties
+1. A TradeMe API client module with:
+   - OAuth authentication implementation
+   - Token management and refresh
+   - Endpoints for accessing watchlist/favorites
 
-2. Property data extraction for:
-   - Basic property details from the favorites page
-   - Full property details by visiting each listing page
-   - Image URLs for all property photos
+2. Property data retrieval functions:
+   - Fetch list of favorited/watchlist properties
+   - Get full property details via appropriate endpoints
+   - Retrieve image URLs for all property photos
 
 3. Data processing functions:
-   - Cleanup and normalization of scraped data
+   - Cleanup and normalization of API data
    - Mapping to our database schema
    - Basic change detection compared to existing data
 
 4. Error handling and resilience:
-   - Retry logic for failed requests
+   - Retry logic for failed API requests
    - Timeout handling
-   - Session expiration detection and relogin
+   - API rate limit compliance
 
 This implementation should be able to run within Cloudflare Workers' limits. Don't worry about image downloading and storage yet - we'll implement that in the next step.
 
-Please include comments explaining any potential issues or limitations with this approach, particularly regarding Workers' runtime constraints.
+Please include comments explaining any potential issues or limitations with this approach, particularly regarding Workers' runtime constraints and TradeMe API limitations.
 ```
 
-### Step 4.3: Image Handling in Scraper
+### Step 4.3: Image Handling with API
 
 ```
-Let's enhance our TradeMe property tracker scraper to handle property images. We need to download images from TradeMe and store them in Supabase Storage.
+Let's enhance our TradeMe property tracker to handle property images retrieved from the API. We need to download images from URLs provided by the TradeMe API and store them in Supabase Storage.
 
 Please implement:
 
-1. Image extraction and processing:
-   - Extract high-resolution image URLs from property pages
+1. Image URL processing from API responses:
+   - Process image URLs returned by the API
    - Handle different image formats and sizes
    - Track image order/sequence
 
@@ -472,12 +472,12 @@ Include error handling for cases where images fail to download or upload, ensuri
 ### Step 4.4: Change Tracking Implementation
 
 ```
-Let's implement change tracking for our TradeMe property tracker. We need to detect and record changes to property listings over time.
+Let's implement change tracking for our TradeMe property tracker. We need to detect and record changes to property listings over time based on API data.
 
 Please create:
 
 1. Change detection functions:
-   - Compare newly scraped data with existing database records
+   - Compare newly retrieved API data with existing database records
    - Identify changes in price, description, status, or listing method
    - Calculate significance of changes (e.g., percentage price drop)
 
@@ -498,40 +498,40 @@ Please create:
 
 The implementation should be efficient, only storing actual changes rather than daily snapshots when nothing has changed. Include detailed comments explaining the change detection logic and how it handles edge cases.
 
-Make sure the functions work with the constraints of Cloudflare Workers and integrate with our existing scraper implementation.
+Make sure the functions work with the constraints of Cloudflare Workers and integrate with our existing API integration implementation.
 ```
 
-### Step 4.5: Scraper Testing and Monitoring
+### Step 4.5: API Integration Testing and Monitoring
 
 ```
-Let's create a comprehensive testing and monitoring solution for our TradeMe property tracker scraper. We need to ensure it runs reliably and detect issues early.
+Let's create a comprehensive testing and monitoring solution for our TradeMe property tracker API integration. We need to ensure it runs reliably and detect issues early.
 
 Please implement:
 
 1. Testing framework:
-   - Mock TradeMe pages for testing the scraper
-   - Unit tests for data extraction functions
-   - Integration tests for the complete scraping flow
+   - Mock TradeMe API responses for testing
+   - Unit tests for API integration functions
+   - Integration tests for the complete API flow
    - Test fixtures representing different property types and states
 
 2. Monitoring system:
-   - Logging for successful and failed scrapes
-   - Metrics collection (properties scraped, images processed, etc.)
+   - Logging for successful and failed API calls
+   - Metrics collection (properties retrieved, images processed, etc.)
    - Alerting for critical failures
 
 3. Resilience improvements:
-   - Circuit breaker pattern for handling TradeMe rate limiting
+   - Circuit breaker pattern for handling API outages
    - Gradual backoff for retries
    - Partial success handling
 
 4. Debug mode:
    - Detailed logging option for troubleshooting
-   - Visual debugging helpers (e.g., screenshots of problematic pages)
+   - API response tracking for diagnostics
    - Dry-run capability that doesn't modify the database
 
-The implementation should work within Cloudflare Workers, possibly using Workers KV for some state storage related to monitoring. Include a strategy for detecting when TradeMe changes their site structure, which would require scraper updates.
+The implementation should work within Cloudflare Workers, possibly using Workers KV for some state storage related to monitoring. Include a strategy for detecting when TradeMe updates their API, which would require integration updates.
 
-Also include a simple dashboard component for the frontend that shows scraper health status and recent run statistics.
+Also include a simple dashboard component for the frontend that shows API health status and recent run statistics.
 ```
 
 ## Phase 5: AI Integration

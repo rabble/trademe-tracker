@@ -51,6 +51,9 @@
     
     <script type="module" src="./src/main.tsx"></script>
     <script>
+      // Set up a placeholder for worker-injected environment variables
+      window.ENV = window.ENV || {};
+      
       // Enhanced debug information
       const envInfo = {
         location: window.location.toString(),
@@ -61,7 +64,8 @@
         userAgent: navigator.userAgent,
         language: navigator.language,
         cookiesEnabled: navigator.cookieEnabled,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        hasWorkerENV: !!window.ENV && Object.keys(window.ENV).length > 0
       };
       console.log('Environment:', envInfo);
       

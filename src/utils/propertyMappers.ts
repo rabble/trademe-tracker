@@ -201,9 +201,16 @@ export function mapListingToProperty(item: any): Property {
  * @returns Mapped Property object
  */
 export function mapWatchlistItemToProperty(item: any, userId: string = 'anonymous'): Property {
-  // Simply return the mapped property without adding any additional properties
-  // that aren't defined in the Property type
-  return mapListingToProperty(item);
+  // Map the base property
+  const baseProperty = mapListingToProperty(item);
+  
+  // Add user ID and additional watchlist-specific fields
+  return {
+    ...baseProperty,
+    user_id: userId,
+    favorite_date: new Date().toISOString(),
+    last_updated: new Date().toISOString()
+  };
 }
 
 /**

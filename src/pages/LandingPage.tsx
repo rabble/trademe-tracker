@@ -16,9 +16,13 @@ export function LandingPage() {
         <div className="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">TradeMe Property Tracker</h1>
           <p className="mt-6 text-xl text-indigo-100 max-w-3xl">
-            Track property listings from TradeMe, monitor price changes, and get insights into the New Zealand property market.
+            Track property listings from TradeMe, monitor price changes, and get AI-powered insights into the New Zealand property market.
           </p>
           <p className="mt-4 text-lg text-indigo-200 max-w-3xl">
+            Never miss a property change again. Our platform automatically tracks your favorited TradeMe listings, 
+            preserves historical data, and provides powerful visualization tools to help you make informed decisions.
+          </p>
+          <p className="mt-4 text-sm text-indigo-200 max-w-3xl">
             <strong>Note:</strong> This is an unofficial third-party application to help you find and track properties on TradeMe. 
             We are not affiliated with TradeMe Ltd in any way.
           </p>
@@ -48,7 +52,7 @@ export function LandingPage() {
               Everything you need to track properties
             </p>
             <p className="max-w-xl mt-5 mx-auto text-xl text-gray-500">
-              Our platform helps you stay on top of the property market with powerful tools and insights.
+              Our platform helps you stay on top of the property market with powerful tools and AI-powered insights.
             </p>
           </div>
 
@@ -64,9 +68,9 @@ export function LandingPage() {
                         </svg>
                       </span>
                     </div>
-                    <h3 className="mt-8 text-lg font-medium text-gray-900 tracking-tight">Track Price Changes</h3>
+                    <h3 className="mt-8 text-lg font-medium text-gray-900 tracking-tight">Automated Tracking</h3>
                     <p className="mt-5 text-base text-gray-500">
-                      Monitor price changes over time and get notified when properties you're interested in change price.
+                      Daily tracking of your TradeMe favorites with price, status, and listing changes stored permanently, even after listings expire.
                     </p>
                   </div>
                 </div>
@@ -82,9 +86,9 @@ export function LandingPage() {
                         </svg>
                       </span>
                     </div>
-                    <h3 className="mt-8 text-lg font-medium text-gray-900 tracking-tight">Market Insights</h3>
+                    <h3 className="mt-8 text-lg font-medium text-gray-900 tracking-tight">AI-Powered Insights</h3>
                     <p className="mt-5 text-base text-gray-500">
-                      Get insights into property market trends, average prices, and days on market in your area of interest.
+                      Claude 3.7 Sonnet analyzes your properties, providing intelligent summaries, change interpretations, and investment potential assessments.
                     </p>
                   </div>
                 </div>
@@ -96,13 +100,127 @@ export function LandingPage() {
                     <div>
                       <span className="inline-flex items-center justify-center p-3 bg-indigo-500 rounded-md shadow-lg">
                         <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                         </svg>
                       </span>
                     </div>
-                    <h3 className="mt-8 text-lg font-medium text-gray-900 tracking-tight">Alerts & Notifications</h3>
+                    <h3 className="mt-8 text-lg font-medium text-gray-900 tracking-tight">Multiple Views</h3>
                     <p className="mt-5 text-base text-gray-500">
-                      Set up alerts for new properties matching your criteria and get notified when they hit the market.
+                      View your properties in cards, tables, or on an interactive map. Filter by any criteria and visualize data with powerful charts.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics section */}
+      <div className="bg-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-base font-semibold text-indigo-600 tracking-wide uppercase">What We Track</h2>
+            <p className="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl sm:tracking-tight">
+              Comprehensive Property Data
+            </p>
+          </div>
+          <div className="mt-10">
+            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="bg-gray-50 rounded-lg px-6 py-8 text-center">
+                <span className="text-3xl font-extrabold text-indigo-600">Daily</span>
+                <p className="mt-2 text-sm text-gray-500">Automated data updates</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg px-6 py-8 text-center">
+                <span className="text-3xl font-extrabold text-indigo-600">All</span>
+                <p className="mt-2 text-sm text-gray-500">TradeMe property images</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg px-6 py-8 text-center">
+                <span className="text-3xl font-extrabold text-indigo-600">Price</span>
+                <p className="mt-2 text-sm text-gray-500">Change tracking</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg px-6 py-8 text-center">
+                <span className="text-3xl font-extrabold text-indigo-600">Forever</span>
+                <p className="mt-2 text-sm text-gray-500">Historical data storage</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Visualization section */}
+      <div className="bg-indigo-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center">
+            <div>
+              <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                Powerful Visualization Tools
+              </h2>
+              <p className="mt-3 max-w-3xl text-lg text-gray-500">
+                Make better decisions with our comprehensive visualization and analysis tools. Compare properties, track market trends, and spot opportunities.
+              </p>
+              <div className="mt-8 space-y-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <p className="ml-3 text-base text-gray-700">
+                    Interactive maps with property clustering
+                  </p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <p className="ml-3 text-base text-gray-700">
+                    Price history timelines and trends
+                  </p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <p className="ml-3 text-base text-gray-700">
+                    Days on market analytics
+                  </p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <p className="ml-3 text-base text-gray-700">
+                    Region and suburb market comparisons
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-10 lg:mt-0 lg:col-start-2">
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6 text-center">
+                  <svg className="mx-auto h-12 w-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <div className="mt-4 flex items-center justify-center text-5xl font-extrabold text-gray-900">
+                    <span className="text-indigo-600">AI</span>
+                    <span className="ml-1">Insights</span>
+                  </div>
+                  <p className="mt-4 text-base text-gray-500">
+                    Claude 3.7 Sonnet analyzes your properties and provides personalized insights about market conditions, listing changes, and investment potential.
+                  </p>
+                </div>
+                <div className="bg-gray-50 px-4 py-4 sm:p-6">
+                  <div className="text-sm">
+                    <div className="mb-2 font-semibold text-gray-800">Example AI Insight:</div>
+                    <p className="text-gray-600 italic">
+                      "This property has decreased in price by 5.2% over 45 days, which is faster than the 2.1% average for similar properties in this suburb. Combined with the recent change to listing method, this suggests the seller may be increasingly motivated."
                     </p>
                   </div>
                 </div>

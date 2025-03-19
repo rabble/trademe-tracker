@@ -146,8 +146,7 @@ function getSimpleLoginHtml() {
 </html>`;
 }
 
-// Using the first definition of getSimpleLoginHtml above
-/* function getSimpleLoginHtml() {
+function getSimpleLoginHtml() {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -221,7 +220,7 @@ function getSimpleLoginHtml() {
   </script>
 </body>
 </html>`;
-*/  // End of commented out function}
+}
 
 function getSimpleDashboardHtml() {
   return `<!DOCTYPE html>
@@ -341,7 +340,8 @@ export default {
       // Handle root path directly without any redirect
       if (url.pathname === '/' || url.pathname === '') {
         console.log('Directly handling root path');
-        return new Response(getIndexHtmlTemplate(env), {
+        const html = getSimpleHtml();
+        return new Response(html, {
           headers: { 'Content-Type': 'text/html' }
         });
       }
@@ -349,7 +349,8 @@ export default {
       // Handle login path directly without any redirect
       if (url.pathname === '/login') {
         console.log('Directly handling login path');
-        return new Response(getIndexHtmlTemplate(env), {
+        const html = getSimpleLoginHtml();
+        return new Response(html, {
           headers: { 'Content-Type': 'text/html' }
         });
       }
@@ -367,7 +368,8 @@ export default {
           return Response.redirect(`${url.origin}/login`, 302);
         }
         
-        return new Response(getIndexHtmlTemplate(env), {
+        const html = getSimpleDashboardHtml();
+        return new Response(html, {
           headers: { 'Content-Type': 'text/html' }
         });
       }
@@ -957,16 +959,17 @@ export default {
         return router.handle(request, env, ctx).catch(errorHandler);
       }
       
-      // Use the index HTML template for register (same as other routes)
+      // Use our simple HTML generators for most common paths
+      // For register, we'll serve the same as login for simplicity
       if (url.pathname === '/register') {
-        return new Response(getIndexHtmlTemplate(env), {
+        return new Response(getSimpleLoginHtml(), {
           headers: { 'Content-Type': 'text/html' }
         });
       }
       
-      // Default to the index HTML template for any other path
-      console.log('Unhandled path, serving index HTML template for:', url.pathname);
-      return new Response(getIndexHtmlTemplate(env), {
+      // Default to our static HTML for any other path
+      console.log('Unhandled path, serving simple HTML for:', url.pathname);
+      return new Response(getSimpleHtml(), {
         headers: { 'Content-Type': 'text/html' }
       });
     } catch (error) {
@@ -1052,8 +1055,7 @@ function createRedirect(destination: string): Response {
  * Serves static content and handles SPA routing
  * Simplified to avoid Promise resolution issues
  */
-// This function is not used anymore and has been replaced by direct HTML template rendering
-/* function serveStaticContent(request: Request, env: Env): Response {
+function serveStaticContent(request: Request, env: Env): Response {
   const url = new URL(request.url);
   console.log(`Handling request for: ${url.pathname}`);
   
@@ -1212,4 +1214,3 @@ export interface Env {
   };
   __STATIC_CONTENT_MANIFEST?: string;
 }
-*/  // End of commented out function

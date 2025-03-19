@@ -1,5 +1,6 @@
 /**
  * Storage utilities for managing OAuth tokens and other persistent data
+ * Provides functions for storing, retrieving, and validating TradeMe OAuth tokens
  */
 
 // OAuth token storage keys
@@ -8,6 +9,8 @@ const OAUTH_TOKEN_SECRET_KEY = 'trademe_oauth_token_secret';
 const OAUTH_ENVIRONMENT_KEY = 'trademe_environment';
 const REQUEST_TOKEN_SECRET_KEY = 'trademe_request_token_secret';
 const OAUTH_RETURN_URL_KEY = 'trademe_oauth_return_url';
+const OAUTH_TOKEN_TIMESTAMP_KEY = 'trademe_oauth_token_timestamp';
+const OAUTH_USER_ID_KEY = 'trademe_user_id';
 
 /**
  * OAuth token data structure
@@ -16,6 +19,7 @@ export interface OAuthTokens {
   token: string;
   tokenSecret: string;
   isSandbox: boolean;
+  timestamp?: number;
 }
 
 /**
@@ -53,17 +57,29 @@ export function getStoredOAuthTokens(): OAuthTokens {
 
 /**
  * Store OAuth tokens in both localStorage and sessionStorage
+ * Adds current timestamp for token freshness tracking
  * 
  * @param tokens - The OAuth tokens to store
  */
 export function storeOAuthTokens(tokens: OAuthTokens): void {
+  const timestamp = Date.now();
+  
   localStorage.setItem(OAUTH_TOKEN_KEY, tokens.token);
   localStorage.setItem(OAUTH_TOKEN_SECRET_KEY, tokens.tokenSecret);
   localStorage.setItem(OAUTH_ENVIRONMENT_KEY, tokens.isSandbox ? 'sandbox' : 'production');
+  localStorage.setItem(OAUTH_TOKEN_TIMESTAMP_KEY, timestamp.toString());
   
   sessionStorage.setItem(OAUTH_TOKEN_KEY, tokens.token);
   sessionStorage.setItem(OAUTH_TOKEN_SECRET_KEY, tokens.tokenSecret);
   sessionStorage.setItem(OAUTH_ENVIRONMENT_KEY, tokens.isSandbox ? 'sandbox' : 'production');
+  sessionStorage.setItem(OAUTH_TOKEN_TIMESTAMP_KEY, timestamp.toString());
+  
+  console.log('Stored OAuth tokens with timestamp:', {
+    tokenLength: tokens.token.length,
+    tokenSecretLength: tokens.tokenSecret.length,
+    environment: tokens.isSandbox ? 'sandbox' : 'production',
+    timestamp
+  });
 }
 
 /**
@@ -135,4 +151,93 @@ export function getOAuthReturnUrl(): string | null {
  */
 export function clearOAuthReturnUrl(): void {
   localStorage.removeItem(OAUTH_RETURN_URL_KEY);
+}
+
+/**
+ * Store user ID associated with TradeMe authentication
+ * 
+ * @param userId - The user ID to store
+ */
+export function storeTradeMeUserId(userId: string): void {
+  if (!userId) {
+    console.warn('Attempted to store empty user ID');
+    return;
+  }
+  
+  localStorage.setItem(OAUTH_USER_ID_KEY, userId);
+  sessionStorage.setItem(OAUTH_USER_ID_KEY, userId);
+  console.log(`Stored TradeMe user ID: ${userId.substring(0, 5)}...`);
+}
+
+/**
+ * Get stored TradeMe user ID
+ * 
+ * @returns The stored user ID or null if not found
+ */
+export function getTradeMeUserId(): string | null {
+  let userId = localStorage.getItem(OAUTH_USER_ID_KEY);
+  
+  if (!userId) {
+    userId = sessionStorage.getItem(OAUTH_USER_ID_KEY);
+    if (userId) {
+      localStorage.setItem(OAUTH_USER_ID_KEY, userId);
+    }
+  }
+  
+  return userId;
+}
+
+/**
+ * Clear TradeMe user ID
+ */
+export function clearTradeMeUserId(): void {
+  localStorage.removeItem(OAUTH_USER_ID_KEY);
+  sessionStorage.removeItem(OAUTH_USER_ID_KEY);
+}
+
+/**
+ * Validate stored OAuth tokens
+ * Checks if tokens exist and are not expired
+ * 
+ * @returns Validation result with token status and any error message
+ */
+export function validateOAuthTokens(): { 
+  isValid: boolean; 
+  hasToken: boolean;
+  hasTokenSecret: boolean;
+  tokenAge: number | null;
+  errorMessage: string | null;
+} {
+  const { token, tokenSecret } = getStoredOAuthTokens();
+  let timestampStr = localStorage.getItem(OAUTH_TOKEN_TIMESTAMP_KEY);
+  
+  if (!timestampStr) {
+    timestampStr = sessionStorage.getItem(OAUTH_TOKEN_TIMESTAMP_KEY);
+  }
+  
+  const hasToken = !!token;
+  const hasTokenSecret = !!tokenSecret;
+  let tokenAge: number | null = null;
+  let errorMessage: string | null = null;
+  
+  if (!hasToken || !hasTokenSecret) {
+    errorMessage = 'OAuth tokens missing or incomplete';
+  } else if (timestampStr) {
+    const timestamp = parseInt(timestampStr);
+    const now = Date.now();
+    tokenAge = Math.floor((now - timestamp) / (1000 * 60 * 60 * 24)); // Age in days
+    
+    // Check if tokens are older than 180 days (OAuth tokens typically expire)
+    if (tokenAge > 180) {
+      errorMessage = `OAuth tokens may be expired (${tokenAge} days old)`;
+    }
+  }
+  
+  return {
+    isValid: hasToken && hasTokenSecret && !errorMessage,
+    hasToken,
+    hasTokenSecret,
+    tokenAge,
+    errorMessage
+  };
 }

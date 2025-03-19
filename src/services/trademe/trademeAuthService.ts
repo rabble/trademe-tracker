@@ -68,7 +68,7 @@ export const TradeMeAuthService = {
       
       // Use a callback URL that will handle the OAuth response
       const host = window.location.host;
-      const callbackUrl = `https://${host}/oauth-callback`;
+      const callbackUrl = `https://${host}/settings/trademe-callback`;
       
       console.log(`Using callback URL: ${callbackUrl}`);
       console.log(`Request token URL: ${requestTokenUrl}`);

@@ -38,9 +38,11 @@ binding = "PROPERTIES_KV"
 id = "633473f72f9c444ca81d0413d340d3c0"
 preview_id = "633473f72f9c444ca81d0413d340d3c0"
 
-# Secrets (add these using wrangler secret put)
-# SUPABASE_URL
-# SUPABASE_ANON_KEY
+# Important: Set the following secrets using:
+# wrangler secret put SUPABASE_URL
+# wrangler secret put SUPABASE_ANON_KEY
+# 
+# These secrets will be made available to the frontend through the index.html template
 
 # Add site configuration for frontend deployment
 [site]
@@ -48,8 +50,6 @@ bucket = "../dist"
 include = ["**/*"]
 exclude = []
 
-# Build configuration
-[build]
-command = "cd .. && npm run build"
-[build.upload]
-format = "service-worker"
+# Default site serving options
+[site.static]
+entry-point = "src/index.ts"

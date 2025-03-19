@@ -11,21 +11,14 @@ export function TradeMeOAuthSettings() {
   const [syncStatus, setSyncStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    // Check if already connected
-    const connected = TradeMeService.isConnectedToTradeMe();
-    if (connected) {
-      setIsConnected(true);
-      // Get current environment
-      const env = localStorage.getItem('trademe_environment') || 'sandbox';
-      setEnvironment(env as 'sandbox' | 'production');
-    }
+    // Check connection status and load data when component mounts
+    checkConnectionStatus();
     
     // Set up an event listener to detect when the OAuth flow completes
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'trademe_oauth_token' && event.newValue) {
-        setIsConnected(true);
-        const env = localStorage.getItem('trademe_environment') || 'sandbox';
-        setEnvironment(env as 'sandbox' | 'production');
+      if (event.key?.includes('trademe_oauth')) {
+        console.log('TradeMe OAuth storage changed:', event.key);
+        checkConnectionStatus();
       }
     };
     
@@ -35,6 +28,40 @@ export function TradeMeOAuthSettings() {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
+  
+  /**
+   * Check if the user is connected to TradeMe
+   * Uses the validateOAuthTokens function from storage utils
+   */
+  const checkConnectionStatus = async () => {
+    try {
+      // Check if we have tokens and they are valid
+      const connected = TradeMeService.isConnectedToTradeMe();
+      
+      setIsConnected(connected);
+      
+      if (connected) {
+        // Get current environment
+        const env = localStorage.getItem('trademe_environment') || 'sandbox';
+        setEnvironment(env as 'sandbox' | 'production');
+        
+        // Optionally test the connection
+        try {
+          const connectionTest = await TradeMeService.testOAuthConnection();
+          if (!connectionTest.success) {
+            console.warn('TradeMe connection test failed:', connectionTest.message);
+          } else {
+            console.log('TradeMe connection test successful');
+          }
+        } catch (testError) {
+          console.warn('Error testing TradeMe connection:', testError);
+        }
+      }
+    } catch (err) {
+      console.error('Error checking TradeMe connection status:', err);
+      setIsConnected(false);
+    }
+  };
 
 
   const handleConnectToSandbox = async () => {
@@ -91,13 +118,35 @@ export function TradeMeOAuthSettings() {
       setSyncStatus(null);
       setError(null);
       
+      // Validate the connection first
+      const connectionTest = await TradeMeService.testOAuthConnection();
+      if (!connectionTest.success) {
+        throw new Error(`TradeMe connection test failed: ${connectionTest.message}`);
+      }
+      
       // Fetch watchlist from TradeMe
       const result = await TradeMeService.syncWatchlistToDatabase();
       
-      setSyncStatus({
-        type: 'success',
-        message: `Successfully synced ${result.count} properties from your TradeMe watchlist.`
-      });
+      // Show different messages based on the result
+      if (result.failures && result.failures > 0) {
+        // Partial success
+        setSyncStatus({
+          type: 'success',
+          message: `Synced ${result.count} properties from your TradeMe watchlist, with ${result.failures} failures out of ${result.total} total properties.`
+        });
+      } else if (result.count === 0) {
+        // No properties found
+        setSyncStatus({
+          type: 'success',
+          message: `No properties found in your TradeMe watchlist. Make sure you have favorited some properties.`
+        });
+      } else {
+        // Full success
+        setSyncStatus({
+          type: 'success',
+          message: `Successfully synced all ${result.count} properties from your TradeMe watchlist.`
+        });
+      }
     } catch (err) {
       console.error('Error syncing watchlist:', err);
       setSyncStatus({
