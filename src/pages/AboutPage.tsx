@@ -175,6 +175,56 @@ export function AboutPage() {
             </div>
           </div>
 
+          <div className="mt-16">
+            <h2 className="text-3xl font-extrabold text-gray-900">
+              From Dream to Reality: My Uruguay Story
+            </h2>
+            <div className="mt-6 lg:grid lg:grid-cols-2 lg:gap-12">
+              <div>
+                <p className="text-lg text-gray-500">
+                  My own journey with property dreams began when I visited Uruguay, exploring the enchanting bohemian beach town of Punta del Diablo. What started as a curious visit to this remote coastal village turned into a love affair with its pristine beaches, artistic community, and relaxed way of life.
+                </p>
+                <p className="mt-4 text-lg text-gray-500">
+                  Captivated by the town's charm, I decided to purchase a small piece of land near the beach and build a traditional thatched roof cabin—a "rancho"—using local techniques and materials. This wasn't just about having a vacation home; it was about embracing a different lifestyle and connecting with a place that resonated with me.
+                </p>
+                <p className="mt-4 text-lg text-gray-500">
+                  The journey from first seeing the property online to building my dream beach house was filled with challenges, excitement, and countless "what if" moments—exactly the kind of journey that inspired MiVoy. Today, my thatched beach house stands among the trees, a short walk from the ocean, available for others to experience through <a href="https://alquilereseneldiablo.com/cabana/arbol/" className="text-pink-600 hover:text-pink-700">AlquileresEnElDiablo.com</a>.
+                </p>
+              </div>
+              <div className="mt-8 lg:mt-0">
+                <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg">
+                  <img 
+                    src="https://alquilereseneldiablo.com/wp-content/uploads/2020/12/IMG_20201110_171231425-min-scaled.jpg" 
+                    alt="Thatched roof beach house in Punta del Diablo, Uruguay" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <p className="mt-3 text-sm text-gray-500 italic">
+                  My thatched roof beach house nestled among the trees in Punta del Diablo, Uruguay
+                </p>
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  <div>
+                    <img 
+                      src="https://alquilereseneldiablo.com/wp-content/uploads/2020/12/DSC_0085-min-scaled.jpg" 
+                      alt="View from the deck of beach house" 
+                      className="rounded-lg shadow-md w-full h-48 object-cover"
+                    />
+                  </div>
+                  <div>
+                    <img 
+                      src="https://alquilereseneldiablo.com/wp-content/uploads/2020/12/DSC_0156-min-scaled.jpg" 
+                      alt="Interior of the beach house" 
+                      className="rounded-lg shadow-md w-full h-48 object-cover"
+                    />
+                  </div>
+                </div>
+                <p className="mt-4 text-base text-gray-700 font-medium">
+                  This personal experience of turning a property dream into reality is what drives MiVoy—helping others organize and visualize their own "what if" moments, whether they remain dreams or become the next chapter in their story.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* CTA section */}
           <div className="mt-16 bg-gradient-to-r from-amber-50 to-pink-50 rounded-lg overflow-hidden sm:grid sm:grid-cols-2 sm:gap-4 sm:items-center">
             <div className="p-8">
