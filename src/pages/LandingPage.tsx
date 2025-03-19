@@ -65,7 +65,11 @@ export function LandingPage() {
                 </Link>
                 <div className="hidden space-x-8 md:flex md:ml-10">
                   <Link to="/about" className="text-base font-medium text-white hover:text-pink-100">About</Link>
+                  <Link to="/resources" className="text-base font-medium text-white hover:text-pink-100">Resources</Link>
                   <Link to="/how-it-works" className="text-base font-medium text-white hover:text-pink-100">How It Works</Link>
+                  <Link to="/faq" className="text-base font-medium text-white hover:text-pink-100">FAQ</Link>
+                  <Link to="/contact" className="text-base font-medium text-white hover:text-pink-100">Contact</Link>
+                  <Link to="/coming-soon" className="text-base font-medium text-white hover:text-pink-100">Coming Soon</Link>
                 </div>
               </div>
             </div>
@@ -363,8 +367,20 @@ export function LandingPage() {
               <Link to="/about" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
                 About
               </Link>
+              <Link to="/resources" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                Resources
+              </Link>
               <Link to="/how-it-works" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
                 How It Works
+              </Link>
+              <Link to="/faq" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                FAQ
+              </Link>
+              <Link to="/contact" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                Contact
+              </Link>
+              <Link to="/coming-soon" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                Coming Soon
               </Link>
               <a href="https://twitter.com/rabble" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
                 <span className="sr-only">Twitter</span>

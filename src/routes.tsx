@@ -11,7 +11,11 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { MainLayout } from './components/layout/MainLayout';
 import { LandingPage } from './pages/LandingPage';
 import { AboutPage } from './pages/AboutPage';
+import { ResourcesPage } from './pages/ResourcesPage';
 import { HowItWorksPage } from './pages/HowItWorksPage';
+import { ContactPage } from './pages/ContactPage';
+import { ComingSoonPage } from './pages/ComingSoonPage';
+import { FAQPage } from './pages/FAQPage';
 import { useAuth } from './hooks/useAuth';
 
 // Wrapper component to handle auth state and redirect accordingly
@@ -55,7 +59,11 @@ export function AppRoutes() {
       {/* Public routes */}
       <Route path="/" element={<AuthWrapper />} />
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/resources" element={<ResourcesPage />} />
       <Route path="/how-it-works" element={<HowItWorksPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/coming-soon" element={<ComingSoonPage />} />
+      <Route path="/faq" element={<FAQPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       
