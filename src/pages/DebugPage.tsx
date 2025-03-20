@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { runNetworkDiagnostics } from '../utils/networkDiagnostics';
 import { logEnvironmentInfo } from '../lib/debugUtils';
 import { supabase } from '../lib/supabase';
+import { ProgressiveLoginTester } from '../components/debug';
 import { SupabaseTest } from '../components/debug/SupabaseTest';
 // Import RPC type definitions
 import '../lib/supabase/rpc-types';
@@ -290,6 +291,11 @@ export function DebugPage() {
       {/* Supabase Integration Test Component */}
       <div className="mt-6">
         <SupabaseTest />
+      </div>
+      
+      {/* Progressive Login System Tester */}
+      <div className="mt-6">
+        <ProgressiveLoginTester />
       </div>
     </div>
   );

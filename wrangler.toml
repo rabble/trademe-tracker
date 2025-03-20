@@ -1,19 +1,9 @@
-name = "trademe-tracker"
-main = "worker/src/index.js"
+name = "mivoy"
 compatibility_date = "2023-12-01"
 compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
 
 # Define KV namespace
 kv_namespaces = [
   { binding = "PROPERTIES_KV", id = "633473f72f9c444ca81d0413d340d3c0" }
 ]
-
-# Define static assets
-[site]
-bucket = "./dist"
-include = ["**/*"]
-exclude = ["node_modules"]
-
-# Explicitly define the static content binding
-[build]
-command = "npm run build"

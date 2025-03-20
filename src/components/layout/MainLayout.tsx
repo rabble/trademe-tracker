@@ -2,12 +2,15 @@ import { useAuth } from '../../hooks/useAuth'
 import { useLogout } from '../../hooks/useLogout'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useState } from 'react'
+import { MultiplePinsReminder } from '../auth'
+import useProgressiveAuth from '../../hooks/useProgressiveAuth'
 
 export function MainLayout() {
   const { user } = useAuth()
   const { logout, loading: logoutLoading } = useLogout()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
+  const { isAuthenticated } = useProgressiveAuth()
   
   const isActive = (path: string) => {
     return location.pathname === path
@@ -19,8 +22,8 @@ export function MainLayout() {
       <header className="bg-white shadow z-10 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            TradeMe Property Tracker
-            <span className="block text-xs text-gray-500 font-normal">Unofficial third-party app</span>
+            MiVoy
+            <span className="block text-xs text-gray-500 font-normal">Property Insights Platform</span>
           </h1>
           <div className="flex items-center">
             <div className="relative">
@@ -64,7 +67,10 @@ export function MainLayout() {
         </div>
       </header>
 
-      <div className="flex flex-col md:flex-row">
+      {/* Progressive login nudges */}
+      {!isAuthenticated && <MultiplePinsReminder pinThreshold={3} />}
+      
+      <div className="flex flex-col md:flex-row min-h-[calc(100vh-4rem)]">
         {/* Sidebar */}
         <div className="w-full md:w-64 bg-white shadow-sm md:min-h-[calc(100vh-4rem)] md:fixed">
           <nav className="flex md:flex-col overflow-x-auto md:overflow-x-hidden py-3 md:py-5 px-4">
@@ -89,6 +95,26 @@ export function MainLayout() {
               Properties
             </Link>
             <Link
+              to="/import-property"
+              className={`px-3 py-2 text-sm font-medium rounded-md ${
+                isActive('/import-property') 
+                  ? 'bg-indigo-50 text-indigo-700' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              } md:w-full md:mb-1 ml-2 md:ml-0`}
+            >
+              Import Property
+            </Link>
+            <Link
+              to="/trademe-search"
+              className={`px-3 py-2 text-sm font-medium rounded-md ${
+                isActive('/trademe-search') 
+                  ? 'bg-indigo-50 text-indigo-700' 
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              } md:w-full md:mb-1 ml-2 md:ml-0`}
+            >
+              TradeMe Search
+            </Link>
+            <Link
               to="/settings"
               className={`px-3 py-2 text-sm font-medium rounded-md ${
                 isActive('/settings') 
@@ -102,9 +128,31 @@ export function MainLayout() {
         </div>
 
         {/* Main content */}
-        <main className="flex-1 md:ml-64 p-4">
-          <Outlet />
-        </main>
+        <div className="flex-1 md:ml-64 flex flex-col">
+          <main className="flex-1 p-4">
+            <Outlet />
+          </main>
+          
+          {/* Footer */}
+          <footer className="bg-white border-t border-gray-200 py-4 px-4 md:px-6 md:ml-0">
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center">
+              <div className="text-sm text-gray-500">
+                © {new Date().getFullYear()} MiVoy Property Insights. All rights reserved.
+              </div>
+              <div className="mt-2 sm:mt-0 flex space-x-4">
+                <Link to="/about#privacy" className="text-sm text-gray-500 hover:text-gray-700">
+                  Privacy Policy
+                </Link>
+                <Link to="/about#terms" className="text-sm text-gray-500 hover:text-gray-700">
+                  Terms of Service
+                </Link>
+                <Link to="/contact" className="text-sm text-gray-500 hover:text-gray-700">
+                  Contact
+                </Link>
+              </div>
+            </div>
+          </footer>
+        </div>
       </div>
     </div>
   )

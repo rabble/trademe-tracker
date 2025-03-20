@@ -1,7 +1,9 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { DashboardPage } from './pages/DashboardPage';
+import { PropertiesPage } from './pages/PropertiesPage';
 import { PropertyDetailsPage } from './pages/PropertyDetailsPage';
+import { PropertyImportPage } from './pages/PropertyImportPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TradeMeSearchPage } from './pages/TradeMeSearchPage';
 import { TradeMeCallbackPage } from './pages/TradeMeCallbackPage';
@@ -67,10 +69,16 @@ export function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       
+      {/* Public property routes */}
+      <Route element={<MainLayout />}>
+        <Route path="/properties" element={<PropertiesPage />} />
+        <Route path="/properties/:id" element={<PropertyDetailsPage />} />
+        <Route path="/import-property" element={<PropertyImportPage />} />
+      </Route>
+      
       {/* Protected routes */}
       <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/properties/:id" element={<PropertyDetailsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/trademe-search" element={<TradeMeSearchPage />} />
       </Route>

@@ -1,6 +1,6 @@
-# TradeMe Property Tracker
+# MiVoy
 
-A web application that automatically tracks favorited properties from TradeMe, primarily residential and land listings.
+A web application that automatically tracks favorited properties from online listings, primarily residential and land listings in New Zealand.
 
 ## Project Setup
 
@@ -14,8 +14,8 @@ A web application that automatically tracks favorited properties from TradeMe, p
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/trademe-tracker.git
-cd trademe-tracker
+git clone https://github.com/yourusername/mivoy.git
+cd mivoy
 ```
 
 2. Install dependencies

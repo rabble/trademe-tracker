@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { MarketingNav } from '../components/layout'
 
 export function HowItWorksPage() {
   return (
@@ -6,33 +7,13 @@ export function HowItWorksPage() {
       {/* Hero section */}
       <div className="relative bg-gradient-to-r from-amber-700 to-pink-700">
         {/* Navigation */}
-        <div className="relative z-10">
-          <nav className="relative max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4" aria-label="Global">
-            <div className="flex items-center flex-1">
-              <div className="flex items-center justify-between w-full">
-                <Link to="/">
-                  <span className="sr-only">MiVoy</span>
-                  <h1 className="text-2xl font-bold text-white">MiVoy</h1>
-                </Link>
-                <div className="hidden space-x-8 md:flex md:ml-10">
-                  <Link to="/about" className="text-base font-medium text-white hover:text-pink-100">About</Link>
-                  <Link to="/how-it-works" className="text-base font-medium text-white hover:text-pink-100">How It Works</Link>
-                </div>
-              </div>
-            </div>
-            <div className="flex space-x-4">
-              <Link to="/login" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-pink-700 bg-white hover:bg-pink-50">
-                Sign in
-              </Link>
-            </div>
-          </nav>
-        </div>
+        <MarketingNav />
         
         <div className="absolute inset-0">
           <img
             className="w-full h-full object-cover"
-            src="https://images.unsplash.com/photo-1561059583-c1884ce8e486?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2069&q=80"
-            alt="Beautiful properties collage"
+            src="/images/46626737741_f5f40ecd29_o.jpg"
+            alt="Beach house pathway in Uruguay"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-amber-700 to-pink-700 opacity-80 mix-blend-multiply" aria-hidden="true" />
         </div>
@@ -123,8 +104,8 @@ export function HowItWorksPage() {
                 <div className="pl-4 -mr-48 sm:pl-6 md:-mr-16 lg:px-0 lg:m-0 lg:relative lg:h-full">
                   <img
                     className="w-full rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 lg:absolute lg:left-0 lg:h-full lg:w-auto lg:max-w-none"
-                    src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80"
-                    alt="Search interface"
+                    src="/images/46626737691_1082783190_o.jpg"
+                    alt="Beach view in Punta del Diablo"
                   />
                 </div>
               </div>
@@ -197,8 +178,8 @@ export function HowItWorksPage() {
                 <div className="pr-4 -ml-48 sm:pr-6 md:-ml-16 lg:px-0 lg:m-0 lg:relative lg:h-full">
                   <img
                     className="w-full rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 lg:absolute lg:right-0 lg:h-full lg:w-auto lg:max-w-none"
-                    src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2600&q=80"
-                    alt="Collections interface"
+                    src="/images/4541212020_9b36a2efb2_o.jpg"
+                    alt="Beach house construction in Punta del Diablo"
                   />
                 </div>
               </div>
@@ -271,8 +252,8 @@ export function HowItWorksPage() {
                 <div className="pl-4 -mr-48 sm:pl-6 md:-mr-16 lg:px-0 lg:m-0 lg:relative lg:h-full">
                   <img
                     className="w-full rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 lg:absolute lg:left-0 lg:h-full lg:w-auto lg:max-w-none"
-                    src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
-                    alt="Collaboration interface"
+                    src="/images/2062716369_2b8f7d7aeb_o.jpg"
+                    alt="Sunset at Punta del Diablo beach"
                   />
                 </div>
               </div>
@@ -345,8 +326,8 @@ export function HowItWorksPage() {
                 <div className="pr-4 -ml-48 sm:pr-6 md:-ml-16 lg:px-0 lg:m-0 lg:relative lg:h-full">
                   <img
                     className="w-full rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 lg:absolute lg:right-0 lg:h-full lg:w-auto lg:max-w-none"
-                    src="https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
-                    alt="Dreaming of properties"
+                    src="/images/51479599439_6d0f2628c4_o.jpg"
+                    alt="Romantic sunset in Punta del Diablo"
                   />
                 </div>
               </div>
@@ -393,6 +374,9 @@ export function HowItWorksPage() {
             <div className="flex space-x-6 md:order-2">
               <Link to="/about" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
                 About
+              </Link>
+              <Link to="/resources" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                Resources
               </Link>
               <Link to="/how-it-works" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
                 How It Works

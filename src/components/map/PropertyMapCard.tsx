@@ -13,7 +13,7 @@ export function PropertyMapCard({ property }: PropertyMapCardProps) {
       <div className="flex flex-col">
         <div className="relative h-32 mb-2">
           <img 
-            src={property.primary_image_url || 'https://via.placeholder.com/150?text=No+Image'} 
+            src={property.primary_image_url || '/images/4561711536_8a13c526fc_o.jpg'} 
             alt={property.title}
             className="w-full h-full object-cover rounded-md"
           />

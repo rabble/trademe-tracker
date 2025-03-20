@@ -57,7 +57,7 @@ export function PropertyTable({
       accessor: (property) => (
         <div className="w-16 h-12 overflow-hidden rounded">
           <img 
-            src={property.primary_image_url || 'https://via.placeholder.com/300x200?text=No+Image'} 
+            src={property.primary_image_url || '/images/4561711536_8a13c526fc_o.jpg'} 
             alt={property.title}
             className="w-full h-full object-cover"
           />

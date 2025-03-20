@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { MarketingNav } from '../components/layout'
 
 export function AboutPage() {
   return (
@@ -6,32 +7,13 @@ export function AboutPage() {
       {/* Hero section */}
       <div className="relative bg-gradient-to-r from-amber-700 to-pink-700">
         {/* Navigation */}
-        <div className="relative z-10">
-          <nav className="relative max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4" aria-label="Global">
-            <div className="flex items-center flex-1">
-              <div className="flex items-center justify-between w-full">
-                <Link to="/">
-                  <span className="sr-only">MiVoy</span>
-                  <h1 className="text-2xl font-bold text-white">MiVoy</h1>
-                </Link>
-                <div className="hidden space-x-8 md:flex md:ml-10">
-                  <Link to="/about" className="text-base font-medium text-white hover:text-pink-100">About</Link>
-                </div>
-              </div>
-            </div>
-            <div className="flex space-x-4">
-              <Link to="/login" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-pink-700 bg-white hover:bg-pink-50">
-                Sign in
-              </Link>
-            </div>
-          </nav>
-        </div>
+        <MarketingNav />
         
         <div className="absolute inset-0">
           <img
             className="w-full h-full object-cover"
-            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
-            alt="Beautiful house with garden"
+            src="/images/32752606548_e1dd287ddb_o.jpg"
+            alt="Beautiful view of Punta del Diablo, Uruguay"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-amber-700 to-pink-700 opacity-80 mix-blend-multiply" aria-hidden="true" />
         </div>
@@ -86,7 +68,7 @@ export function AboutPage() {
                 </div>
               </blockquote>
               <div className="mt-12">
-                <img className="h-64 w-full object-cover rounded-lg shadow-lg" src="https://images.unsplash.com/photo-1511376979163-f804dff7ad7b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=987&q=80" alt="Mountain cabin" />
+                <img className="h-64 w-full object-cover rounded-lg shadow-lg" src="/images/51479599439_6d0f2628c4_o.jpg" alt="Romantic sunset in Punta del Diablo" />
               </div>
             </div>
           </div>
@@ -162,7 +144,7 @@ export function AboutPage() {
             </div>
             <div className="mt-12 lg:mt-0">
               <div className="bg-white overflow-hidden shadow rounded-lg">
-                <img className="w-full object-cover h-64" src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80" alt="Team collaboration" />
+                <img className="w-full object-cover h-64" src="/images/46574439242_290a66e1cb_o.jpg" alt="Evan working on international properties" />
                 <div className="px-4 py-5 sm:p-6 bg-gradient-to-r from-amber-50 to-pink-50">
                   <blockquote className="italic text-gray-700">
                     "I believe in the power of 'what if' – those moments when we imagine a different life, in a different place. MiVoy is built to nurture those dreams, whether they remain pleasant daydreams or become your next chapter."
@@ -194,25 +176,25 @@ export function AboutPage() {
               <div className="mt-8 lg:mt-0">
                 <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg">
                   <img 
-                    src="https://alquilereseneldiablo.com/wp-content/uploads/2020/12/IMG_20201110_171231425-min-scaled.jpg" 
-                    alt="Thatched roof beach house in Punta del Diablo, Uruguay" 
+                    src="/images/5750232429_6bd2fac23f_k.jpg" 
+                    alt="Moving overseas - International relocation" 
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <p className="mt-3 text-sm text-gray-500 italic">
-                  My thatched roof beach house nestled among the trees in Punta del Diablo, Uruguay
+                  Planning an international move requires careful organization and research
                 </p>
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   <div>
                     <img 
-                      src="https://alquilereseneldiablo.com/wp-content/uploads/2020/12/DSC_0085-min-scaled.jpg" 
+                      src="/images/45902574804_1f91b13266_o.jpg" 
                       alt="View from the deck of beach house" 
                       className="rounded-lg shadow-md w-full h-48 object-cover"
                     />
                   </div>
                   <div>
                     <img 
-                      src="https://alquilereseneldiablo.com/wp-content/uploads/2020/12/DSC_0156-min-scaled.jpg" 
+                      src="/images/54169461186_a6f37e60f9_o.jpg" 
                       alt="Interior of the beach house" 
                       className="rounded-lg shadow-md w-full h-48 object-cover"
                     />
@@ -222,6 +204,191 @@ export function AboutPage() {
                   This personal experience of turning a property dream into reality is what drives MiVoy—helping others organize and visualize their own "what if" moments, whether they remain dreams or become the next chapter in their story.
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Privacy Policy Section */}
+          <div className="mt-16 pt-16 border-t border-gray-200" id="privacy-policy">
+            <h2 className="text-3xl font-extrabold text-gray-900">
+              Privacy Policy
+            </h2>
+            <p className="mt-4 text-lg text-gray-500">
+              Last updated: March 20, 2025
+            </p>
+            <div className="mt-6 prose prose-pink prose-lg text-gray-500 max-w-none">
+              <h3>Introduction</h3>
+              <p>
+                At MiVoy, we value your privacy and are committed to protecting your personal data. This Privacy Policy explains how we collect, use, and safeguard your information when you use our service.
+              </p>
+
+              <h3>Information We Collect</h3>
+              <p>
+                We collect the following types of information:
+              </p>
+              <ul>
+                <li><strong>Account Information:</strong> Email address, name, and password when you register.</li>
+                <li><strong>Property Preferences:</strong> Data about properties you save, search for, or interact with.</li>
+                <li><strong>Usage Information:</strong> How you interact with our platform, including browsing behavior and feature usage.</li>
+                <li><strong>Device Information:</strong> IP address, browser type, device type, and operating system.</li>
+              </ul>
+
+              <h3>How We Use Your Information</h3>
+              <p>
+                We use your information to:
+              </p>
+              <ul>
+                <li>Provide, maintain, and improve our services</li>
+                <li>Personalize your experience and deliver content that interests you</li>
+                <li>Process and complete transactions</li>
+                <li>Send you notifications about property updates, price changes, and new features</li>
+                <li>Analyze usage patterns to enhance our platform</li>
+              </ul>
+
+              <h3>Cookie Policy</h3>
+              <p>
+                MiVoy uses cookies to enhance your experience on our platform. Cookies are small text files stored on your device that help us:
+              </p>
+              <ul>
+                <li>Keep you logged in</li>
+                <li>Remember your preferences</li>
+                <li>Understand how users interact with our site</li>
+                <li>Improve our services based on analytics data</li>
+              </ul>
+              <p>
+                You can control cookie settings through your browser preferences. However, disabling cookies may limit some functionality of our service.
+              </p>
+
+              <h3>Data Security</h3>
+              <p>
+                We implement appropriate security measures to protect your personal information from unauthorized access, alteration, or disclosure. Your data is stored on secure servers, and we regularly review our security practices.
+              </p>
+
+              <h3>Data Sharing and Third Parties</h3>
+              <p>
+                We do not sell your personal information. We may share data with:
+              </p>
+              <ul>
+                <li>Service providers who help us deliver our services (e.g., hosting, analytics)</li>
+                <li>Property listing platforms that you choose to connect with</li>
+                <li>Legal authorities when required by law</li>
+              </ul>
+
+              <h3>Your Rights</h3>
+              <p>
+                Depending on your location, you may have the right to:
+              </p>
+              <ul>
+                <li>Access the personal data we hold about you</li>
+                <li>Request correction of inaccurate data</li>
+                <li>Request deletion of your data</li>
+                <li>Object to or restrict processing of your data</li>
+                <li>Data portability</li>
+              </ul>
+
+              <h3>GDPR Compliance</h3>
+              <p>
+                For users in the European Economic Area (EEA), we comply with the General Data Protection Regulation (GDPR). This means we process your data lawfully, fairly, and transparently, collecting only what's necessary for the purposes specified in this policy.
+              </p>
+
+              <h3>Children's Privacy</h3>
+              <p>
+                Our services are not intended for individuals under 18 years of age. We do not knowingly collect personal information from children.
+              </p>
+
+              <h3>Changes to This Policy</h3>
+              <p>
+                We may update this Privacy Policy from time to time. We will notify you of significant changes by posting the new policy on this page and updating the "Last updated" date.
+              </p>
+
+              <h3>Contact Us</h3>
+              <p>
+                If you have questions about this Privacy Policy, please contact us at <a href="mailto:privacy@mivoy.org" className="text-pink-600 hover:text-pink-800">privacy@mivoy.org</a>.
+              </p>
+            </div>
+          </div>
+          
+          {/* Terms of Service Section */}
+          <div className="mt-16 pt-16 border-t border-gray-200" id="terms-of-service">
+            <h2 className="text-3xl font-extrabold text-gray-900">
+              Terms of Service
+            </h2>
+            <p className="mt-4 text-lg text-gray-500">
+              Last updated: March 20, 2025
+            </p>
+            <div className="mt-6 prose prose-pink prose-lg text-gray-500 max-w-none">
+              <h3>Agreement to Terms</h3>
+              <p>
+                By accessing or using MiVoy, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.
+              </p>
+
+              <h3>Using Our Services</h3>
+              <p>
+                MiVoy provides tools to discover, save, organize, and track property listings. You may use our services only as permitted by law and according to these terms.
+              </p>
+
+              <h3>Your MiVoy Account</h3>
+              <p>
+                You are responsible for maintaining the security of your account and password. MiVoy cannot and will not be liable for any loss or damage from your failure to comply with this security obligation.
+              </p>
+
+              <h3>Content and Property Listings</h3>
+              <p>
+                While we strive to provide accurate information, MiVoy is not responsible for the accuracy, completeness, or availability of property listings displayed on our platform. Property information may be provided by third-party sources, and we make no warranties regarding this content.
+              </p>
+              <p>
+                We do not verify or validate property details shown on our platform. You should always verify information directly with the property owner, agent, or listing platform before making any decisions based on listings shown in MiVoy.
+              </p>
+
+              <h3>User Conduct</h3>
+              <p>
+                When using MiVoy, you agree not to:
+              </p>
+              <ul>
+                <li>Use our services for unlawful purposes or to violate laws in your jurisdiction</li>
+                <li>Attempt to probe, scan, or test the vulnerability of our system or network</li>
+                <li>Share your account credentials with others or use another user's account</li>
+                <li>Upload content that infringes on intellectual property rights</li>
+                <li>Attempt to access, scrape, or duplicate content without authorization</li>
+                <li>Use our services to send unsolicited messages or advertisements</li>
+              </ul>
+
+              <h3>Intellectual Property</h3>
+              <p>
+                MiVoy and its content, features, and functionality are owned by MiVoy, its licensors, or other providers. These materials are protected by copyright, trademark, and other intellectual property laws.
+              </p>
+
+              <h3>Limitation of Liability</h3>
+              <p>
+                MiVoy is provided "as is" without warranties of any kind, either express or implied. We do not guarantee that our services will always be secure, error-free, or available.
+              </p>
+              <p>
+                In no event shall MiVoy be liable for any indirect, special, incidental, consequential, or punitive damages related to your use of our service, including but not limited to loss of revenue, profits, or data.
+              </p>
+
+              <h3>Modifications to Service</h3>
+              <p>
+                We reserve the right to modify or discontinue, temporarily or permanently, any part of our services with or without notice. We are not liable to you or any third party for any modification, suspension, or discontinuance of our services.
+              </p>
+
+              <h3>Termination</h3>
+              <p>
+                We may terminate or suspend your account and access to our services at any time, without prior notice or liability, for conduct that we believe violates these Terms of Service or is harmful to other users or third parties.
+              </p>
+
+              <h3>Governing Law</h3>
+              <p>
+                These Terms shall be governed by the laws of New Zealand, without regard to conflict of law principles.
+              </p>
+
+              <h3>Changes to Terms</h3>
+              <p>
+                We may update these Terms from time to time. We will notify you of significant changes by posting the new Terms on this page and updating the "Last updated" date.
+              </p>
+
+              <h3>Contact Us</h3>
+              <p>
+                If you have questions about these Terms, please contact us at <a href="mailto:terms@mivoy.org" className="text-pink-600 hover:text-pink-800">terms@mivoy.org</a>.
+              </p>
             </div>
           </div>
 
@@ -252,8 +419,8 @@ export function AboutPage() {
             <div className="p-8">
               <img
                 className="w-full h-full object-cover rounded-lg shadow"
-                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1171&q=80"
-                alt="Collaboration"
+                src="/images/46626737691_1082783190_o.jpg"
+                alt="Punta del Diablo beach view"
               />
             </div>
           </div>
@@ -265,6 +432,18 @@ export function AboutPage() {
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
           <div className="mt-8 border-t border-amber-700 pt-8 md:flex md:items-center md:justify-between">
             <div className="flex space-x-6 md:order-2">
+              <Link to="/about" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                About
+              </Link>
+              <Link to="/resources" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                Resources
+              </Link>
+              <a href="#privacy-policy" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                Privacy
+              </a>
+              <a href="#terms-of-service" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                Terms
+              </a>
               <a href="https://twitter.com/rabble" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
                 <span className="sr-only">Twitter</span>
                 <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

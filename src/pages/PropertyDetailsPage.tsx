@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useProperty } from '../hooks/property/useProperty'
+import { useAuth } from '../hooks/useAuth'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { formatCurrency, formatDate } from '../utils/formatters'
 import { MapView } from '../components/map/MapView'
 import { supabase } from '../lib/supabase'
+import LoginPromptBanner from '../components/auth/LoginPromptBanner'
 
 // Add TypeScript declaration for window.saveNotesTimeout
 declare global {
@@ -16,10 +18,12 @@ declare global {
 export function PropertyDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { isLoggedIn } = useAuth()
   const { data: property, isLoading, error } = useProperty(id || '')
   const [activeTab, setActiveTab] = useState<'details' | 'history' | 'similar'>('details')
   const [notes, setNotes] = useState('')
   const [isSavingNotes, setIsSavingNotes] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   
   // Function to save notes
   const saveNotes = async (notesText: string) => {
@@ -75,10 +79,10 @@ export function PropertyDetailsPage() {
     }
   };
   
-  // Load existing notes when component mounts
+  // Load existing notes when component mounts (only if user is logged in)
   useEffect(() => {
     async function loadNotes() {
-      if (!id) return;
+      if (!id || !isLoggedIn) return;
       
       try {
         console.log('Loading notes for property:', id);
@@ -113,7 +117,7 @@ export function PropertyDetailsPage() {
     }
     
     loadNotes();
-  }, [id]);
+  }, [id, isLoggedIn]);
 
   // Dummy price history data for chart (using property.created_at and last_price_change if available)
   const priceHistory = property ? (() => {
@@ -238,6 +242,20 @@ export function PropertyDetailsPage() {
                 <h3 className="font-semibold">Agent Information</h3>
                 <p className="text-gray-600">Agent details not available in sample data.</p>
               </div>
+              
+              {!isLoggedIn && (
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowLoginPrompt(true)}
+                    className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md font-medium flex items-center hover:bg-indigo-200 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    Save to favorites
+                  </button>
+                </div>
+              )}
             </div>
           )}
           {activeTab === 'history' && (
@@ -272,44 +290,88 @@ export function PropertyDetailsPage() {
           )}
           <div className="mt-6 relative">
             <h2 className="text-xl font-bold mb-2">Your Notes</h2>
-            <textarea
-              value={notes}
-              onChange={(e) => {
-                setNotes(e.target.value);
-                // Debounce the save operation to avoid too many requests
-                if (window.saveNotesTimeout) {
-                  clearTimeout(window.saveNotesTimeout);
-                }
-                window.saveNotesTimeout = setTimeout(() => {
-                  saveNotes(e.target.value);
-                }, 1000); // Save after 1 second of inactivity
-              }}
-              placeholder="Add your notes about this property..."
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              rows={4}
-            />
-            {isSavingNotes && (
-              <div className="absolute bottom-2 right-2 text-xs text-gray-500 flex items-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Saving...
+            {isLoggedIn ? (
+              <>
+                <textarea
+                  value={notes}
+                  onChange={(e) => {
+                    setNotes(e.target.value);
+                    // Debounce the save operation to avoid too many requests
+                    if (window.saveNotesTimeout) {
+                      clearTimeout(window.saveNotesTimeout);
+                    }
+                    window.saveNotesTimeout = setTimeout(() => {
+                      saveNotes(e.target.value);
+                    }, 1000); // Save after 1 second of inactivity
+                  }}
+                  placeholder="Add your notes about this property..."
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                  rows={4}
+                />
+                {isSavingNotes && (
+                  <div className="absolute bottom-2 right-2 text-xs text-gray-500 flex items-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </div>
+                )}
+                <div id="notes-status-message" className="mt-2 h-6"></div>
+              </>
+            ) : (
+              <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
+                <p className="text-gray-700 mb-3">Sign in to add and save notes about this property.</p>
+                <div className="flex space-x-3">
+                  <Link 
+                    to="/login" 
+                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors"
+                    onClick={() => setShowLoginPrompt(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    className="px-4 py-2 border border-indigo-600 text-indigo-600 text-sm font-medium rounded-md hover:bg-indigo-50 transition-colors"
+                    onClick={() => setShowLoginPrompt(false)}
+                  >
+                    Create Account
+                  </Link>
+                </div>
               </div>
             )}
-            <div id="notes-status-message" className="mt-2 h-6"></div>
           </div>
         </div>
       </div>
       <div className="mt-10 bg-white shadow-md rounded-lg p-6 border border-gray-100">
         <h2 className="text-xl font-bold mb-4">AI Insights</h2>
-        <p className="text-gray-600">AI-generated insights about this property will appear here.</p>
+        {isLoggedIn ? (
+          <p className="text-gray-600">AI-generated insights about this property will appear here.</p>
+        ) : (
+          <div>
+            <p className="text-gray-600 mb-4">Sign in to view AI-generated insights about this property.</p>
+            <button
+              onClick={() => setShowLoginPrompt(true)}
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Unlock AI Insights
+            </button>
+          </div>
+        )}
       </div>
       
       {/* Property Map */}
       <div className="mt-10">
         <MapView properties={[property]} />
       </div>
+
+      {/* Login prompt for non-authenticated users */}
+      {!isLoggedIn && showLoginPrompt && (
+        <LoginPromptBanner 
+          action="pin" 
+          onDismiss={() => setShowLoginPrompt(false)}
+        />
+      )}
     </div>
   )
 }

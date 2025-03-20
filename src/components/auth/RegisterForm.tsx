@@ -1,19 +1,56 @@
-import { FormEvent, useState } from 'react'
+import { FormEvent, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { useRegister } from '../../hooks/useRegister'
+import useProgressiveAuth from '../../hooks/useProgressiveAuth'
+import { getTempUserId } from '../../lib/tempUserManager'
 
 export function RegisterForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState<string | null>(null)
-  const { register, loading, error } = useRegister()
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [hasTempUserData, setHasTempUserData] = useState(false)
+  const [tempPinCount, setTempPinCount] = useState(0)
+  
+  const { signUp, isTemporaryUser } = useProgressiveAuth()
+  
+  // Check if user has temporary data
+  useEffect(() => {
+    const checkTempData = async () => {
+      const tempUserId = getTempUserId()
+      
+      if (tempUserId && isTemporaryUser) {
+        setHasTempUserData(true)
+        
+        // Get count of pins for display
+        try {
+          const { supabase } = await import('../../lib/supabase')
+          await supabase.rpc('set_temp_user_id', { p_temp_user_id: tempUserId })
+          
+          const { data, error } = await supabase
+            .from('property_pins')
+            .select('id', { count: 'exact' })
+            .eq('temp_user_id', tempUserId)
+          
+          if (!error && data) {
+            setTempPinCount(data.length)
+          }
+        } catch (err) {
+          console.error('Error fetching temp user pin count:', err)
+        }
+      }
+    }
+    
+    checkTempData()
+  }, [isTemporaryUser])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     
-    // Reset password error
+    // Reset errors
     setPasswordError(null)
+    setError(null)
     
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -27,14 +64,20 @@ export function RegisterForm() {
       return
     }
     
-    console.log('Registration attempt with:', { email })
-    const result = await register(email, password)
-    console.log('Registration result:', result)
+    setLoading(true)
     
-    if (result?.success) {
+    try {
+      console.log('Registration attempt with:', { email })
+      const result = await signUp(email, password)
       console.log('Registration successful, redirecting to dashboard')
+      
       // Force navigation to dashboard
       window.location.href = '/dashboard'
+    } catch (err: any) {
+      console.error('Registration error:', err)
+      setError(err.message || 'Failed to create account')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -52,6 +95,25 @@ export function RegisterForm() {
             </Link>
           </p>
         </div>
+        
+        {/* Show message if user has temporary data */}
+        {hasTempUserData && (
+          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-green-700">
+                  <span className="font-medium">Great news!</span> You have {tempPinCount} {tempPinCount === 1 ? 'property' : 'properties'} saved. Creating an account will preserve them and allow you to access them from any device.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -100,7 +162,7 @@ export function RegisterForm() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? 'Creating account...' : hasTempUserData ? 'Create account & save my properties' : 'Create account'}
             </button>
           </div>
         </form>

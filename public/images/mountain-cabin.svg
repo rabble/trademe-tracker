@@ -1,0 +1,41 @@
+<svg width="1600" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="70%">
+      <stop offset="0%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#7dd3fc" />
+    </linearGradient>
+    <linearGradient id="mountain" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6b7280" />
+      <stop offset="100%" stop-color="#374151" />
+    </linearGradient>
+    <linearGradient id="wood" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#92400e" />
+      <stop offset="100%" stop-color="#78350f" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Sky background -->
+  <rect width="1600" height="900" fill="url(#sky)" />
+  
+  <!-- Mountains in the background -->
+  <path d="M0,500 L200,350 L400,450 L600,250 L800,400 L1000,200 L1200,350 L1400,300 L1600,450 L1600,900 L0,900 Z" fill="url(#mountain)" />
+  
+  <!-- Ground/snow -->
+  <rect x="0" y="650" width="1600" height="250" fill="#f1f5f9" />
+  
+  <!-- Cabin -->
+  <rect x="600" y="600" width="400" height="200" fill="url(#wood)" />
+  <polygon points="600,600 800,450 1000,600" fill="#78350f" />
+  
+  <!-- Cabin windows -->
+  <rect x="650" y="650" width="80" height="80" fill="#cbd5e1" />
+  <rect x="850" y="650" width="80" height="80" fill="#cbd5e1" />
+  
+  <!-- Cabin door -->
+  <rect x="770" y="700" width="60" height="100" fill="#44403c" />
+  
+  <!-- Smoke from chimney -->
+  <path d="M900,450 Q910,430 900,410 Q890,390 900,370 Q910,350 900,330" stroke="#94a3b8" stroke-width="10" fill="none" />
+  
+  <text x="800" y="100" font-family="Arial" font-size="48" fill="white" text-anchor="middle" dominant-baseline="middle">Mountain Cabin</text>
+</svg>

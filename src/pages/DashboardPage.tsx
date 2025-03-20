@@ -52,6 +52,7 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      <h1 className="text-3xl font-bold mb-6">MiVoy Dashboard</h1>
       {/* Analytics Dashboard */}
       <AnalyticsDashboard 
         isLoading={summaryLoading} 

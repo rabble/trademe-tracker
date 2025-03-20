@@ -15,6 +15,121 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          id: string
+          event_type: string
+          temp_user_id: string | null
+          user_id: string | null
+          timestamp: string
+          metadata: Json
+        }
+        Insert: {
+          id?: string
+          event_type: string
+          temp_user_id?: string | null
+          user_id?: string | null
+          timestamp?: string
+          metadata?: Json
+        }
+        Update: {
+          id?: string
+          event_type?: string
+          temp_user_id?: string | null
+          user_id?: string | null
+          timestamp?: string
+          metadata?: Json
+        }
+        Relationships: []
+      }
+      temp_users: {
+        Row: {
+          id: string
+          created_at: string
+          last_active_at: string
+          meta: Json
+        }
+        Insert: {
+          id: string
+          created_at?: string
+          last_active_at?: string
+          meta?: Json
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          last_active_at?: string
+          meta?: Json
+        }
+        Relationships: []
+      }
+      property_pins: {
+        Row: {
+          id: string
+          property_id: string
+          user_id: string | null
+          temp_user_id: string | null
+          created_at: string
+          collection_id: string | null
+          notes: string | null
+        }
+        Insert: {
+          id?: string
+          property_id: string
+          user_id?: string | null
+          temp_user_id?: string | null
+          created_at?: string
+          collection_id?: string | null
+          notes?: string | null
+        }
+        Update: {
+          id?: string
+          property_id?: string
+          user_id?: string | null
+          temp_user_id?: string | null
+          created_at?: string
+          collection_id?: string | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_pins_property_id_fkey"
+            columns: ["property_id"]
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      property_collections: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          user_id: string | null
+          temp_user_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          user_id?: string | null
+          temp_user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          user_id?: string | null
+          temp_user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       historical_images: {
         Row: {
           id: string

@@ -1,0 +1,46 @@
+<svg width="1600" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f3f4f6" />
+      <stop offset="100%" stop-color="#e5e7eb" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1600" height="900" fill="url(#bg)" />
+  
+  <!-- Office table -->
+  <rect x="200" y="600" width="1200" height="30" fill="#78716c" rx="5" ry="5" />
+  <rect x="300" y="630" width="20" height="150" fill="#78716c" />
+  <rect x="1280" y="630" width="20" height="150" fill="#78716c" />
+  
+  <!-- People silhouettes -->
+  <!-- Person 1 -->
+  <circle cx="400" cy="450" r="60" fill="#4b5563" />
+  <rect x="370" y="510" width="60" height="150" fill="#4b5563" rx="20" ry="20" />
+  
+  <!-- Person 2 -->
+  <circle cx="650" cy="450" r="60" fill="#4b5563" />
+  <rect x="620" y="510" width="60" height="150" fill="#4b5563" rx="20" ry="20" />
+  
+  <!-- Person 3 -->
+  <circle cx="900" cy="450" r="60" fill="#4b5563" />
+  <rect x="870" y="510" width="60" height="150" fill="#4b5563" rx="20" ry="20" />
+  
+  <!-- Person 4 -->
+  <circle cx="1150" cy="450" r="60" fill="#4b5563" />
+  <rect x="1120" y="510" width="60" height="150" fill="#4b5563" rx="20" ry="20" />
+  
+  <!-- Laptops -->
+  <rect x="350" y="550" width="100" height="60" fill="#1e293b" rx="5" ry="5" />
+  <rect x="600" y="550" width="100" height="60" fill="#1e293b" rx="5" ry="5" />
+  <rect x="850" y="550" width="100" height="60" fill="#1e293b" rx="5" ry="5" />
+  <rect x="1100" y="550" width="100" height="60" fill="#1e293b" rx="5" ry="5" />
+  
+  <!-- Connection lines between people -->
+  <line x1="460" y1="450" x2="590" y2="450" stroke="#d97706" stroke-width="5" />
+  <line x1="710" y1="450" x2="840" y2="450" stroke="#d97706" stroke-width="5" />
+  <line x1="960" y1="450" x2="1090" y2="450" stroke="#d97706" stroke-width="5" />
+  
+  <text x="800" y="200" font-family="Arial" font-size="48" fill="#1f2937" text-anchor="middle">Team Collaboration</text>
+</svg>

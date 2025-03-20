@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { sampleProperties } from '../data/sampleProperties'
 import { PropertyCarousel } from '../components/property'
+import { MarketingNav } from '../components/layout'
 
 export function LandingPage() {
   const [properties, setProperties] = useState<any[]>([])
@@ -55,36 +56,12 @@ export function LandingPage() {
       {/* Hero section */}
       <div className="relative bg-gradient-to-r from-amber-700 to-pink-700">
         {/* Navigation */}
-        <div className="relative z-10">
-          <nav className="relative max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4" aria-label="Global">
-            <div className="flex items-center flex-1">
-              <div className="flex items-center justify-between w-full">
-                <Link to="/">
-                  <span className="sr-only">MiVoy</span>
-                  <h1 className="text-2xl font-bold text-white">MiVoy</h1>
-                </Link>
-                <div className="hidden space-x-8 md:flex md:ml-10">
-                  <Link to="/about" className="text-base font-medium text-white hover:text-pink-100">About</Link>
-                  <Link to="/resources" className="text-base font-medium text-white hover:text-pink-100">Resources</Link>
-                  <Link to="/how-it-works" className="text-base font-medium text-white hover:text-pink-100">How It Works</Link>
-                  <Link to="/faq" className="text-base font-medium text-white hover:text-pink-100">FAQ</Link>
-                  <Link to="/contact" className="text-base font-medium text-white hover:text-pink-100">Contact</Link>
-                  <Link to="/coming-soon" className="text-base font-medium text-white hover:text-pink-100">Coming Soon</Link>
-                </div>
-              </div>
-            </div>
-            <div className="flex space-x-4">
-              <Link to="/login" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-pink-700 bg-white hover:bg-pink-50">
-                Sign in
-              </Link>
-            </div>
-          </nav>
-        </div>
+        <MarketingNav />
         
         <div className="absolute inset-0">
           <img
             className="w-full h-full object-cover"
-            src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
+            src="/images/32752606548_e1dd287ddb_o.jpg"
             alt="Beautiful coastal view with houses"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-amber-700 to-pink-700 opacity-80 mix-blend-multiply" aria-hidden="true" />
@@ -379,8 +356,11 @@ export function LandingPage() {
               <Link to="/contact" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
                 Contact
               </Link>
-              <Link to="/coming-soon" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
-                Coming Soon
+              <Link to="/about#privacy" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                Privacy Policy
+              </Link>
+              <Link to="/about#terms" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                Terms of Service
               </Link>
               <a href="https://twitter.com/rabble" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
                 <span className="sr-only">Twitter</span>

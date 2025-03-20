@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { MarketingNav } from '../components/layout'
 
 export function FAQPage() {
   return (
@@ -6,34 +7,13 @@ export function FAQPage() {
       {/* Hero section */}
       <div className="relative bg-gradient-to-r from-amber-700 to-pink-700">
         {/* Navigation */}
-        <div className="relative z-10">
-          <nav className="relative max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4" aria-label="Global">
-            <div className="flex items-center flex-1">
-              <div className="flex items-center justify-between w-full">
-                <Link to="/">
-                  <span className="sr-only">MiVoy</span>
-                  <h1 className="text-2xl font-bold text-white">MiVoy</h1>
-                </Link>
-                <div className="hidden space-x-8 md:flex md:ml-10">
-                  <Link to="/about" className="text-base font-medium text-white hover:text-pink-100">About</Link>
-                  <Link to="/how-it-works" className="text-base font-medium text-white hover:text-pink-100">How It Works</Link>
-                  <Link to="/faq" className="text-base font-medium text-white hover:text-pink-100">FAQ</Link>
-                </div>
-              </div>
-            </div>
-            <div className="flex space-x-4">
-              <Link to="/login" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-pink-700 bg-white hover:bg-pink-50">
-                Sign in
-              </Link>
-            </div>
-          </nav>
-        </div>
+        <MarketingNav />
         
         <div className="absolute inset-0">
           <img
             className="w-full h-full object-cover"
-            src="https://images.unsplash.com/photo-1556912172-45a7e3d3cbf5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
-            alt="Person using laptop with house models"
+            src="/images/plane_wing.jpg"
+            alt="Airplane wing view representing international travel and property exploration"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-amber-700 to-pink-700 opacity-80 mix-blend-multiply" aria-hidden="true" />
         </div>
@@ -239,6 +219,9 @@ export function FAQPage() {
             <div className="flex space-x-6 md:order-2">
               <Link to="/about" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
                 About
+              </Link>
+              <Link to="/resources" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
+                Resources
               </Link>
               <Link to="/how-it-works" className="text-amber-300 hover:text-pink-300 transition-colors duration-200">
                 How It Works

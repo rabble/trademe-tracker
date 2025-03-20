@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 import { PropertyCardGrid } from '../components/property/PropertyCardGrid'
 import { PropertyTable } from '../components/property/PropertyTable'
 import { TableControls } from '../components/property/TableControls'
@@ -11,6 +12,10 @@ import { PropertyCategoryFilter } from '../components/filter/components/Property
 import { MapView } from '../components/map/MapView'
 
 export function PropertiesPage() {
+  // Get auth state to check if user is logged in
+  const { user } = useAuth()
+  const isLoggedIn = !!user
+  
   // State for filters, pagination, and view mode
   const [filters, setFilters] = useState<PropertyFilters>({
     propertyCategory: 'all' // Default to 'all'
@@ -117,7 +122,7 @@ export function PropertiesPage() {
     <div className="container-wrapper space-y-6">
       <div className="mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Properties</h1>
+          <h1 className="text-2xl font-bold text-gray-900">MiVoy Properties</h1>
           <p className="mt-1 text-sm text-gray-500">
             Manage and track your saved properties
           </p>
@@ -141,10 +146,12 @@ export function PropertiesPage() {
             />
           </div>
           <div className="flex items-center space-x-2">
-            <SavedFilters 
-              currentFilters={filters}
-              onApplyFilter={handleFilterChange}
-            />
+            {isLoggedIn && (
+              <SavedFilters 
+                currentFilters={filters}
+                onApplyFilter={handleFilterChange}
+              />
+            )}
             <button
               type="button"
               onClick={() => setShowMap(!showMap)}
@@ -155,12 +162,32 @@ export function PropertiesPage() {
               </svg>
               {showMap ? 'Hide Map' : 'Show Map'}
             </button>
-            <Link
-              to="/properties/add"
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Add Property
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link
+                  to="/import-property"
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2"
+                >
+                  <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Import URL
+                </Link>
+                <Link
+                  to="/properties/add"
+                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Add Property
+                </Link>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Sign in to save properties
+              </Link>
+            )}
           </div>
         </div>
         
@@ -264,7 +291,16 @@ export function PropertiesPage() {
                 ? 'Try adjusting your filters or search query.' 
                 : 'Add properties to start tracking them.'}
             </p>
-            <div className="mt-6">
+            <div className="mt-6 flex justify-center gap-4">
+              <Link
+                to="/import-property"
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Import URL
+              </Link>
               <Link
                 to="/properties/add"
                 className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

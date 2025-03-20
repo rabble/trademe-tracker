@@ -1,209 +1,152 @@
-# Next.js to Cloudflare Pages Deployment Guide
+# Vite React to Cloudflare Pages Deployment Guide
 
-This guide explains how to deploy a Next.js application to Cloudflare Pages with a static export. This is the successful method used in the SuperSimple.Directory project and can be applied to other Next.js projects.
+This guide explains how to deploy the TradeMe Tracker (Vite + React) application to Cloudflare Pages. This approach has been successfully tested and confirmed working.
 
 ## Overview
 
 When deploying to Cloudflare Pages, we need to:
 
-1. Configure Next.js for static export (no SSR or API routes)
-2. Configure Wrangler for Pages deployment
-3. Build and deploy the static output
+1. Build the Vite/React application
+2. Use direct uploads with Wrangler for Pages deployment
+3. Deploy the static output
 
 ## Prerequisites
 
 - Node.js and npm installed
-- Next.js project
+- Vite + React project
 - Cloudflare account
 - Wrangler CLI installed (`npm install -g wrangler` or as dev dependency)
 
-## Step 1: Configure Next.js for Static Export
+## Step 1: Configure the Deployment Scripts
 
-Edit your `next.config.js` file:
-
-```js
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
-  output: 'export', // Essential for static export
-  images: {
-    unoptimized: true, // Required for static export
-  },
-  // Define static routes (important for capturing all your routes)
-  exportPathMap: async function (defaultPathMap, { dev, dir, outDir, distDir, buildId }) {
-    return {
-      '/': { page: '/' },
-      // Add your important static routes here
-      '/features': { page: '/features' },
-      '/pricing': { page: '/pricing' },
-      '/about': { page: '/about' },
-      // Add more routes as needed
-    };
-  },
-};
-
-module.exports = nextConfig;
-```
-
-## Step 2: Prepare Dynamic Routes
-
-For pages using `getStaticProps` and `getStaticPaths` (like `/blog/[slug]`):
-
-1. Ensure `getStaticPaths` uses `fallback: false` (required for static export)
-2. Remove any `revalidate` property from `getStaticProps` (ISR isn't supported)
-
-Example:
-
-```js
-export async function getStaticPaths() {
-  // Fetch your paths
-  const paths = [
-    { params: { slug: 'post-1' } },
-    { params: { slug: 'post-2' } }
-  ];
-  
-  return {
-    paths,
-    fallback: false, // Must be false for static export
-  };
-}
-
-export async function getStaticProps({ params }) {
-  // Fetch your data
-  const data = { /* your data */ };
-  
-  return {
-    props: {
-      data,
-      // DON'T include revalidate here
-    },
-  };
-}
-```
-
-## Step 3: Create or Update Wrangler Configuration
-
-Create a `wrangler.toml` file in your project root:
-
-```toml
-# Pages configuration
-name = "your-project-name"
-compatibility_date = "2023-06-21"
-
-# This tells Wrangler where to find your static files
-pages_build_output_dir = "out"
-
-# Custom domain configuration (uncomment when ready)
-# routes = [
-#   { pattern = "your-domain.com", custom_domain = true },
-#   { pattern = "www.your-domain.com", custom_domain = true }
-# ]
-
-# Environment variables for your project
-[vars]
-NEXT_PUBLIC_API_URL = "https://your-api.example.com"
-# Add other environment variables as needed
-
-# DO NOT include the observability section for Pages deployments
-# This only works for Workers, not Pages
-```
-
-## Step 4: Add Deployment Scripts to package.json
-
-Update your `package.json` scripts:
+Update your `package.json` scripts to include the Pages deployment commands:
 
 ```json
 "scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "lint": "next lint",
-  "deploy": "npm run build && wrangler pages deploy out --project-name=your-project-name",
-  "deploy:prod": "npm run build && wrangler pages deploy out --project-name=your-project-name --branch=main --commit-dirty=true"
+  "dev": "vite",
+  "build": "tsc && vite build",
+  "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+  "preview": "vite preview",
+  "deploy:pages": "npm run build && cd dist && npx wrangler pages deploy . --project-name=trademe-tracker",
+  "deploy:pages:prod": "npm run build && cd dist && npx wrangler pages deploy . --project-name=trademe-tracker --branch=main --commit-dirty=true"
 }
 ```
 
-## Step 5: Deploy Your Site
+## Step 2: Create a Cloudflare Pages Project
 
-1. Authenticate with Cloudflare (if you haven't already):
-   ```bash
-   wrangler login
-   ```
+Before your first deployment, you need to create a Pages project:
 
-2. Run the deployment script:
-   ```bash
-   npm run deploy
-   ```
+```bash
+wrangler pages project create trademe-tracker --production-branch=main
+```
 
-3. For production deployment:
-   ```bash
-   npm run deploy:prod
-   ```
+You only need to do this once when setting up the project.
+
+## Step 3: Create a Minimal Wrangler Configuration (Optional)
+
+For the MiVoy project, we created a minimal `wrangler.toml` file:
+
+```toml
+name = "mivoy"
+compatibility_date = "2023-12-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+# Define KV namespace if needed
+kv_namespaces = [
+  { binding = "PROPERTIES_KV", id = "633473f72f9c444ca81d0413d340d3c0" }
+]
+```
+
+However, the direct upload approach from the `dist` directory doesn't require this file for deployment.
+
+## Step 4: Deploy Your Site
+
+After building your project, to deploy to Cloudflare Pages:
+
+```bash
+# For preview deployments:
+npm run deploy:pages
+
+# For production deployments:
+npm run deploy:pages:prod
+```
+
+MiVoy will be available at https://mivoy.pages.dev after deployment.
+
+The deployment script builds your application and then uploads the `dist` directory directly to Cloudflare Pages.
+
+## Step 5: Authentication with Cloudflare
+
+Before your first deployment, make sure you're authenticated with Cloudflare:
+
+```bash
+wrangler login
+```
+
+This only needs to be done once per machine.
 
 ## Common Issues and Solutions
 
-### 1. "Workers observability is only available for Workers projects"
+### 1. SSL/TLS Connection Errors
 
-**Problem**: You have an `[observability]` section in your wrangler.toml
+**Problem**: Errors like "ERR_SSL_VERSION_OR_CIPHER_MISMATCH" when trying to access your deployed site
 
-**Solution**: Remove the `[observability]` section completely. This is only supported for Workers, not Pages.
+**Solution**: Use the direct upload approach from the dist directory:
+```bash
+cd dist && npx wrangler pages deploy . --project-name=trademe-tracker
+```
 
-### 2. Missing pages in deployment
+### 2. "Pages does not support custom paths for the Wrangler configuration file"
 
-**Problem**: Some pages are not included in the static export
+**Problem**: When using `--config` flag with Pages deployments
 
-**Solution**: Add them explicitly to the `exportPathMap` in next.config.js
+**Solution**: Don't use the `--config` flag with Pages deployments. Use the direct upload approach instead.
 
-### 3. Images not loading
+### 3. Configuration File Conflicts
 
-**Problem**: Next.js Image Optimization doesn't work with static exports
+**Problem**: Error about "Configuration file cannot contain both both 'main' and 'pages_build_output_dir' configuration keys"
 
-**Solution**: Make sure you have `images.unoptimized = true` in your next.config.js
+**Solution**: Use separate wrangler configuration files for Workers and Pages, or use the direct upload approach that doesn't rely on wrangler.toml.
 
-### 4. API routes not working
+### 4. DNS Issues with Pages Subdomain
 
-**Problem**: API routes aren't available in static exports
+**Problem**: DNS_PROBE_FINISHED_NXDOMAIN or other DNS errors when trying to access your Pages site
 
-**Solution**: API routes aren't supported in static exports. Use client-side API calls to external services or use Cloudflare Functions/Workers for backend functionality.
+**Solution**: 
+1. Try accessing the specific deployment URL (with the hash prefix)
+2. Wait 5-10 minutes for DNS propagation
+3. Clear your DNS cache and browser cache
 
-### 5. Environment variables not being applied
+## Separating Worker and Pages Deployments
 
-**Problem**: Environment variables defined in .env files aren't included in the build
+MiVoy uses both Cloudflare Workers (for the backend) and Cloudflare Pages (for the frontend). To deploy both:
 
-**Solution**: Ensure environment variables are:
-1. Added to the `[vars]` section in wrangler.toml
-2. For client-side variables, prefixed with `NEXT_PUBLIC_`
+1. **Worker Deployment**:
+   ```bash
+   npm run worker:deploy
+   ```
 
-## Alternative Deployment Strategies
-
-If you need server-side rendering or API routes, consider:
-
-1. **Next.js on Cloudflare Pages with Functions** - Uses Cloudflare's adapter
-2. **Next.js on Vercel** - Full support for all Next.js features
-3. **Hybrid approach** - Static site with client-side data fetching for dynamic content
-
-## Notes on Client-Side Data Fetching
-
-Since API routes won't work in static exports, consider:
-
-1. Fetching data directly from client-side using hooks like `useEffect`
-2. Using external API services (Supabase, Firebase, custom APIs)
-3. Implementing Cloudflare Workers for dynamic backend functionality
+2. **Pages Deployment**:
+   ```bash
+   npm run deploy:pages:prod
+   ```
 
 ## Project Structure After Implementation
 
 ```
-your-project/
-├── next.config.js (configured for static export)
-├── package.json (with deploy scripts)
+mivoy/
+├── package.json (with deploy scripts for both Worker and Pages)
 ├── wrangler.toml (configured for Pages)
-├── pages/ (your Next.js pages)
-└── out/ (generated after build, contains static files)
+├── wrangler.worker.toml (configured for Worker)
+├── src/ (frontend source code)
+├── dist/ (built frontend files)
+└── worker/ (backend Worker code)
 ```
 
 ## Further Resources
 
-- [Next.js Static Export Documentation](https://nextjs.org/docs/pages/building-your-application/deploying/static-exports)
 - [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
+- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
 - [Wrangler CLI Documentation](https://developers.cloudflare.com/workers/wrangler/)
+- [Vite Deployment Guide](https://vitejs.dev/guide/static-deploy.html)

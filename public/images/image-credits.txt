@@ -1,0 +1,18 @@
+Image Credits:
+
+1. landing-bg.jpg - Replace with a local image for the landing page background
+   Original source: https://images.unsplash.com/photo-1499793983690-e29da59ef1c2
+
+2. about-bg.jpg - Replace with a local image for the about page background
+   Original source: https://images.unsplash.com/photo-1600585154340-be6161a56a0c
+
+3. resources-bg.jpg - Replace with a local image for the resources page background
+   Original source: https://images.unsplash.com/photo-1528702748617-c64d49f918af
+
+4. how-it-works-bg.jpg - Replace with a local image for the how it works page background
+   Original source: https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf
+
+5. faq-bg.jpg - Replace with a local image for the FAQ page background
+   Original source: https://images.unsplash.com/photo-1590283603385-c1c5a749fbf9
+
+Please download these images from Unsplash or use your own royalty-free images and place them in this directory.

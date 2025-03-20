@@ -1,0 +1,15 @@
+<svg width="1600" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sunset" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4b5563" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#db2777" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sunset)" />
+  
+  <!-- City skyline silhouette -->
+  <path d="M0,500 L100,500 L100,400 L150,400 L150,350 L200,350 L200,450 L250,450 L250,350 L300,350 L300,400 L350,400 L350,300 L400,300 L400,400 L450,400 L450,350 L500,350 L500,450 L550,450 L550,350 L600,350 L600,250 L650,250 L650,350 L700,350 L700,300 L750,300 L750,350 L800,350 L800,200 L850,200 L850,350 L900,350 L900,400 L950,400 L950,300 L1000,300 L1000,450 L1050,450 L1050,350 L1100,350 L1100,400 L1150,400 L1150,300 L1200,300 L1200,350 L1250,350 L1250,250 L1300,250 L1300,400 L1350,400 L1350,350 L1400,350 L1400,400 L1450,400 L1450,350 L1500,350 L1500,400 L1550,400 L1550,500 L1600,500 L1600,900 L0,900 Z" fill="black"/>
+  
+  <text x="800" y="150" font-family="Arial" font-size="48" fill="white" text-anchor="middle">City Skyline at Sunset</text>
+</svg>

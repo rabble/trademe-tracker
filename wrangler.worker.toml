@@ -1,0 +1,19 @@
+name = "mivoy"
+main = "worker/src/index.js"
+compatibility_date = "2023-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Define KV namespace
+kv_namespaces = [
+  { binding = "PROPERTIES_KV", id = "633473f72f9c444ca81d0413d340d3c0" }
+]
+
+# Define static assets
+[site]
+bucket = "./dist"
+include = ["**/*"]
+exclude = ["node_modules"]
+
+# Build command
+[build]
+command = "npm run build"

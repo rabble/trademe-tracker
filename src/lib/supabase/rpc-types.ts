@@ -39,5 +39,20 @@ declare module '@supabase/supabase-js' {
       }; 
       error: null 
     } | { data: null; error: any }>;
+    
+    rpc<R = void>(
+      fn: 'merge_temp_user_data',
+      params: { 
+        p_temp_user_id: string;
+        p_permanent_user_id: string;
+      }
+    ): Promise<{ data: R; error: null } | { data: null; error: any }>;
+    
+    rpc<R = void>(
+      fn: 'set_temp_user_id',
+      params: { 
+        p_temp_user_id: string;
+      }
+    ): Promise<{ data: R; error: null } | { data: null; error: any }>;
   }
 }
